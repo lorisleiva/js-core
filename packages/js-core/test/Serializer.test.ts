@@ -14,13 +14,33 @@ test('[Serializer] playground', (t: Test) => {
 
   log(serializer, 42);
 
-  const serializer2: Serializer<number | string, number> = mapSerializer(
+  const serializer2 = mapSerializer(serializer, (value: number | string) =>
+    typeof value === 'number' ? value : value.length
+  );
+  log(serializer2, 'hello world!');
+
+  const serializer3 = mapSerializer(
     serializer,
     (value: number | string) =>
       typeof value === 'number' ? value : value.length,
-    (n) => n
+    (value: number) => 'x'.repeat(value)
   );
-  log(serializer2, 'hello world!');
+  log(serializer3, 'hello world!');
+
+  const serializer4: Serializer<string> = mapSerializer(
+    serializer,
+    (value: string) => value.length,
+    (value: number) => 'x'.repeat(value)
+  );
+  log(serializer4, 'hello world!');
+
+  type Dummy = { a: number };
+  const serializer5: Serializer<Dummy> = mapSerializer(
+    serializer,
+    (value: Dummy) => value.a,
+    (value: number): Dummy => ({ a: value })
+  );
+  log(serializer5, { a: 123 });
 
   t.end();
 });
