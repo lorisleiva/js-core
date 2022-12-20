@@ -26,31 +26,9 @@ export const mapSerializer = <
   };
 };
 
-export const loosenSerializer = <
-  NewFrom,
-  OldFrom extends NewFrom,
-  To extends OldFrom = OldFrom
->(
-  serializer: Serializer<OldFrom, To>,
-  unmap: (value: NewFrom) => OldFrom
-): Serializer<NewFrom, To> => {
-  return mapSerializer(serializer, unmap, (n) => n);
-};
-
-export const tightenSerializer = <
-  OldFrom,
-  NewFrom extends OldFrom,
-  To extends NewFrom = NewFrom
->(
-  serializer: Serializer<OldFrom, To>,
-  unmap: (value: NewFrom) => OldFrom
-): Serializer<NewFrom, To> => {
-  return mapSerializer(serializer, unmap, (n) => n);
-};
-
 export const foofooSerializer = <
-  OldFrom,
   NewFrom,
+  OldFrom,
   To extends NewFrom & OldFrom
 >(
   serializer: Serializer<OldFrom, To>,

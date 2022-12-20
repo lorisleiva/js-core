@@ -1,5 +1,5 @@
 import test, { Test } from 'tape';
-import { loosenSerializer, mapSerializer, Serializer } from '../src';
+import { mapSerializer, Serializer } from '../src';
 
 test('[Serializer] playground', (t: Test) => {
   const serializer: Serializer<number> = {
