@@ -1,6 +1,6 @@
 {
-  "name": "@metaplex-foundation/js-core",
-  "version": "0.0.0",
+  "name": "@lorisleiva/js-core",
+  "version": "0.0.1",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",

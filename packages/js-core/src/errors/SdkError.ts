@@ -1,3 +1,6 @@
+import { Amount, AmountDecimals, AmountIdentifier } from '../Amount';
+import { Cluster } from '../Cluster';
+import { PublicKey } from '../PublicKey';
 import { MetaplexError } from './MetaplexError';
 
 /** @group Errors */
@@ -9,13 +12,67 @@ export class SdkError extends MetaplexError {
 }
 
 /** @group Errors */
-export class AssetNotFoundError extends SdkError {
-  readonly name: string = 'AssetNotFoundError';
-  constructor(location: string, cause?: Error) {
+export class OperationHandlerMissingError extends SdkError {
+  readonly name: string = 'OperationHandlerMissingError';
+  constructor(operationKey: string) {
     const message =
-      `The asset at [${location}] could not be found. ` +
-      'Ensure the asset exists at the given path or URI.';
-    super(message, cause);
+      `No operation handler was registered for the [${operationKey}] operation. ` +
+      `Did you forget to register it? You may do this by using: ` +
+      `"metaplex.operations().register(operation, operationHandler)".`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class DriverNotProvidedError extends SdkError {
+  readonly name: string = 'DriverNotProvidedError';
+  constructor(driver: string) {
+    const message =
+      `The SDK tried to access the driver [${driver}] but was not provided. ` +
+      `Make sure the driver is registered by using the "setDriver(myDriver)" method.`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class UnexpectedAmountError extends SdkError {
+  readonly name: string = 'UnexpectedAmountError';
+  readonly amount: Amount;
+  readonly expectedIdentifier: AmountIdentifier;
+  readonly expectedDecimals: AmountDecimals;
+  constructor(
+    amount: Amount,
+    expectedIdentifier: AmountIdentifier,
+    expectedDecimals: AmountDecimals
+  ) {
+    const message =
+      `Expected amount of type [${expectedIdentifier} with ${expectedDecimals} decimals] ` +
+      `but got [${amount.identifier} with ${amount.decimals} decimals]. ` +
+      `Ensure the provided Amount is of the expected type.`;
+    super(message);
+    this.amount = amount;
+    this.expectedIdentifier = expectedIdentifier;
+    this.expectedDecimals = expectedDecimals;
+  }
+}
+
+/** @group Errors */
+export class AmountMismatchError extends SdkError {
+  readonly name: string = 'AmountMismatchError';
+  readonly left: Amount;
+  readonly right: Amount;
+  readonly operation?: string;
+  constructor(left: Amount, right: Amount, operation?: string) {
+    const wrappedOperation = operation ? ` [${operation}]` : '';
+    const message =
+      `The SDK tried to execute an operation${wrappedOperation} on two amounts of different types: ` +
+      `[${left.identifier} with ${left.decimals} decimals] and ` +
+      `[${right.identifier} with ${right.decimals} decimals]. ` +
+      `Provide both amounts in the same type to perform this operation.`;
+    super(message);
+    this.left = left;
+    this.right = right;
+    this.operation = operation;
   }
 }
 
@@ -23,10 +80,10 @@ export class AssetNotFoundError extends SdkError {
 export class InvalidJsonVariableError extends SdkError {
   readonly name: string = 'InvalidJsonVariableError';
   constructor(cause?: Error) {
-    const message =
-      'The provided JSON variable could not be parsed into a string. ' +
-      'Ensure the variable can be parsed as a JSON string using "JSON.stringify(myVariable)".';
-    super(message, cause);
+    super(
+      'The provided JSON variable could not be parsed into a string.',
+      cause
+    );
   }
 }
 
@@ -34,9 +91,198 @@ export class InvalidJsonVariableError extends SdkError {
 export class InvalidJsonStringError extends SdkError {
   readonly name: string = 'InvalidJsonStringError';
   constructor(cause?: Error) {
+    super(
+      'The provided string could not be parsed into a JSON variable.',
+      cause
+    );
+  }
+}
+
+/** @group Errors */
+export class OperationUnauthorizedForGuestsError extends SdkError {
+  readonly name: string = 'OperationUnauthorizedForGuestsError';
+  constructor(operation: string) {
     const message =
-      'The provided string could not be parsed into a JSON variable. ' +
-      'Ensure the provided string uses a valid JSON syntax.';
+      `Trying to access the [${operation}] operation as a guest. ` +
+      `Ensure your wallet is connected using the identity driver. ` +
+      `For instance, by using "metaplex.use(walletAdapterIdentity(wallet))" or ` +
+      `"metaplex.use(keypairIdentity(keypair))".`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class UninitializedWalletAdapterError extends SdkError {
+  readonly name: string = 'UninitializedWalletAdapterError';
+  constructor() {
+    const message =
+      `The current wallet adapter is not initialized. ` +
+      'You likely have selected a wallet adapter but forgot to initialize it. ' +
+      'You may do this by running the following asynchronous method: "wallet.connect();".';
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class OperationNotSupportedByWalletAdapterError extends SdkError {
+  readonly name: string = 'OperationNotSupportedByWalletAdapterError';
+  constructor(operation: string) {
+    const message =
+      `The current wallet adapter does not support the following operation: [${operation}]. ` +
+      'Ensure your wallet is connected using a compatible wallet adapter.';
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class TaskIsAlreadyRunningError extends SdkError {
+  readonly name: string = 'TaskIsAlreadyRunningError';
+  constructor() {
+    const message =
+      `Trying to re-run a task that hasn't completed yet. ` +
+      `Ensure the task has completed using "await" before trying to run it again.`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class AssetNotFoundError extends SdkError {
+  readonly name: string = 'AssetNotFoundError';
+  constructor(location: string) {
+    super(`The asset at [${location}] could not be found.`);
+  }
+}
+
+/** @group Errors */
+export class AccountNotFoundError extends SdkError {
+  readonly name: string = 'AccountNotFoundError';
+  constructor(address: PublicKey, accountType?: string, solution?: string) {
+    const message =
+      (accountType
+        ? `The account of type [${accountType}] was not found`
+        : 'No account was found') +
+      ` at the provided address [${address.toString()}].` +
+      (solution ? ` ${solution}` : '');
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class UnexpectedAccountError extends SdkError {
+  readonly name: string = 'UnexpectedAccountError';
+  constructor(address: PublicKey, expectedType: string, cause?: Error) {
+    const message =
+      `The account at the provided address [${address.toString()}] ` +
+      `is not of the expected type [${expectedType}].`;
     super(message, cause);
+  }
+}
+
+/** @group Errors */
+export class UnexpectedTypeError extends SdkError {
+  readonly name: string = 'UnexpectedTypeError';
+  constructor(variable: string, actualType: string, expectedType: string) {
+    const message =
+      `Expected variable [${variable}] to be ` +
+      `of type [${expectedType}] but got [${actualType}].`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class ExpectedSignerError extends SdkError {
+  readonly name: string = 'ExpectedSignerError';
+  constructor(variable: string, actualType: string, solution?: string) {
+    const message =
+      `Expected variable [${variable}] to be of type [Signer] but got [${actualType}]. ` +
+      (solution ??
+        'Please check that you are providing the variable as a signer. ' +
+          'Note that, it may be allowed to provide a non-signer variable for certain use cases but not this one.');
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class ProgramNotRecognizedError extends SdkError {
+  readonly name: string = 'ProgramNotRecognizedError';
+  readonly nameOrAddress: string | PublicKey;
+  readonly cluster: Cluster;
+  constructor(nameOrAddress: string | PublicKey, cluster: Cluster) {
+    const isName = typeof nameOrAddress === 'string';
+    const toString = isName ? nameOrAddress : nameOrAddress.toString();
+    const message =
+      `The provided program ${isName ? 'name' : 'address'} [${toString}] ` +
+      `is not recognized in the [${cluster}] cluster.` +
+      'Did you forget to register this program? ' +
+      'If so, you may use "metaplex.programs().register(myProgram)" to fix this.';
+    super(message);
+    this.nameOrAddress = nameOrAddress;
+    this.cluster = cluster;
+  }
+}
+
+/** @group Errors */
+export class NoInstructionsToSendError extends SdkError {
+  readonly name: string = 'NoInstructionsToSendError';
+  constructor(operation: string, solution?: string) {
+    const message =
+      `The input provided to the [${operation}] resulted ` +
+      `in a Transaction containing no Instructions. ` +
+      (solution ??
+        `Ensure that the provided input has an effect on the operation. ` +
+          `This typically happens when trying to update an account with ` +
+          `the same data it already contains.`);
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class FailedToSerializeDataError extends SdkError {
+  readonly name: string = 'FailedToSerializeDataError';
+  constructor(dataDescription: string, cause?: Error) {
+    const message = `The received data could not be serialized as a [${dataDescription}].`;
+    super(message, cause);
+  }
+}
+
+/** @group Errors */
+export class FailedToDeserializeDataError extends SdkError {
+  readonly name: string = 'FailedToDeserializeDataError';
+  constructor(dataDescription: string, cause?: Error) {
+    const message = `The received serialized data could not be deserialized to a [${dataDescription}].`;
+    super(message, cause);
+  }
+}
+
+/** @group Errors */
+export class MissingInputDataError extends SdkError {
+  readonly name: string = 'MissingInputDataError';
+  constructor(missingParameters: string[], solution?: string) {
+    const message =
+      `Some parameters are missing from the provided input object. ` +
+      'Please provide the following missing parameters ' +
+      `[${missingParameters.join(', ')}].` +
+      (solution ? ` ${solution}` : '');
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class NotYetImplementedError extends SdkError {
+  readonly name: string = 'NotYetImplementedError';
+  constructor() {
+    const message = `This feature is not yet implemented. Please check back later.`;
+    super(message);
+  }
+}
+
+/** @group Errors */
+export class UnreachableCaseError extends SdkError {
+  readonly name: string = 'UnreachableCaseError';
+  constructor(value: never) {
+    const message =
+      `A switch statement is not handling the provided case [${value}]. ` +
+      `Check your inputs or raise an issue to have ensure all cases are handled properly.`;
+    super(message);
   }
 }
