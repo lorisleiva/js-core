@@ -11,7 +11,6 @@ test('[Serializer] playground', (t: Test) => {
       return [buffer[0], 1];
     },
   };
-
   log(serializer, 42);
 
   const serializer2 = mapSerializer(serializer, (value: number | string) =>
@@ -51,5 +50,6 @@ function log<From, V extends From, To extends From = From>(
 ) {
   const buffer = serializer.serialize(value);
   const [deserialized] = serializer.deserialize(buffer);
+  // eslint-disable-next-line no-console
   console.log({ buffer, deserialized });
 }
