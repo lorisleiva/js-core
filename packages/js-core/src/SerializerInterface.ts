@@ -4,9 +4,10 @@ import type { Serializer } from './Serializer';
 import type { Context } from './Context';
 import type { WrapInSerializer } from './TypeUtils';
 
-export type ScalarEnum<T> = Record<keyof T, number | string> & {
-  [k: number]: string;
-};
+type ScalarEnum<T> =
+  | { [key: number | string]: string | number | T }
+  | number
+  | T;
 
 export type DataEnumUnion = { __kind: string };
 
@@ -56,10 +57,10 @@ export interface SerializerInterface {
   ) => Serializer<T>;
 
   // Enums.
-  enum<T extends ScalarEnum<T>>(
-    constructor: T,
+  enum<T>(
+    constructor: ScalarEnum<T>,
     description?: string
-  ): Serializer<T>;
+  ): Serializer<ScalarEnum<T>>;
   dataEnum<T extends DataEnumUnion>(
     fields: DataEnumToSerializerTuple<T>,
     description?: string
