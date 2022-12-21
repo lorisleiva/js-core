@@ -85,3 +85,18 @@ export interface SerializerInterface {
     context: Pick<Context, 'eddsa'>
   ): Serializer<PublicKey | PublicKeyInput, PublicKey>;
 }
+
+const foo = {} as SerializerInterface;
+const bar = foo.struct<{ a: number; b: string }>([
+  ['a', foo.u8],
+  ['b', foo.u8],
+]);
+// const bar = foo.dataEnum<
+//   { __kind: 'V1'; a: number } | { __kind: 'V2'; b: string }
+// >([
+//   ['V1', foo.struct({ a: foo.u8 })],
+//   ['V1', foo.struct({ b: foo.string })],
+// ]);
+
+type T1 = { a: number; b: string };
+type T2 = RecordToTuple<WrapInSerializer<T1>>;
