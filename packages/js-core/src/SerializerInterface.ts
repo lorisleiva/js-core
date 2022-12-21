@@ -23,8 +23,10 @@ export type DataEnumSerializerTuple<T extends DataEnumUnion> = RecordToTuple<
 
 export interface SerializerInterface {
   // Lists.
-  // TODO(loris): Link tuple with serializer items (remove any).
-  tuple: <T>(items: Serializer<any>[], description?: string) => Serializer<T>;
+  tuple: <T extends any[]>(
+    items: WrapInSerializer<[...T]>,
+    description?: string
+  ) => Serializer<T>;
   vec: <T>(item: Serializer<T>, description?: string) => Serializer<T[]>;
   array: <T>(
     item: Serializer<T>,
@@ -47,7 +49,7 @@ export interface SerializerInterface {
   // Structs.
   // TODO(loris): Link struct with serializer fields (remove any).
   struct: <T extends object>(
-    fields: [keyof T, Serializer<any>][],
+    fields: RecordToTuple<WrapInSerializer<T>>,
     description?: string
   ) => Serializer<T>;
 
@@ -75,7 +77,7 @@ export interface SerializerInterface {
   i128: Serializer<number | bigint, bigint>;
   f32: Serializer<number>;
   f64: Serializer<number>;
-  string: Serializer<number>;
+  string: Serializer<string>;
   bytes: Serializer<Uint8Array>;
 
   // Extra leaves.
