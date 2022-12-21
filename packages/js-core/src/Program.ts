@@ -1,4 +1,4 @@
-import { Cluster } from './Cluster';
+import type { Cluster } from './Cluster';
 import type { PublicKey } from './PublicKey';
 
 export type ErrorWithLogs = Error & { logs: string[] };
