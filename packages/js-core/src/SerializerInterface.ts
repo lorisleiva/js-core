@@ -57,10 +57,7 @@ export interface SerializerInterface {
   ) => Serializer<T>;
 
   // Enums.
-  enum<T>(
-    constructor: ScalarEnum<T>,
-    description?: string
-  ): Serializer<ScalarEnum<T>>;
+  enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T>;
   dataEnum<T extends DataEnumUnion>(
     fields: DataEnumToSerializerTuple<T>,
     description?: string
