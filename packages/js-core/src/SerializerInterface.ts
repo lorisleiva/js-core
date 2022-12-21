@@ -24,13 +24,6 @@ export type DataEnumToSerializerTuple<T extends DataEnumUnion> = Array<
   T extends any ? [T['__kind'], Serializer<Omit<T, '__kind'>>] : never
 >;
 
-// export type DataEnumSerializerRecord<T extends DataEnumUnion> =
-//   WrapInSerializer<DataEnumRecord<T>>;
-
-// export type DataEnumSerializerTuple<T extends DataEnumUnion> = RecordToTuple<
-//   DataEnumSerializerRecord<T>
-// >;
-
 export interface SerializerInterface {
   // Lists.
   tuple: <T extends any[]>(
@@ -94,17 +87,3 @@ export interface SerializerInterface {
     context: Pick<Context, 'eddsa'>
   ): Serializer<PublicKey | PublicKeyInput, PublicKey>;
 }
-
-const foo = {} as SerializerInterface;
-const bar = foo.dataEnum<
-  { __kind: 'V1'; a: number } | { __kind: 'V2'; b: string }
->([
-  ['V1', foo.struct<{ a: number }>([['a', foo.u8]])],
-  ['V2', foo.struct<{ b: string }>([['b', foo.string]])],
-]);
-
-type T1 = { a: number; b: string };
-type T2 = StructToSerializerTuple<T1>;
-
-type T3 = { __kind: 'V1'; a: number } | { __kind: 'V2'; b: string };
-type T4 = DataEnumToSerializerTuple<T3>;
