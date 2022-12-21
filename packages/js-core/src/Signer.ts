@@ -1,4 +1,4 @@
-import { Context } from './Context';
+import type { Context } from './Context';
 import type { Keypair } from './KeyPair';
 import type { PublicKey } from './PublicKey';
 import type { Transaction } from './Transaction';
@@ -36,6 +36,27 @@ export const createSignerFromKeypair = (
       );
     },
   };
+};
+
+export const createNoopSigner = (publicKey: PublicKey): Signer => {
+  return {
+    publicKey,
+    async signMessage(message: Uint8Array): Promise<Uint8Array> {
+      return message;
+    },
+    async signTransaction(transaction: Transaction): Promise<Transaction> {
+      return transaction;
+    },
+    async signAllTransactions(
+      transactions: Transaction[]
+    ): Promise<Transaction[]> {
+      return transactions;
+    },
+  };
+};
+
+export const createNullSigner = (): Signer => {
+  return new NullSigner();
 };
 
 export class NullSigner implements Signer {
