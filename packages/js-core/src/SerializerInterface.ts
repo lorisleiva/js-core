@@ -1,10 +1,25 @@
 import type { PublicKey } from './PublicKey';
 import type { PublicKeyInput } from './EddsaInterface';
 import type { Serializer } from './Serializer';
-import { Context } from './Context';
+import type { Context } from './Context';
+import { RecordToTuple, WrapInSerializer } from './TypeUtils';
 
-// type Enum<T> = { [key: number | string]: string | number | T } | number | T; // From Beet.
-type Enum<T> = Record<keyof T, number | string> & { [k: number]: string }; // From SO.
+export type ScalarEnum<T> = Record<keyof T, number | string> & {
+  [k: number]: string;
+};
+
+export type DataEnumUnion = { __kind: string };
+
+export type DataEnumRecord<T extends { __kind: string }> = {
+  [P in T['__kind']]: Extract<T, { __kind: P }>;
+};
+
+export type DataEnumSerializerRecord<T extends DataEnumUnion> =
+  WrapInSerializer<DataEnumRecord<T>>;
+
+export type DataEnumSerializerTuple<T extends DataEnumUnion> = RecordToTuple<
+  DataEnumSerializerRecord<T>
+>;
 
 export interface SerializerInterface {
   // Lists.
@@ -37,9 +52,14 @@ export interface SerializerInterface {
   ) => Serializer<T>;
 
   // Enums.
-  enum<T extends Enum<T>>(constructor: T): Serializer<T>;
-  // TODO: enum
-  // TODO: dataEnum
+  enum<T extends ScalarEnum<T>>(
+    constructor: T,
+    description?: string
+  ): Serializer<T>;
+  dataEnum<T extends DataEnumUnion>(
+    fields: DataEnumSerializerTuple<T>,
+    description?: string
+  ): Serializer<T>;
 
   // Leaves.
   bool: Serializer<boolean>;
