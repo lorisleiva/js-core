@@ -11,7 +11,7 @@ export const isErrorWithLogs = (error: unknown): error is ErrorWithLogs =>
 export type Program = {
   name: string;
   address: PublicKey;
-  getErrorFromCode: (code: number) => ProgramError | null;
-  getErrorFromName: (name: string) => ProgramError | null;
+  getErrorFromCode: (code: number, cause?: Error) => ProgramError | null;
+  getErrorFromName: (name: string, cause?: Error) => ProgramError | null;
   isOnCluster: (cluster: Cluster) => boolean;
 };
