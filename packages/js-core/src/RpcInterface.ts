@@ -1,6 +1,8 @@
+import type { MaybeRpcAccount } from './Account';
 import type { Cluster } from './Cluster';
 import type { Context } from './Context';
 import type { GenericAbortSignal } from './GenericAbortSignal';
+import type { PublicKey } from './PublicKey';
 import type {
   Blockhash,
   SerializedTransaction,
@@ -11,12 +13,20 @@ import type {
 export interface RpcInterface {
   getEndpoint(): string;
   getCluster(): Cluster;
-  call<Result, Params extends Array<any> = Array<any>>(
+  getAccount(address: PublicKey): Promise<MaybeRpcAccount>;
+  // getAccounts(addresses: PublicKey[]): Promise<MaybeRawAccount[]>;
+  // getProgramAccounts(addresses: PublicKey[]): Promise<MaybeRawAccount[]>;
+  // getBalance(): Promise<SolAmount>;
+  // getRent(): Promise<...>;
+  // getLatestBlockhash(): Promise<...>;
+  // accountExists(): Promise<boolean>;
+  // airdrop(): Promise<...>;
+  call<Result, Params extends any[]>(
     method: string,
-    params?: Params,
+    params?: [...Params],
     options?: RpcOptions
   ): Promise<Result>;
-  supports(method: string): boolean;
+  // supports(method: string): boolean;
   sendTransaction(
     serializedTransaction: SerializedTransaction,
     context: Pick<Context, 'programs'>,

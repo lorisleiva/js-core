@@ -1,3 +1,4 @@
+export * from './Account';
 export * from './Amount';
 export * from './Cluster';
 export * from './Context';
@@ -23,4 +24,3 @@ export * from './Transaction';
 export * from './TransactionFactoryInterface';
 export * from './UploaderInterface';
 export * from './utils';
-
