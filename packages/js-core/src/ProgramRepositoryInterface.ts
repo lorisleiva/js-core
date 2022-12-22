@@ -27,3 +27,19 @@ export const getProgramAddressWithFallback = (
     return publicKey;
   }
 };
+
+export class NullProgramRepository implements ProgramRepositoryInterface {
+  get<T extends Program = Program>(): T {
+    // TODO(loris): Custom error.
+    throw Error('ProgramRepositoryInterface not implemented.');
+  }
+  all(): Program[] {
+    throw Error('ProgramRepositoryInterface not implemented.');
+  }
+  add(): void {
+    throw Error('ProgramRepositoryInterface not implemented.');
+  }
+  resolveError(): ProgramError | null {
+    throw Error('ProgramRepositoryInterface not implemented.');
+  }
+}
