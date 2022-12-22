@@ -25,8 +25,8 @@ export type Account<T extends object> = T & {
 };
 
 export function deserializeAccount<T extends object>(
-  dataSerializer: Serializer<T>,
-  rawAccount: RpcAccount
+  rawAccount: RpcAccount,
+  dataSerializer: Serializer<T>
 ): Account<T> {
   const { data, publicKey, ...rest } = rawAccount;
   const [parsedData] = dataSerializer.deserialize(data);
