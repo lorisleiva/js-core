@@ -14,8 +14,8 @@ export interface RpcInterface {
   getEndpoint(): string;
   getCluster(): Cluster;
   getAccount(address: PublicKey): Promise<MaybeRpcAccount>;
-  // getAccounts(addresses: PublicKey[]): Promise<MaybeRawAccount[]>;
-  // getProgramAccounts(addresses: PublicKey[]): Promise<MaybeRawAccount[]>;
+  // getAccounts(addresses: PublicKey[]): Promise<MaybeRpcAccount[]>;
+  // getProgramAccounts(addresses: PublicKey[]): Promise<MaybeRpcAccount[]>;
   // getBalance(): Promise<SolAmount>;
   // getRent(): Promise<...>;
   // getLatestBlockhash(): Promise<...>;
