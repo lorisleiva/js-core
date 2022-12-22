@@ -1,16 +1,14 @@
 import type { Context } from './Context';
 import type { PublicKeyInput } from './EddsaInterface';
-import type { Program } from './Program';
+import type { ProgramError } from './errors';
+import type { ErrorWithLogs, Program } from './Program';
 import type { PublicKey } from './PublicKey';
 
 export interface ProgramRepositoryInterface {
   get<T extends Program = Program>(nameOrAddress: string | PublicKey): T;
-  getAddress(
-    nameOrAddress: string | PublicKey,
-    fallback?: PublicKey
-  ): PublicKey;
   all(): Program[];
   add(program: Program): void;
+  resolveError(error: ErrorWithLogs): ProgramError | null;
 }
 
 export const getProgramAddressWithFallback = (
@@ -22,5 +20,10 @@ export const getProgramAddressWithFallback = (
   address: PublicKeyInput
 ) => {
   const publicKey = context.eddsa.createPublicKey(address);
-  return context.programs?.getAddress(name, publicKey) ?? publicKey;
+  if (!context.programs) return publicKey;
+  try {
+    return context.programs?.get(name).address;
+  } catch (error) {
+    return publicKey;
+  }
 };
