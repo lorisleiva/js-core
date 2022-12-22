@@ -7,6 +7,7 @@ export interface EddsaInterface {
   createKeypairFromSeed: (seed: Uint8Array) => Keypair;
   createPublicKey: (input: PublicKeyInput) => PublicKey;
   createDefaultPublicKey: () => PublicKey;
+  isOnCurve: (input: PublicKeyInput) => boolean;
   findPda: (programId: PublicKey, seeds: Uint8Array[]) => Pda;
   sign: (message: Uint8Array, keypair: Keypair) => Uint8Array;
   verify: (
@@ -33,6 +34,9 @@ export class NullEddsa implements EddsaInterface {
     throw new Error('Method not implemented.');
   }
   createDefaultPublicKey(): PublicKey {
+    throw new Error('Method not implemented.');
+  }
+  isOnCurve(): boolean {
     throw new Error('Method not implemented.');
   }
   findPda(): Pda {
