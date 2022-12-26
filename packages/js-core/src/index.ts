@@ -22,5 +22,6 @@ export * from './SerializerInterface';
 export * from './Signer';
 export * from './Transaction';
 export * from './TransactionFactoryInterface';
+export * from './TypeUtils';
 export * from './UploaderInterface';
 export * from './utils';
