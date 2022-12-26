@@ -1,7 +1,6 @@
 import type { PublicKey } from './PublicKey';
 import type { PublicKeyInput } from './EddsaInterface';
 import type { Serializer } from './Serializer';
-import type { Context } from './Context';
 import type { WrapInSerializer } from './TypeUtils';
 
 type ScalarEnum<T> =
@@ -79,9 +78,5 @@ export interface SerializerInterface {
   f64: Serializer<number>;
   string: Serializer<string>;
   bytes: Serializer<Uint8Array>;
-
-  // Extra leaves.
-  publicKey(
-    context: Pick<Context, 'eddsa'>
-  ): Serializer<PublicKey | PublicKeyInput, PublicKey>;
+  publicKey: Serializer<PublicKey | PublicKeyInput, PublicKey>;
 }
