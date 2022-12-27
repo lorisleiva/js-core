@@ -177,9 +177,12 @@ test('[js-serializer-beet] it can serialize strings', (t) => {
   t.is(sd(string, '語'), '語');
 });
 
-test.skip('[js-serializer-beet] it can serialize bytes', (t) => {
+test('[js-serializer-beet] it can serialize bytes', (t) => {
   const { bytes } = new BeetSerializer();
   t.is(bytes.description, 'bytes');
+  t.is(s(bytes, new Uint8Array([0])), '00');
+  t.is(s(bytes, new Uint8Array([42, 255])), '2aff');
+  t.deepEqual(sd(bytes, new Uint8Array([42, 255])), new Uint8Array([42, 255]));
 });
 
 test('[js-serializer-beet] it can serialize public keys', (t) => {

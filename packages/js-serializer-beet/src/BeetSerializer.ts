@@ -310,7 +310,7 @@ export class BeetSerializer implements SerializerInterface {
 
   get bytes(): Serializer<Uint8Array> {
     return {
-      description: beet.bytes.description,
+      description: 'bytes',
       serialize: (value: Uint8Array) => new Uint8Array(value),
       deserialize: (bytes: Uint8Array, offset = 0) => [
         new Uint8Array(bytes),
