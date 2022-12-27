@@ -23,7 +23,25 @@ export class BeetSerializer implements SerializerInterface {
     items: [...WrapInSerializer<T>],
     description?: string
   ): Serializer<T> {
-    throw new Error('Method not implemented.');
+    return {
+      description: description ?? 'tuple',
+      serialize: (value: T) => {
+        const tupleBeet = beet
+          .tuple<T>(...items.map((item) => item.beet))
+          .toFixedFromValue(value);
+        const buffer = Buffer.alloc(tupleBeet.byteSize);
+        tupleBeet.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const tupleBeet = beet
+          .tuple<T>(...items.map((item) => item.beet))
+          .toFixedFromData(buffer, offset);
+        const value = tupleBeet.read(buffer, offset);
+        return [value, offset + tupleBeet.byteSize];
+      },
+    };
   }
 
   vec<T>(item: Serializer<T>, description?: string): Serializer<T[]> {
