@@ -27,7 +27,7 @@ export class BeetSerializer implements SerializerInterface {
       description: description ?? 'tuple',
       serialize: (value: T) => {
         const tupleBeet = beet
-          .tuple<T>(...items.map((item) => item.beet))
+          .tuple<T>(items.map((item) => item.beet))
           .toFixedFromValue(value);
         const buffer = Buffer.alloc(tupleBeet.byteSize);
         tupleBeet.write(buffer, 0, value);
@@ -36,7 +36,7 @@ export class BeetSerializer implements SerializerInterface {
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const buffer = Buffer.from(bytes);
         const tupleBeet = beet
-          .tuple<T>(...items.map((item) => item.beet))
+          .tuple<T>(items.map((item) => item.beet))
           .toFixedFromData(buffer, offset);
         const value = tupleBeet.read(buffer, offset);
         return [value, offset + tupleBeet.byteSize];
