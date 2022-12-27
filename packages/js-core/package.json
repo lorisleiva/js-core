@@ -22,7 +22,7 @@
     "lint": "eslint --ext js,ts,tsx src",
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsc && tsc-alias && tsc -p test/tsconfig.json && tsc-alias -p test/tsconfig.json && rollup -c",
+    "build": "pnpm clean && tsc && tsc -p test/tsconfig.json && rollup -c",
     "test": "CI=1 tape dist/test/**/*.test.js"
   },
   "dependencies": {},

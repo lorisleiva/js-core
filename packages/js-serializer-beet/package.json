@@ -22,8 +22,8 @@
     "lint": "eslint --ext js,ts,tsx src",
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsc && tsc-alias && tsc -p test/tsconfig.json && tsc-alias -p test/tsconfig.json && rollup -c",
-    "test": "CI=1 tape dist/test/**/*.test.js"
+    "build": "pnpm clean && tsc && tsc -p test/tsconfig.json && rollup -c",
+    "test": "ava"
   },
   "dependencies": {
     "@lorisleiva/js-core": "workspace:^",
@@ -43,5 +43,18 @@
     "entryPoint": "./src/index.ts",
     "readmeFile": "./README.md",
     "displayName": "js-serializer-beet"
-  }
+  },
+  "devDependencies": {
+    "@ava/typescript": "^3.0.1",
+    "ava": "^5.1.0"
+  },
+	"ava": {
+		"typescript": {
+			"compile": false,
+			"rewritePaths": {
+				"src/": "dist/cjs/",
+				"test/": "dist/test/"
+			}
+		}
+	}
 }

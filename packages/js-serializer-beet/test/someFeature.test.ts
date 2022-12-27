@@ -1,5 +1,5 @@
-import test, { Test } from 'tape';
+import test from 'ava';
 
-test('[packageName] it tests some dummy feature', async (t: Test) => {
-  t.equal(1, 1);
+test('[packageName] it tests some dummy feature', async (t) => {
+  t.is(1, 1);
 });
