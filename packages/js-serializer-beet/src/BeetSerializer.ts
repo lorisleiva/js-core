@@ -145,7 +145,24 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u128(): Serializer<number | bigint, bigint> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.u128.description,
+      serialize: (value: number | bigint) => {
+        if (value < 0) throw new RangeError('u128 cannot be negative');
+        const buffer = Buffer.alloc(beet.u128.byteSize);
+        beet.u128.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const rawValue = beet.u128.read(buffer, offset);
+        const value =
+          typeof rawValue === 'number'
+            ? BigInt(rawValue)
+            : toBigInt(rawValue.toString());
+        return [value, offset + beet.u128.byteSize];
+      },
+    };
   }
 
   get i8(): Serializer<number> {
