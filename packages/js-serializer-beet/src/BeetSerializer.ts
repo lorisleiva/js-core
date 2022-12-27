@@ -127,6 +127,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: beet.u64.description,
       serialize: (value: number | bigint) => {
+        if (value < 0) throw new RangeError('u64 cannot be negative');
         const buffer = Buffer.alloc(beet.u64.byteSize);
         beet.u64.write(buffer, 0, value);
         return new Uint8Array(buffer);
@@ -137,7 +138,7 @@ export class BeetSerializer implements SerializerInterface {
         const value =
           typeof rawValue === 'number'
             ? BigInt(rawValue)
-            : toBigInt(rawValue.toBuffer());
+            : toBigInt(rawValue.toString());
         return [value, offset + beet.u64.byteSize];
       },
     };
