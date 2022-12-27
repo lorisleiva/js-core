@@ -6,6 +6,17 @@ import {
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
+test('[js-serializer-beet] it can serialize booleans', (t) => {
+  const { bool } = new BeetSerializer();
+  t.is(bool.description, 'bool');
+  t.is(s(bool, false), '00');
+  t.is(s(bool, true), '01');
+  t.is(d(bool, '00'), false);
+  t.is(d(bool, '01'), true);
+  t.is(sd(bool, false), false);
+  t.is(sd(bool, true), true);
+});
+
 test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
   const { u8 } = new BeetSerializer();
   t.is(u8.description, 'u8');

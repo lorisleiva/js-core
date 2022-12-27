@@ -73,7 +73,19 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get bool(): Serializer<boolean> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.bool.description,
+      serialize: (value: boolean) => {
+        const buffer = Buffer.alloc(beet.u8.byteSize);
+        beet.bool.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.bool.read(buffer, offset);
+        return [value, offset + beet.bool.byteSize];
+      },
+    };
   }
 
   get u8(): Serializer<number> {
