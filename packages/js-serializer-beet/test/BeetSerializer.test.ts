@@ -1,6 +1,6 @@
 import { Serializer, bytesToHex, hexToBytes } from '@lorisleiva/js-core';
 import test from 'ava';
-import { BeetSerializer } from '../src';
+import { BeetSerializer, OperationNotSupportedError } from '../src';
 
 test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
   const { u8 } = new BeetSerializer();
@@ -148,6 +148,15 @@ test('[js-serializer-beet] it can serialize i128 numbers', (t) => {
   t.is(sd(i128, max), max);
   t.throws<RangeError>(() => s(i128, -max - 2n));
   t.throws<RangeError>(() => s(i128, max + 1n));
+});
+
+test('[js-serializer-beet] it cannot serialize float numbers', (t) => {
+  const { f32, f64 } = new BeetSerializer();
+  const throwExpectation = { name: 'OperationNotSupportedError' };
+  t.throws<OperationNotSupportedError>(() => s(f32, 1.5), throwExpectation);
+  t.throws<OperationNotSupportedError>(() => d(f32, '00'), throwExpectation);
+  t.throws<OperationNotSupportedError>(() => s(f64, 42.6), throwExpectation);
+  t.throws<OperationNotSupportedError>(() => d(f64, '00'), throwExpectation);
 });
 
 /** Serialize as a hex string. */

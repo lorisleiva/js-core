@@ -266,11 +266,27 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get f32(): Serializer<number> {
-    throw new OperationNotSupportedError('f32');
+    return {
+      description: 'f32 [not supported]',
+      serialize: () => {
+        throw new OperationNotSupportedError('f32');
+      },
+      deserialize: () => {
+        throw new OperationNotSupportedError('f32');
+      },
+    };
   }
 
   get f64(): Serializer<number> {
-    throw new OperationNotSupportedError('f64');
+    return {
+      description: 'f64 [not supported]',
+      serialize: () => {
+        throw new OperationNotSupportedError('f64');
+      },
+      deserialize: () => {
+        throw new OperationNotSupportedError('f64');
+      },
+    };
   }
 
   get string(): Serializer<string> {
