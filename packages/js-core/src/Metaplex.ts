@@ -14,8 +14,7 @@ export interface Metaplex
   use(plugin: MetaplexPlugin): Metaplex;
 }
 
-export const createMetaplex = (): Metaplex => {
-  return {
+export const createMetaplex = (): Metaplex => ({
     uploader: new NullUploader(),
     downloader: new NullDownloader(),
     identity: new NullSigner(),
@@ -25,5 +24,4 @@ export const createMetaplex = (): Metaplex => {
       plugin.install(this);
       return this;
     },
-  };
-};
+  });

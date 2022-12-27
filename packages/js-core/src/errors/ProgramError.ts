@@ -6,7 +6,9 @@ type UnderlyingProgramError = Error & { code?: number; logs?: string[] };
 /** @group Errors */
 export class ProgramError extends MetaplexError {
   readonly name: string = 'ProgramError';
+
   readonly program: Program;
+
   readonly logs?: string[];
 
   constructor(
@@ -23,9 +25,8 @@ export class ProgramError extends MetaplexError {
     this.program = program;
     this.logs = cause?.logs;
     if (this.logs) {
-      this.message =
-        this.message +
-        `\nProgram Logs:\n${this.logs.map((log) => '| ' + log).join('\n')}\n`;
+      this.message +=
+        `\nProgram Logs:\n${this.logs.map((log) => `| ${  log}`).join('\n')}\n`;
     }
   }
 }
@@ -33,6 +34,7 @@ export class ProgramError extends MetaplexError {
 /** @group Errors */
 export class UnknownProgramError extends ProgramError {
   readonly name: string = 'UnknownProgramError';
+
   constructor(program: Program, cause: UnderlyingProgramError) {
     const ofCode = cause.code ? ` of code [${cause.code}]` : '';
     const message =

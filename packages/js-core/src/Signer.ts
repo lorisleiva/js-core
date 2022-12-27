@@ -10,15 +10,12 @@ export type Signer = {
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
 };
 
-export const isSigner = (value: PublicKey | Signer): value is Signer => {
-  return 'publicKey' in value;
-};
+export const isSigner = (value: PublicKey | Signer): value is Signer => 'publicKey' in value;
 
 export const createSignerFromKeypair = (
   context: Pick<Context, 'eddsa'>,
   keypair: Keypair
-): Signer => {
-  return {
+): Signer => ({
     publicKey: keypair.publicKey,
     async signMessage(message: Uint8Array): Promise<Uint8Array> {
       return context.eddsa.sign(message, keypair);
@@ -35,11 +32,9 @@ export const createSignerFromKeypair = (
         transactions.map((transaction) => this.signTransaction(transaction))
       );
     },
-  };
-};
+  });
 
-export const createNoopSigner = (publicKey: PublicKey): Signer => {
-  return {
+export const createNoopSigner = (publicKey: PublicKey): Signer => ({
     publicKey,
     async signMessage(message: Uint8Array): Promise<Uint8Array> {
       return message;
@@ -52,24 +47,24 @@ export const createNoopSigner = (publicKey: PublicKey): Signer => {
     ): Promise<Transaction[]> {
       return transactions;
     },
-  };
-};
+  });
 
-export const createNullSigner = (): Signer => {
-  return new NullSigner();
-};
+export const createNullSigner = (): Signer => new NullSigner();
 
 export class NullSigner implements Signer {
   // TODO(loris): Custom errors.
   get publicKey(): PublicKey {
     throw new Error('Method not implemented.');
   }
+
   signMessage(): Promise<Uint8Array> {
     throw new Error('Method not implemented.');
   }
+
   signTransaction(): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
+
   signAllTransactions(): Promise<Transaction[]> {
     throw new Error('Method not implemented.');
   }

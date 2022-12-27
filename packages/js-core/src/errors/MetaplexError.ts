@@ -1,8 +1,11 @@
 /** @group Errors */
 export class MetaplexError extends Error {
   readonly name: string = 'MetaplexError';
+
   readonly source: MetaplexErrorSource;
+
   readonly sourceDetails?: string;
+
   readonly cause?: Error;
 
   constructor(
@@ -16,10 +19,10 @@ export class MetaplexError extends Error {
     this.sourceDetails = sourceDetails;
     this.cause = cause;
     this.message =
-      this.message +
-      `\n\nSource: ${this.getFullSource()}` +
-      (this.cause ? `\n\nCaused By: ${this.cause}` : '') +
-      '\n';
+      `${this.message 
+      }\n\nSource: ${this.getFullSource()}${ 
+      this.cause ? `\n\nCaused By: ${this.cause}` : '' 
+      }\n`;
   }
 
   getCapitalizedSource(): string {

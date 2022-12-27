@@ -39,13 +39,11 @@ export const createGenericFile = (
 export const createGenericFileFromBrowserFile = async (
   browserFile: BrowserFile,
   options: GenericFileOptions = {}
-): Promise<GenericFile> => {
-  return createGenericFile(
+): Promise<GenericFile> => createGenericFile(
     new Uint8Array(await browserFile.arrayBuffer()),
     browserFile.name,
     options
   );
-};
 
 export const createGenericFileFromJson = <T extends object = object>(
   json: T,
@@ -65,15 +63,12 @@ export const createGenericFileFromJson = <T extends object = object>(
 
 export const createBrowserFileFromGenericFile = (
   file: GenericFile
-): BrowserFile => {
-  return new File([file.buffer as BlobPart], file.fileName);
-};
+): BrowserFile => new File([file.buffer as BlobPart], file.fileName);
 
 export const getBytesFromGenericFiles = (...files: GenericFile[]): number =>
   files.reduce((acc, file) => acc + file.buffer.byteLength, 0);
 
-export const isGenericFile = (file: any): file is GenericFile => {
-  return (
+export const isGenericFile = (file: any): file is GenericFile => (
     file != null &&
     typeof file === 'object' &&
     'buffer' in file &&
@@ -84,7 +79,6 @@ export const isGenericFile = (file: any): file is GenericFile => {
     'extension' in file &&
     'tags' in file
   );
-};
 
 const getExtension = (fileName: string): string | null => {
   const lastDotIndex = fileName.lastIndexOf('.');

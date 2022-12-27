@@ -4,7 +4,7 @@ export const generateRandomString = (
 ) => {
   let result = '';
   const alphabetLength = alphabet.length;
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i += 1) {
     result += alphabet.charAt(Math.floor(Math.random() * alphabetLength));
   }
 

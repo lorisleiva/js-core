@@ -24,27 +24,35 @@ export class NullEddsa implements EddsaInterface {
   generateKeypair(): Keypair {
     throw new Error('Method not implemented.');
   }
+
   createKeypairFromSecretKey(): Keypair {
     throw new Error('Method not implemented.');
   }
+
   createKeypairFromSeed(): Keypair {
     throw new Error('Method not implemented.');
   }
+
   createPublicKey(): PublicKey {
     throw new Error('Method not implemented.');
   }
+
   createDefaultPublicKey(): PublicKey {
     throw new Error('Method not implemented.');
   }
+
   isOnCurve(): boolean {
     throw new Error('Method not implemented.');
   }
+
   findPda(): Pda {
     throw new Error('Method not implemented.');
   }
+
   sign(): Uint8Array {
     throw new Error('Method not implemented.');
   }
+
   verify(): boolean {
     throw new Error('Method not implemented.');
   }

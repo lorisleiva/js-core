@@ -13,6 +13,7 @@ export type MockStorageOptions = {
 
 export class MockStorage implements UploaderInterface, DownloaderInterface {
   protected cache: Record<string, GenericFile> = {};
+
   public readonly baseUrl: string;
 
   constructor(options?: MockStorageOptions) {

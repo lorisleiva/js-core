@@ -28,13 +28,11 @@ export const toAmount = <I extends AmountIdentifier, D extends AmountDecimals>(
   basisPoints: BigIntInput,
   identifier: I,
   decimals: D
-): Amount<I, D> => {
-  return {
+): Amount<I, D> => ({
     basisPoints: toBigInt(basisPoints),
     identifier,
     decimals,
-  };
-};
+  });
 
 export const toAmountFromDecimals = <
   I extends AmountIdentifier,
@@ -60,41 +58,27 @@ export const toTokenAmount = <
   tokens: number,
   identifier?: I,
   decimals?: D
-): Amount<I, D> => {
-  return toAmountFromDecimals(
+): Amount<I, D> => toAmountFromDecimals(
     tokens,
     (identifier ?? 'Token') as I,
     (decimals ?? 0) as D
   );
-};
 
-export const lamports = (lamports: BigIntInput): SolAmount => {
-  return toAmount(lamports, 'SOL', 9);
-};
+export const lamports = (lamports: BigIntInput): SolAmount => toAmount(lamports, 'SOL', 9);
 
-export const sol = (sol: number): SolAmount => {
-  return toAmountFromDecimals(sol, 'SOL', 9);
-};
+export const sol = (sol: number): SolAmount => toAmountFromDecimals(sol, 'SOL', 9);
 
-export const usd = (usd: number): UsdAmount => {
-  return toAmountFromDecimals(usd, 'USD', 2);
-};
+export const usd = (usd: number): UsdAmount => toAmountFromDecimals(usd, 'USD', 2);
 
 export const isAmount = <I extends AmountIdentifier, D extends AmountDecimals>(
   amount: Amount,
   identifier: I,
   decimals: D
-): amount is Amount<I, D> => {
-  return amount.identifier === identifier && amount.decimals === decimals;
-};
+): amount is Amount<I, D> => amount.identifier === identifier && amount.decimals === decimals;
 
-export const isSolAmount = (amount: Amount): amount is SolAmount => {
-  return isAmount(amount, 'SOL', 9);
-};
+export const isSolAmount = (amount: Amount): amount is SolAmount => isAmount(amount, 'SOL', 9);
 
-export const sameAmounts = (left: Amount, right: Amount): boolean => {
-  return isAmount(left, right.identifier, right.decimals);
-};
+export const sameAmounts = (left: Amount, right: Amount): boolean => isAmount(left, right.identifier, right.decimals);
 
 export function assertAmount<
   I extends AmountIdentifier,
@@ -289,12 +273,10 @@ export const amountToString = (value: Amount, maxDecimals?: number): string => {
     decimals = decimals.slice(0, maxDecimals);
   }
 
-  return sign + units + '.' + decimals;
+  return `${sign + units  }.${  decimals}`;
 };
 
-export const amountToNumber = (value: Amount): number => {
-  return parseFloat(amountToString(value));
-};
+export const amountToNumber = (value: Amount): number => parseFloat(amountToString(value));
 
 export const formatAmount = (value: Amount, maxDecimals?: number): string => {
   const amountAsString = amountToString(value, maxDecimals);
