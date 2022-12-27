@@ -1,4 +1,4 @@
-import type { Serializer } from '@lorisleiva/js-core';
+import { Serializer, bytesToHex, hexToBytes } from '@lorisleiva/js-core';
 import test from 'ava';
 import { BeetSerializer } from '../src';
 
@@ -21,7 +21,7 @@ test('[js-serializer-beet] it can serialize u16 numbers', (t) => {
   t.is(s(u16, 0), '0000');
   t.is(s(u16, 42), '2a00');
   t.is(s(u16, 255), 'ff00');
-  t.is(s(u16, 256), 'ff01');
+  t.is(s(u16, 256), '0001');
   t.is(s(u16, 65535), 'ffff');
   t.is(sd(u16, 0), 0);
   t.is(sd(u16, 42), 42);
@@ -35,7 +35,8 @@ test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
   t.is(u32.description, 'u32');
   t.is(s(u32, 0), '00000000');
   t.is(s(u32, 42), '2a000000');
-  t.is(s(u32, 65536), 'ffff0100');
+  t.is(s(u32, 65536), '00000100');
+  t.is(s(u32, 4_294_967_295), 'ffffffff');
   t.is(sd(u32, 0), 0);
   t.is(sd(u32, 42), 42);
   t.is(sd(u32, 4_294_967_295), 4_294_967_295);
@@ -43,29 +44,18 @@ test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
   t.throws<RangeError>(() => s(u32, 4_294_967_296));
 });
 
+/** Serialize as a hex string. */
 function s<T>(serializer: Serializer<T>, value: T): string {
-  return toHexString(serializer.serialize(value));
+  return bytesToHex(serializer.serialize(value));
 }
 
+/** Deserialize from a hex string. */
 function d<T>(serializer: Serializer<T>, value: string): T {
-  const bytes = fromHexString(value);
+  const bytes = hexToBytes(value);
   return serializer.deserialize(bytes)[0];
 }
 
+/** Serialize and deserialize. */
 function sd<T>(serializer: Serializer<T>, value: T) {
   return d(serializer, s(serializer, value));
-}
-
-function fromHexString(value: string): Uint8Array {
-  const matches = value.match(/.{1,2}/g);
-  return Uint8Array.from(
-    matches ? matches.map((byte: string) => parseInt(byte, 16)) : []
-  );
-}
-
-function toHexString(bytes: Uint8Array): string {
-  return bytes.reduce(
-    (str, byte) => str + byte.toString(16).padStart(2, '0'),
-    ''
-  );
 }
