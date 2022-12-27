@@ -30,9 +30,7 @@ export function mapSerializer<
 ): Serializer<NewFrom, NewTo> {
   return {
     description: serializer.description,
-    serialize: (value: NewFrom) => {
-      return serializer.serialize(unmap(value));
-    },
+    serialize: (value: NewFrom) => serializer.serialize(unmap(value)),
     deserialize: (buffer: Uint8Array, offset = 0) => {
       const [value, length] = serializer.deserialize(buffer, offset);
       return map ? [map(value), length] : [value as any, length];
