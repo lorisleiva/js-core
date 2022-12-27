@@ -13,9 +13,9 @@ import {
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import * as beet from '@metaplex-foundation/beet';
+import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
-// import * as beetSolana from '@metaplex-foundation/beet-solana';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[]>(
@@ -166,19 +166,77 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get i8(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.i8.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.i8.byteSize);
+        beet.i8.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.i8.read(buffer, offset);
+        return [value, offset + beet.i8.byteSize];
+      },
+    };
   }
 
   get i16(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.i16.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.i16.byteSize);
+        beet.i16.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.i16.read(buffer, offset);
+        return [value, offset + beet.i16.byteSize];
+      },
+    };
   }
 
   get i32(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.i32.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.i32.byteSize);
+        beet.i32.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.i32.read(buffer, offset);
+        return [value, offset + beet.i32.byteSize];
+      },
+    };
   }
 
   get i64(): Serializer<number | bigint, bigint> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.i64.description,
+      serialize: (value: number | bigint) => {
+        if (value < (-2n) ** 63n) {
+          throw new RangeError('i64 cannot be lower than -2^63');
+        }
+        if (value > 2n ** 63n - 1n) {
+          throw new RangeError('i64 cannot be greater than 2^63 - 1');
+        }
+        const buffer = Buffer.alloc(beet.i64.byteSize);
+        beet.i64.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const rawValue = beet.i64.read(buffer, offset);
+        const value =
+          typeof rawValue === 'number'
+            ? BigInt(rawValue)
+            : toBigInt(rawValue.toString());
+        return [value, offset + beet.i64.byteSize];
+      },
+    };
   }
 
   get i128(): Serializer<number | bigint, bigint> {
@@ -198,11 +256,30 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get bytes(): Serializer<Uint8Array> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.bytes.description,
+      serialize: (value: Uint8Array) => new Uint8Array(value),
+      deserialize: (bytes: Uint8Array, offset = 0) => [
+        new Uint8Array(bytes),
+        offset + bytes.length,
+      ],
+    };
   }
 
   get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey> {
-    // beetSolana.publicKey;
-    throw new Error('Method not implemented.');
+    return {
+      description: beetSolana.publicKey.description,
+      serialize: (value: PublicKey | PublicKeyInput) => {
+        const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
+        // TODO(loris): parse value?
+        beetSolana.publicKey.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beetSolana.publicKey.read(buffer, offset);
+        return [value, offset + beetSolana.publicKey.byteSize];
+      },
+    };
   }
 }
