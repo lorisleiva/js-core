@@ -108,7 +108,19 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u32(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.u32.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.u32.byteSize);
+        beet.u32.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.u32.read(buffer, offset);
+        return [value, offset + beet.u32.byteSize];
+      },
+    };
   }
 
   get u64(): Serializer<number | bigint, bigint> {
