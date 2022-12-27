@@ -23,23 +23,26 @@ export class BeetSerializer implements SerializerInterface {
     items: [...WrapInSerializer<T>],
     description?: string
   ): Serializer<T> {
+    const itemDescriptions = items.map((item) => item.description).join(', ');
+    const defaultDescription = `tuple(${itemDescriptions})`;
     return {
-      description: description ?? 'tuple',
+      description: description ?? defaultDescription,
       serialize: (value: T) => {
-        const tupleBeet = beet
-          .tuple<T>(items.map((item) => item.beet))
-          .toFixedFromValue(value);
-        const buffer = Buffer.alloc(tupleBeet.byteSize);
-        tupleBeet.write(buffer, 0, value);
-        return new Uint8Array(buffer);
+        if (value.length !== items.length) {
+          throw new Error(
+            `Expected tuple to have ${items.length} items but got ${value.length}.`
+          );
+        }
+        return mergeBytes(items.map((item) => item.serialize(value)));
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const tupleBeet = beet
-          .tuple<T>(items.map((item) => item.beet))
-          .toFixedFromData(buffer, offset);
-        const value = tupleBeet.read(buffer, offset);
-        return [value, offset + tupleBeet.byteSize];
+        const values = [] as any as T;
+        items.forEach((serializer) => {
+          const [newValue, newOffset] = serializer.deserialize(bytes, offset);
+          values.push(newValue);
+          offset = newOffset;
+        });
+        return [values, offset];
       },
     };
   }
@@ -364,4 +367,15 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
+}
+
+function mergeBytes(bytesArr: Uint8Array[]): Uint8Array {
+  const totalLength = bytesArr.reduce((total, arr) => total + arr.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  bytesArr.forEach((arr) => {
+    result.set(arr, offset);
+    offset += arr.length;
+  });
+  return result;
 }
