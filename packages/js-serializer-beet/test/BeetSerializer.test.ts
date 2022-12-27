@@ -159,6 +159,20 @@ test('[js-serializer-beet] it cannot serialize float numbers', (t) => {
   t.throws<OperationNotSupportedError>(() => d(f64, '00'), throwExpectation);
 });
 
+test('[js-serializer-beet] it can serialize strings', (t) => {
+  const { string, u32 } = new BeetSerializer();
+  const getPrefix = (text: string) => d(u32, s(string, text).slice(0, 8));
+  t.is(string.description, 'string');
+  t.is(s(string, ''), '00000000'); // 4-bytes prefix.
+  t.is(s(string, 'Hello World!'), '0c00000048656c6c6f20576f726c6421');
+  t.is(getPrefix('Hello World!'), 12); // 12 bytes for 12 characters.
+  t.is(s(string, '語'), '03000000e8aa9e');
+  t.is(getPrefix('語'), 3); // 3 bytes for 1 character.
+  t.is(sd(string, ''), '');
+  t.is(sd(string, 'Hello World!'), 'Hello World!');
+  t.is(sd(string, '語'), '語');
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,

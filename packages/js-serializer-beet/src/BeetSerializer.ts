@@ -290,7 +290,21 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get string(): Serializer<string> {
-    throw new Error('Method not implemented.');
+    return {
+      description: 'string',
+      serialize: (value: string) => {
+        const stringBeet = beet.utf8String.toFixedFromValue(value);
+        const buffer = Buffer.alloc(stringBeet.byteSize);
+        stringBeet.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const stringBeet = beet.utf8String.toFixedFromData(buffer, offset);
+        const value = stringBeet.read(buffer, offset);
+        return [value, offset + stringBeet.byteSize];
+      },
+    };
   }
 
   get bytes(): Serializer<Uint8Array> {
