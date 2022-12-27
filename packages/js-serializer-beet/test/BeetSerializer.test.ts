@@ -44,18 +44,39 @@ test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
   t.throws<RangeError>(() => s(u32, 4_294_967_296));
 });
 
+test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
+  const { u64 } = new BeetSerializer();
+  const max = BigInt('18446744073709551615');
+  t.is(u64.description, 'u64');
+  t.is(s(u64, 0), '0000000000000000');
+  t.is(s(u64, 42), '2a00000000000000');
+  t.is(s(u64, 4_294_967_295), 'ffffffff00000000');
+  t.is(s(u64, max), 'ffffffffffffffff');
+  t.is(sd(u64, 0), BigInt(0));
+  t.is(sd(u64, 42), BigInt(42));
+  t.is(sd(u64, max), max);
+  t.throws<RangeError>(() => s(u64, -1));
+  t.throws<RangeError>(() => s(u64, max + BigInt(1)));
+});
+
 /** Serialize as a hex string. */
-function s<T>(serializer: Serializer<T>, value: T): string {
+function s<T, U extends T = T>(
+  serializer: Serializer<T, U>,
+  value: T extends T ? T : never
+): string {
   return bytesToHex(serializer.serialize(value));
 }
 
 /** Deserialize from a hex string. */
-function d<T>(serializer: Serializer<T>, value: string): T {
+function d<T, U extends T = T>(serializer: Serializer<T, U>, value: string): T {
   const bytes = hexToBytes(value);
   return serializer.deserialize(bytes)[0];
 }
 
 /** Serialize and deserialize. */
-function sd<T>(serializer: Serializer<T>, value: T) {
-  return d(serializer, s(serializer, value));
+function sd<T, U extends T = T>(
+  serializer: Serializer<T, U>,
+  value: T extends T ? T : never
+): U {
+  return d(serializer, s(serializer, value)) as U;
 }
