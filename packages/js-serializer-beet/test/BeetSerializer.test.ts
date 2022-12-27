@@ -1,4 +1,8 @@
 import { Serializer, bytesToHex, hexToBytes } from '@lorisleiva/js-core';
+import {
+  PublicKey as Web3PublicKey,
+  Keypair as Web3Keypair,
+} from '@solana/web3.js';
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
@@ -171,6 +175,30 @@ test('[js-serializer-beet] it can serialize strings', (t) => {
   t.is(sd(string, ''), '');
   t.is(sd(string, 'Hello World!'), 'Hello World!');
   t.is(sd(string, '語'), '語');
+});
+
+test.skip('[js-serializer-beet] it can serialize bytes', (t) => {
+  const { bytes } = new BeetSerializer();
+  t.is(bytes.description, 'bytes');
+});
+
+test('[js-serializer-beet] it can serialize public keys', (t) => {
+  const { publicKey } = new BeetSerializer();
+  t.is(publicKey.description, 'publicKey');
+  const generatedPubKey = Web3Keypair.generate().publicKey;
+  const pubKeyString = '4HM9LW2rm3SR2ZdBiFK3D21ENmQWpqEJEhx1nfgcC3r9';
+  const pubKey = new Web3PublicKey(pubKeyString);
+  const pubKeyHex = bytesToHex(pubKey.toBytes());
+  t.is(s(publicKey, generatedPubKey), bytesToHex(generatedPubKey.toBytes()));
+  t.is(s(publicKey, pubKeyString), pubKeyHex);
+  t.is(s(publicKey, pubKey), pubKeyHex);
+  t.deepEqual(sd(publicKey, pubKeyString), pubKey);
+  t.deepEqual(sd(publicKey, pubKey), pubKey);
+  t.deepEqual(sd(publicKey, generatedPubKey), generatedPubKey);
+  const throwExpectation = { message: 'Invalid public key input' };
+  t.throws(() => s(publicKey, ''), throwExpectation);
+  t.throws(() => s(publicKey, 'x'), throwExpectation);
+  t.throws(() => s(publicKey, 'x'.repeat(32)), throwExpectation);
 });
 
 /** Serialize as a hex string. */

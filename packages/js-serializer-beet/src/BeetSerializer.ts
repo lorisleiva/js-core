@@ -14,6 +14,7 @@ import {
 } from '@lorisleiva/js-core';
 import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
+import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
 
@@ -320,11 +321,10 @@ export class BeetSerializer implements SerializerInterface {
 
   get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey> {
     return {
-      description: beetSolana.publicKey.description,
+      description: 'publicKey',
       serialize: (value: PublicKey | PublicKeyInput) => {
         const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
-        // TODO(loris): parse value?
-        beetSolana.publicKey.write(buffer, 0, value);
+        beetSolana.publicKey.write(buffer, 0, new Web3PublicKey(value));
         return new Uint8Array(buffer);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
