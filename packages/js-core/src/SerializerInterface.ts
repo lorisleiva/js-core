@@ -1,28 +1,13 @@
 import type { PublicKey } from './PublicKey';
 import type { PublicKeyInput } from './EddsaInterface';
 import type { Serializer } from './Serializer';
-import type { WrapInSerializer } from './TypeUtils';
-
-type ScalarEnum<T> =
-  | { [key: number | string]: string | number | T }
-  | number
-  | T;
-
-export type DataEnumUnion = { __kind: string };
-
-export type DataEnumRecord<T extends DataEnumUnion> = {
-  [P in T['__kind']]: Extract<T, { __kind: P }>;
-};
-
-export type StructToSerializerTuple<T extends object> = Array<
-  {
-    [K in keyof T]: T[K] extends undefined ? [K] : [K, Serializer<T[K]>];
-  }[keyof T]
->;
-
-export type DataEnumToSerializerTuple<T extends DataEnumUnion> = Array<
-  T extends any ? [T['__kind'], Serializer<Omit<T, '__kind'>>] : never
->;
+import type {
+  DataEnumToSerializerTuple,
+  DataEnumUnion,
+  ScalarEnum,
+  StructToSerializerTuple,
+  WrapInSerializer,
+} from './TypeUtils';
 
 export interface SerializerInterface {
   // Lists.
