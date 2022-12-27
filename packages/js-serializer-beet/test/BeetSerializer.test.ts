@@ -32,21 +32,22 @@ test('[js-serializer-beet] it can serialize u16 numbers', (t) => {
 
 test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
   const { u32 } = new BeetSerializer();
+  const max = Number('0xffffffff');
   t.is(u32.description, 'u32');
   t.is(s(u32, 0), '00000000');
   t.is(s(u32, 42), '2a000000');
   t.is(s(u32, 65536), '00000100');
-  t.is(s(u32, 4_294_967_295), 'ffffffff');
+  t.is(s(u32, max), 'ffffffff');
   t.is(sd(u32, 0), 0);
   t.is(sd(u32, 42), 42);
-  t.is(sd(u32, 4_294_967_295), 4_294_967_295);
+  t.is(sd(u32, max), max);
   t.throws<RangeError>(() => s(u32, -1));
   t.throws<RangeError>(() => s(u32, 4_294_967_296));
 });
 
 test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
   const { u64 } = new BeetSerializer();
-  const max = BigInt('18446744073709551615');
+  const max = BigInt('0xffffffffffffffff');
   t.is(u64.description, 'u64');
   t.is(s(u64, 0), '0000000000000000');
   t.is(s(u64, 42), '2a00000000000000');
@@ -61,16 +62,16 @@ test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
 
 test('[js-serializer-beet] it can serialize u128 numbers', (t) => {
   const { u128 } = new BeetSerializer();
-  // const max = BigInt('340282366920938463463374607431768211459');
+  const max = BigInt('0xffffffffffffffffffffffffffffffff');
   t.is(u128.description, 'u128');
   t.is(s(u128, 0), '00000000000000000000000000000000');
   t.is(s(u128, 42), '2a000000000000000000000000000000');
-  // t.is(s(u128, max), 'ffffffffffffffffffffffffffffffff');
+  t.is(s(u128, max), 'ffffffffffffffffffffffffffffffff');
   t.is(sd(u128, 0), BigInt(0));
   t.is(sd(u128, 42), BigInt(42));
-  // t.is(sd(u128, max), max);
+  t.is(sd(u128, max), max);
   t.throws<RangeError>(() => s(u128, -1));
-  // t.throws<RangeError>(() => s(u128, max + BigInt(1)));
+  t.throws<RangeError>(() => s(u128, max + BigInt(1)));
 });
 
 /** Serialize as a hex string. */
