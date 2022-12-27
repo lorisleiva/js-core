@@ -240,7 +240,29 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get i128(): Serializer<number | bigint, bigint> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.i128.description,
+      serialize: (value: number | bigint) => {
+        if (value < (-2n) ** 127n) {
+          throw new RangeError('i128 cannot be lower than -2^127');
+        }
+        if (value > 2n ** 127n - 1n) {
+          throw new RangeError('i128 cannot be greater than 2^127 - 1');
+        }
+        const buffer = Buffer.alloc(beet.i128.byteSize);
+        beet.i128.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const rawValue = beet.i128.read(buffer, offset);
+        const value =
+          typeof rawValue === 'number'
+            ? BigInt(rawValue)
+            : toBigInt(rawValue.toString());
+        return [value, offset + beet.i128.byteSize];
+      },
+    };
   }
 
   get f32(): Serializer<number> {

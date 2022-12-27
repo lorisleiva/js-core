@@ -53,8 +53,8 @@ test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
   t.is(s(u64, 42), '2a00000000000000');
   t.is(s(u64, 4_294_967_295), 'ffffffff00000000');
   t.is(s(u64, max), 'ffffffffffffffff');
-  t.is(sd(u64, 0), BigInt(0));
-  t.is(sd(u64, 42), BigInt(42));
+  t.is(sd(u64, 0), 0n);
+  t.is(sd(u64, 42), 42n);
   t.is(sd(u64, max), max);
   t.throws<RangeError>(() => s(u64, -1));
   t.throws<RangeError>(() => s(u64, max + 1n));
@@ -67,8 +67,8 @@ test('[js-serializer-beet] it can serialize u128 numbers', (t) => {
   t.is(s(u128, 0), '00000000000000000000000000000000');
   t.is(s(u128, 42), '2a000000000000000000000000000000');
   t.is(s(u128, max), 'ffffffffffffffffffffffffffffffff');
-  t.is(sd(u128, 0), BigInt(0));
-  t.is(sd(u128, 42), BigInt(42));
+  t.is(sd(u128, 0), 0n);
+  t.is(sd(u128, 42), 42n);
   t.is(sd(u128, max), max);
   t.throws<RangeError>(() => s(u128, -1));
   t.throws<RangeError>(() => s(u128, max + 1n));
@@ -132,6 +132,22 @@ test('[js-serializer-beet] it can serialize i64 numbers', (t) => {
   t.is(sd(i64, max), max);
   t.throws<RangeError>(() => s(i64, -max - 2n));
   t.throws<RangeError>(() => s(i64, max + 1n));
+});
+
+test('[js-serializer-beet] it can serialize i128 numbers', (t) => {
+  const { i128 } = new BeetSerializer();
+  const max = BigInt('0xffffffffffffffffffffffffffffffff') / 2n;
+  t.is(i128.description, 'i128');
+  t.is(s(i128, 0), '00000000000000000000000000000000');
+  t.is(s(i128, -42), 'd6ffffffffffffffffffffffffffffff');
+  t.is(s(i128, 42), '2a000000000000000000000000000000');
+  t.is(s(i128, max), 'ffffffffffffffffffffffffffffff7f');
+  t.is(sd(i128, 0), 0n);
+  t.is(sd(i128, -42), -42n);
+  t.is(sd(i128, -max - 1n), -max - 1n);
+  t.is(sd(i128, max), max);
+  t.throws<RangeError>(() => s(i128, -max - 2n));
+  t.throws<RangeError>(() => s(i128, max + 1n));
 });
 
 /** Serialize as a hex string. */
