@@ -1,5 +1,5 @@
 {
-  "name": "@metaplex-foundation/js-serializer-beet",
+  "name": "@lorisleiva/js-serializer-beet",
   "version": "0.0.0",
   "license": "MIT",
   "sideEffects": false,
@@ -25,7 +25,11 @@
     "build": "pnpm clean && tsc && tsc-alias && tsc -p test/tsconfig.json && tsc-alias -p test/tsconfig.json && rollup -c",
     "test": "CI=1 tape dist/test/**/*.test.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@metaplex-foundation/beet": "^0.6.1",
+    "@metaplex-foundation/beet-solana": "^0.3.1",
+    "@lorisleiva/js-core": "workspace:^"
+  },
   "publishConfig": {
     "access": "public"
   },
