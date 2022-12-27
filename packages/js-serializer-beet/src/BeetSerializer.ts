@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type {
+  DataEnumToSerializerTuple,
+  DataEnumUnion,
   Option,
+  PublicKey,
+  PublicKeyInput,
   ScalarEnum,
   Serializer,
   SerializerInterface,
   StructToSerializerTuple,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
+import { Buffer } from 'buffer';
+import * as beet from '@metaplex-foundation/beet';
+// import * as beetSolana from '@metaplex-foundation/beet-solana';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[]>(
@@ -55,55 +62,87 @@ export class BeetSerializer implements SerializerInterface {
     throw new Error('Method not implemented.');
   }
 
-  // dataEnum<T extends DataEnumUnion>(fields: DataEnumToSerializerTuple<T>, description?: string | undefined): Serializer<T, T> {
-  //   //
-  // }
-  // get bool(): Serializer<boolean, boolean>{
-  //   //
-  // }
-  // get u8(): Serializer<number, number>{
-  //   //
-  // }
-  // get u16(): Serializer<number, number>{
-  //   //
-  // }
-  // get u32(): Serializer<number, number>{
-  //   //
-  // }
-  // get u64(): Serializer<number | bigint, bigint>{
-  //   //
-  // }
-  // get u128(): Serializer<number | bigint, bigint>{
-  //   //
-  // }
-  // get i8(): Serializer<number, number>{
-  //   //
-  // }
-  // get i16(): Serializer<number, number>{
-  //   //
-  // }
-  // get i32(): Serializer<number, number>{
-  //   //
-  // }
-  // get i64(): Serializer<number | bigint, bigint>{
-  //   //
-  // }
-  // get i128(): Serializer<number | bigint, bigint>{
-  //   //
-  // }
-  // get f32(): Serializer<number, number>{
-  //   //
-  // }
-  // get f64(): Serializer<number, number>{
-  //   //
-  // }
-  // get string(): Serializer<string, string>{
-  //   //
-  // }
-  // get bytes(): Serializer<Uint8Array, Uint8Array>{
-  //   //
-  // }
-  // get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey>{
-  //   //
-  // }
+  dataEnum<T extends DataEnumUnion>(
+    fields: DataEnumToSerializerTuple<T>,
+    description?: string
+  ): Serializer<T> {
+    throw new Error('Method not implemented.');
+  }
+
+  get bool(): Serializer<boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  get u8(): Serializer<number> {
+    return {
+      description: beet.u8.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.u8.byteSize);
+        beet.u8.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.u8.read(buffer, offset);
+        return [value, offset + beet.u8.byteSize];
+      },
+    };
+  }
+
+  get u16(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get u32(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get u64(): Serializer<number | bigint, bigint> {
+    throw new Error('Method not implemented.');
+  }
+
+  get u128(): Serializer<number | bigint, bigint> {
+    throw new Error('Method not implemented.');
+  }
+
+  get i8(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get i16(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get i32(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get i64(): Serializer<number | bigint, bigint> {
+    throw new Error('Method not implemented.');
+  }
+
+  get i128(): Serializer<number | bigint, bigint> {
+    throw new Error('Method not implemented.');
+  }
+
+  get f32(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get f64(): Serializer<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  get string(): Serializer<string> {
+    throw new Error('Method not implemented.');
+  }
+
+  get bytes(): Serializer<Uint8Array> {
+    throw new Error('Method not implemented.');
+  }
+
+  get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey> {
+    // beetSolana.publicKey;
+    throw new Error('Method not implemented.');
+  }
 }
