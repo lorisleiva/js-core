@@ -15,6 +15,8 @@ test('[js-serializer-beet] it can serialize booleans', (t) => {
   t.is(d(bool, '01'), true);
   t.is(sd(bool, false), false);
   t.is(sd(bool, true), true);
+  t.is(doffset(bool, '01'), 1);
+  t.is(doffset(bool, '0101'), 1);
 });
 
 test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
@@ -28,6 +30,8 @@ test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
   t.is(sd(u8, 255), 255);
   t.throws<RangeError>(() => s(u8, -1));
   t.throws<RangeError>(() => s(u8, 256));
+  t.is(doffset(u8, '01'), 1);
+  t.is(doffset(u8, '0101'), 1);
 });
 
 test('[js-serializer-beet] it can serialize u16 numbers', (t) => {
@@ -186,6 +190,8 @@ test('[js-serializer-beet] it can serialize strings', (t) => {
   t.is(sd(string, ''), '');
   t.is(sd(string, 'Hello World!'), 'Hello World!');
   t.is(sd(string, '語'), '語');
+  t.is(doffset(string, '0c00000048656c6c6f20576f726c6421'), 4 + 12);
+  t.is(doffset(string, '03000000e8aa9e'), 4 + 3);
 });
 
 test('[js-serializer-beet] it can serialize bytes', (t) => {
@@ -194,6 +200,7 @@ test('[js-serializer-beet] it can serialize bytes', (t) => {
   t.is(s(bytes, new Uint8Array([0])), '00');
   t.is(s(bytes, new Uint8Array([42, 255])), '2aff');
   t.deepEqual(sd(bytes, new Uint8Array([42, 255])), new Uint8Array([42, 255]));
+  t.is(doffset(bytes, '2aff00'), 3);
 });
 
 test('[js-serializer-beet] it can serialize public keys', (t) => {
@@ -213,6 +220,7 @@ test('[js-serializer-beet] it can serialize public keys', (t) => {
   t.throws(() => s(publicKey, ''), throwExpectation);
   t.throws(() => s(publicKey, 'x'), throwExpectation);
   t.throws(() => s(publicKey, 'x'.repeat(32)), throwExpectation);
+  t.is(doffset(publicKey, pubKeyHex), 32);
 });
 
 /** Serialize as a hex string. */
@@ -227,6 +235,15 @@ function s<T, U extends T = T>(
 function d<T, U extends T = T>(serializer: Serializer<T, U>, value: string): T {
   const bytes = hexToBytes(value);
   return serializer.deserialize(bytes)[0];
+}
+
+/** Deserialize from a hex string and get the new offset. */
+function doffset<T, U extends T = T>(
+  serializer: Serializer<T, U>,
+  value: string
+): number {
+  const bytes = hexToBytes(value);
+  return serializer.deserialize(bytes)[1];
 }
 
 /** Serialize and deserialize. */
