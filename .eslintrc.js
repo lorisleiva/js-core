@@ -1,6 +1,6 @@
 module.exports = {
   env: {
-    browser: false,
+    browser: true,
     es2021: true,
   },
   extends: ['airbnb-base', 'airbnb-typescript/base', 'prettier'],
