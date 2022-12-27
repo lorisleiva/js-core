@@ -52,8 +52,8 @@
 		"typescript": {
 			"compile": false,
 			"rewritePaths": {
-				"src/": "dist/cjs/",
-				"test/": "dist/test/"
+				"src/": "dist/test/src/",
+				"test/": "dist/test/test/"
 			}
 		}
 	}

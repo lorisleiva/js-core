@@ -21,5 +21,5 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-underscore-dangle': 'off',
   },
-  ignorePatterns: ['.eslintrc.js'],
+  ignorePatterns: ['.eslintrc.js', 'dist'],
 };
