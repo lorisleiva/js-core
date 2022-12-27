@@ -176,12 +176,13 @@ export class AccountNotFoundError extends SdkError {
   readonly name: string = 'AccountNotFoundError';
 
   constructor(address: PublicKey, accountType?: string, solution?: string) {
-    const message =
-      `${accountType
+    const message = `${
+      accountType
         ? `The account of type [${accountType}] was not found`
-        : 'No account was found' 
-      } at the provided address [${address.toString()}].${ 
-      solution ? ` ${solution}` : ''}`;
+        : 'No account was found'
+    } at the provided address [${address.toString()}].${
+      solution ? ` ${solution}` : ''
+    }`;
     super(message);
   }
 }
@@ -215,11 +216,11 @@ export class ExpectedSignerError extends SdkError {
   readonly name: string = 'ExpectedSignerError';
 
   constructor(variable: string, actualType: string, solution?: string) {
-    const message =
-      `Expected variable [${variable}] to be of type [Signer] but got [${actualType}]. ${ 
+    const message = `Expected variable [${variable}] to be of type [Signer] but got [${actualType}]. ${
       solution ??
-        'Please check that you are providing the variable as a signer. ' +
-          'Note that, it may be allowed to provide a non-signer variable for certain use cases but not this one.'}`;
+      'Please check that you are providing the variable as a signer. ' +
+        'Note that, it may be allowed to provide a non-signer variable for certain use cases but not this one.'
+    }`;
     super(message);
   }
 }
@@ -253,11 +254,12 @@ export class NoInstructionsToSendError extends SdkError {
   constructor(operation: string, solution?: string) {
     const message =
       `The input provided to the [${operation}] resulted ` +
-      `in a Transaction containing no Instructions. ${ 
-      solution ??
+      `in a Transaction containing no Instructions. ${
+        solution ??
         `Ensure that the provided input has an effect on the operation. ` +
           `This typically happens when trying to update an account with ` +
-          `the same data it already contains.`}`;
+          `the same data it already contains.`
+      }`;
     super(message);
   }
 }
@@ -290,8 +292,7 @@ export class MissingInputDataError extends SdkError {
     const message =
       `Some parameters are missing from the provided input object. ` +
       `Please provide the following missing parameters ` +
-      `[${missingParameters.join(', ')}].${ 
-      solution ? ` ${solution}` : ''}`;
+      `[${missingParameters.join(', ')}].${solution ? ` ${solution}` : ''}`;
     super(message);
   }
 }

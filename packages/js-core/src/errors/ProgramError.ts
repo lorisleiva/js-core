@@ -25,8 +25,9 @@ export class ProgramError extends MetaplexError {
     this.program = program;
     this.logs = cause?.logs;
     if (this.logs) {
-      this.message +=
-        `\nProgram Logs:\n${this.logs.map((log) => `| ${  log}`).join('\n')}\n`;
+      this.message += `\nProgram Logs:\n${this.logs
+        .map((log) => `| ${log}`)
+        .join('\n')}\n`;
     }
   }
 }

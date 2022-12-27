@@ -18,11 +18,9 @@ export class MetaplexError extends Error {
     this.source = source;
     this.sourceDetails = sourceDetails;
     this.cause = cause;
-    this.message =
-      `${this.message 
-      }\n\nSource: ${this.getFullSource()}${ 
-      this.cause ? `\n\nCaused By: ${this.cause}` : '' 
-      }\n`;
+    this.message = `${this.message}\n\nSource: ${this.getFullSource()}${
+      this.cause ? `\n\nCaused By: ${this.cause}` : ''
+    }\n`;
   }
 
   getCapitalizedSource(): string {

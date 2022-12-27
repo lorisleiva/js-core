@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type {
+import {
   DataEnumToSerializerTuple,
   DataEnumUnion,
   Option,
@@ -9,10 +9,12 @@ import type {
   Serializer,
   SerializerInterface,
   StructToSerializerTuple,
+  toBigInt,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
-import { Buffer } from 'buffer';
 import * as beet from '@metaplex-foundation/beet';
+import { Buffer } from 'buffer';
+import { OperationNotSupportedError } from './errors';
 // import * as beetSolana from '@metaplex-foundation/beet-solana';
 
 export class BeetSerializer implements SerializerInterface {
@@ -90,7 +92,19 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u16(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.u16.description,
+      serialize: (value: number) => {
+        const buffer = Buffer.alloc(beet.u16.byteSize);
+        beet.u16.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const value = beet.u16.read(buffer, offset);
+        return [value, offset + beet.u16.byteSize];
+      },
+    };
   }
 
   get u32(): Serializer<number> {
@@ -98,7 +112,23 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u64(): Serializer<number | bigint, bigint> {
-    throw new Error('Method not implemented.');
+    return {
+      description: beet.u64.description,
+      serialize: (value: number | bigint) => {
+        const buffer = Buffer.alloc(beet.u64.byteSize);
+        beet.u64.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const rawValue = beet.u64.read(buffer, offset);
+        const value =
+          typeof rawValue === 'number'
+            ? BigInt(rawValue)
+            : toBigInt(rawValue.toBuffer());
+        return [value, offset + beet.u64.byteSize];
+      },
+    };
   }
 
   get u128(): Serializer<number | bigint, bigint> {
@@ -126,11 +156,11 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get f32(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    throw new OperationNotSupportedError('f32');
   }
 
   get f64(): Serializer<number> {
-    throw new Error('Method not implemented.');
+    throw new OperationNotSupportedError('f64');
   }
 
   get string(): Serializer<string> {
