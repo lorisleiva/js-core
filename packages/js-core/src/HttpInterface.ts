@@ -1,3 +1,4 @@
+import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 
 export interface HttpInterface {
@@ -39,6 +40,6 @@ export enum HttpMethod {
 
 export class NullHttp implements HttpInterface {
   send<ResponseData>(): Promise<HttpResponse<ResponseData>> {
-    throw Error('HttpInterface not implemented.');
+    throw new InterfaceImplementationMissingError('HttpInterface', 'http');
   }
 }

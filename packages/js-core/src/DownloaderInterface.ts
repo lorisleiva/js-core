@@ -1,3 +1,4 @@
+import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { GenericFile } from './GenericFile';
 
@@ -15,7 +16,9 @@ export type DownloaderOptions = {
 
 export class NullDownloader implements DownloaderInterface {
   download(): Promise<GenericFile[]> {
-    // TODO(loris): Custom error.
-    throw Error('DownloaderInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'DownloaderInterface',
+      'downloader'
+    );
   }
 }

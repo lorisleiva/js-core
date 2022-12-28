@@ -1,3 +1,4 @@
+import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { GenericFile } from './GenericFile';
 
@@ -15,7 +16,9 @@ export type UploaderOptions = {
 
 export class NullUploader implements UploaderInterface {
   upload(): Promise<string[]> {
-    // TODO(loris): Custom error.
-    throw Error('UploaderInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'UploaderInterface',
+      'uploader'
+    );
   }
 }

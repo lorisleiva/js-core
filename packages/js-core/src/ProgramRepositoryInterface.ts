@@ -1,6 +1,6 @@
 import type { Context } from './Context';
 import type { PublicKeyInput } from './EddsaInterface';
-import type { ProgramError } from './errors';
+import { InterfaceImplementationMissingError, ProgramError } from './errors';
 import type { ErrorWithLogs, Program } from './Program';
 import type { PublicKey } from './PublicKey';
 
@@ -30,19 +30,30 @@ export const getProgramAddressWithFallback = (
 
 export class NullProgramRepository implements ProgramRepositoryInterface {
   get<T extends Program = Program>(): T {
-    // TODO(loris): Custom error.
-    throw Error('ProgramRepositoryInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'ProgramRepositoryInterface',
+      'programs'
+    );
   }
 
   all(): Program[] {
-    throw Error('ProgramRepositoryInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'ProgramRepositoryInterface',
+      'programs'
+    );
   }
 
   add(): void {
-    throw Error('ProgramRepositoryInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'ProgramRepositoryInterface',
+      'programs'
+    );
   }
 
   resolveError(): ProgramError | null {
-    throw Error('ProgramRepositoryInterface not implemented.');
+    throw new InterfaceImplementationMissingError(
+      'ProgramRepositoryInterface',
+      'programs'
+    );
   }
 }

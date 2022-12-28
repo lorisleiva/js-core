@@ -13,26 +13,15 @@ export class SdkError extends MetaplexError {
 }
 
 /** @group Errors */
-export class OperationHandlerMissingError extends SdkError {
-  readonly name: string = 'OperationHandlerMissingError';
+export class InterfaceImplementationMissingError extends SdkError {
+  readonly name: string = 'InterfaceImplementationMissingError';
 
-  constructor(operationKey: string) {
+  constructor(interfaceName: string, contextVariable: string) {
+    const interfaceBasename = interfaceName.replace(/Interface$/, '');
     const message =
-      `No operation handler was registered for the [${operationKey}] operation. ` +
-      `Did you forget to register it? You may do this by using: ` +
-      `"metaplex.operations().register(operation, operationHandler)".`;
-    super(message);
-  }
-}
-
-/** @group Errors */
-export class DriverNotProvidedError extends SdkError {
-  readonly name: string = 'DriverNotProvidedError';
-
-  constructor(driver: string) {
-    const message =
-      `The SDK tried to access the driver [${driver}] but was not provided. ` +
-      `Make sure the driver is registered by using the "setDriver(myDriver)" method.`;
+      `Tried using ${interfaceName} but no implementation of that interface was found. ` +
+      `Make sure an implementation is registered, ` +
+      `e.g. via "context.${contextVariable} = new My${interfaceBasename}();".`;
     super(message);
   }
 }

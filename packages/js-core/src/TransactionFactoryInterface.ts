@@ -1,3 +1,4 @@
+import { InterfaceImplementationMissingError } from './errors';
 import type { Instruction } from './Instruction';
 import type { PublicKey } from './PublicKey';
 import type {
@@ -47,23 +48,28 @@ export type AddressLookupTableState = {
 };
 
 export class NullTransactionFactory implements TransactionFactoryInterface {
+  private readonly error = new InterfaceImplementationMissingError(
+    'TransactionFactoryInterface',
+    'transactions'
+  );
+
   create(): Transaction {
-    throw Error('TransactionFactoryInterface not implemented.');
+    throw this.error;
   }
 
   createLegacyMessage(): LegacyTransactionMessage {
-    throw Error('TransactionFactoryInterface not implemented.');
+    throw this.error;
   }
 
   createMessageV0(): TransactionMessageV0 {
-    throw Error('TransactionFactoryInterface not implemented.');
+    throw this.error;
   }
 
   deserialize(): Transaction {
-    throw Error('TransactionFactoryInterface not implemented.');
+    throw this.error;
   }
 
   deserializeMessage(): TransactionMessage {
-    throw Error('TransactionFactoryInterface not implemented.');
+    throw this.error;
   }
 }

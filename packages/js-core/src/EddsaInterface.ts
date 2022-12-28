@@ -1,3 +1,4 @@
+import { InterfaceImplementationMissingError } from './errors';
 import type { Keypair } from './KeyPair';
 import type { Pda, PublicKey } from './PublicKey';
 
@@ -20,40 +21,39 @@ export interface EddsaInterface {
 export type PublicKeyInput = number | string | Uint8Array | number[] | object;
 
 export class NullEddsa implements EddsaInterface {
-  // TODO(loris): Custom errors.
   generateKeypair(): Keypair {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   createKeypairFromSecretKey(): Keypair {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   createKeypairFromSeed(): Keypair {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   createPublicKey(): PublicKey {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   createDefaultPublicKey(): PublicKey {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   isOnCurve(): boolean {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   findPda(): Pda {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   sign(): Uint8Array {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 
   verify(): boolean {
-    throw new Error('Method not implemented.');
+    throw new InterfaceImplementationMissingError('EddsaInterface', 'eddsa');
   }
 }

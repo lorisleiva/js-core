@@ -1,5 +1,6 @@
 import type { MaybeRpcAccount } from './Account';
 import type { Cluster } from './Cluster';
+import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { PublicKey } from './PublicKey';
 import type {
@@ -70,26 +71,26 @@ export type RpcSendOptions = {
 
 export class NullRpc implements RpcInterface {
   getEndpoint(): string {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
   getCluster(): Cluster {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
   getAccount(): Promise<MaybeRpcAccount> {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
   call<Result>(): Promise<Result> {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
   sendTransaction(): Promise<string> {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
   confirmTransaction(): Promise<RpcConfirmResult> {
-    throw Error('RpcInterface not implemented.');
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 }
