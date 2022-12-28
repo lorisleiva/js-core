@@ -67,7 +67,7 @@ export class Web3JsRpc implements RpcInterface {
     serializedTransaction: Uint8Array,
     options?: RpcSendOptions
   ): Promise<string> {
-    throw new Error('Method not implemented.');
+    return this.connection.sendRawTransaction(serializedTransaction, options);
   }
 
   async confirmTransaction(
@@ -75,7 +75,13 @@ export class Web3JsRpc implements RpcInterface {
     blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
     commitment?: Commitment
   ): Promise<RpcConfirmResult> {
-    throw new Error('Method not implemented.');
+    return this.connection.confirmTransaction(
+      {
+        signature,
+        ...blockhashWithExpiryBlockHeight,
+      },
+      commitment
+    );
   }
 
   protected parseMaybeAccount(
