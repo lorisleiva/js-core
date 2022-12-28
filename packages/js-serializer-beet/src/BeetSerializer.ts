@@ -318,7 +318,7 @@ export class BeetSerializer implements SerializerInterface {
 
   get unit(): Serializer<void> {
     return {
-      description: beet.unit.description,
+      description: 'unit',
       serialize: () => new Uint8Array(),
       deserialize: (_bytes: Uint8Array, offset = 0) => [undefined, offset],
     };
