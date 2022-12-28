@@ -72,11 +72,30 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   array<T>(
-    item: Serializer<T>,
+    itemSerializer: Serializer<T>,
     size: number,
     description?: string
   ): Serializer<T[]> {
-    throw new Error('Method not implemented.');
+    return {
+      description: description ?? `array(${itemSerializer.description})`,
+      serialize: (value: T[]) => {
+        if (value.length !== size) {
+          throw new Error(
+            `Expected array to have ${size} items but got ${value.length}.`
+          );
+        }
+        return mergeBytes(value.map((item) => itemSerializer.serialize(item)));
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const values: T[] = [];
+        for (let i = 0; i < size; i += 1) {
+          const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
+          values.push(value);
+          offset = newOffset;
+        }
+        return [values, offset];
+      },
+    };
   }
 
   map<K, V>(
