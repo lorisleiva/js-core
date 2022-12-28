@@ -161,8 +161,29 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  option<T>(item: Serializer<T>, description?: string): Serializer<Option<T>> {
-    throw new Error('Method not implemented.');
+  option<T>(
+    itemSerializer: Serializer<T>,
+    description?: string
+  ): Serializer<Option<T>> {
+    return {
+      description: description ?? `option(${itemSerializer.description})`,
+      serialize: (option: Option<T>) => {
+        const prefixByte = bool().serialize(option !== null);
+        const itemBytes =
+          option !== null ? itemSerializer.serialize(option) : new Uint8Array();
+        return mergeBytes([prefixByte, itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [isSome, prefixOffset] = bool().deserialize(bytes, offset);
+        offset = prefixOffset;
+        if (!isSome) {
+          return [null, offset];
+        }
+        const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
+        offset = newOffset;
+        return [value, offset];
+      },
+    };
   }
 
   struct<T extends object>(
@@ -184,35 +205,11 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get bool(): Serializer<boolean> {
-    return {
-      description: beet.bool.description,
-      serialize: (value: boolean) => {
-        const buffer = Buffer.alloc(beet.u8.byteSize);
-        beet.bool.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.bool.read(buffer, offset);
-        return [value, offset + beet.bool.byteSize];
-      },
-    };
+    return bool();
   }
 
   get u8(): Serializer<number> {
-    return {
-      description: beet.u8.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.u8.byteSize);
-        beet.u8.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.u8.read(buffer, offset);
-        return [value, offset + beet.u8.byteSize];
-      },
-    };
+    return u8();
   }
 
   get u16(): Serializer<number> {
@@ -445,6 +442,38 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
+}
+
+function bool(): Serializer<boolean> {
+  return {
+    description: beet.bool.description,
+    serialize: (value: boolean) => {
+      const buffer = Buffer.alloc(beet.u8.byteSize);
+      beet.bool.write(buffer, 0, value);
+      return new Uint8Array(buffer);
+    },
+    deserialize: (bytes: Uint8Array, offset = 0) => {
+      const buffer = Buffer.from(bytes);
+      const value = beet.bool.read(buffer, offset);
+      return [value, offset + beet.bool.byteSize];
+    },
+  };
+}
+
+function u8(): Serializer<number> {
+  return {
+    description: beet.u8.description,
+    serialize: (value: number) => {
+      const buffer = Buffer.alloc(beet.u8.byteSize);
+      beet.u8.write(buffer, 0, value);
+      return new Uint8Array(buffer);
+    },
+    deserialize: (bytes: Uint8Array, offset = 0) => {
+      const buffer = Buffer.from(bytes);
+      const value = beet.u8.read(buffer, offset);
+      return [value, offset + beet.u8.byteSize];
+    },
+  };
 }
 
 function u32(): Serializer<number> {
