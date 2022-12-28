@@ -23,9 +23,13 @@
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
     "clean": "rimraf dist",
     "build": "pnpm clean && tsc && tsc -p test/tsconfig.json && rollup -c",
-    "test": "CI=1 tape dist/test/**/*.test.js"
+    "test": "ava"
   },
   "dependencies": {},
+  "devDependencies": {
+    "@ava/typescript": "^3.0.1",
+    "ava": "^5.1.0"
+  },
   "publishConfig": {
     "access": "public"
   },

@@ -1,15 +1,11 @@
-import test, { Test } from 'tape';
+import test from 'ava';
 import { mapSerializer, Serializer } from '../src';
 
-test('[Serializer] playground', (t: Test) => {
+test('[Serializer] playground', (t) => {
   const serializer: Serializer<number> = {
     description: 'number',
-    serialize: (value: number) => {
-      return new Uint8Array([value]);
-    },
-    deserialize: (buffer: Uint8Array): [number, number] => {
-      return [buffer[0], 1];
-    },
+    serialize: (value: number) => new Uint8Array([value]),
+    deserialize: (buffer: Uint8Array): [number, number] => [buffer[0], 1],
   };
   log(serializer, 42);
 
@@ -45,12 +41,12 @@ test('[Serializer] playground', (t: Test) => {
   type DummyLoose = { discriminator?: number; label: string };
   const serializer6: Serializer<DummyStrict> = {
     description: 'DummyStrict',
-    serialize: (value: DummyStrict) => {
-      return new Uint8Array([value.discriminator, value.label.length]);
-    },
-    deserialize: (buffer: Uint8Array): [DummyStrict, number] => {
-      return [{ discriminator: buffer[0], label: 'x'.repeat(buffer[1]) }, 1];
-    },
+    serialize: (value: DummyStrict) =>
+      new Uint8Array([value.discriminator, value.label.length]),
+    deserialize: (buffer: Uint8Array): [DummyStrict, number] => [
+      { discriminator: buffer[0], label: 'x'.repeat(buffer[1]) },
+      1,
+    ],
   };
   log(serializer6, { discriminator: 5, label: 'hello world!' });
 
@@ -60,8 +56,7 @@ test('[Serializer] playground', (t: Test) => {
   );
   log(serializer7, { discriminator: 5, label: 'hello world!' });
   log(serializer7, { label: 'hello world!' });
-
-  t.end();
+  t.pass();
 });
 
 function log<From, V extends From, To extends From = From>(
