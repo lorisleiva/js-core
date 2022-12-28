@@ -6,6 +6,6 @@ export const web3JsRpc = (
   rpcOptions?: Web3JsRpcOptions
 ): MetaplexPlugin => ({
   install(metaplex) {
-    metaplex.rpc = new Web3JsRpc(endpoint, rpcOptions);
+    metaplex.rpc = new Web3JsRpc(metaplex, endpoint, rpcOptions);
   },
 });

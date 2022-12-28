@@ -29,7 +29,6 @@ export interface RpcInterface {
   // supports(method: string): boolean;
   sendTransaction(
     serializedTransaction: SerializedTransaction,
-    context: Pick<Context, 'programs'>,
     options?: RpcSendOptions
   ): Promise<TransactionSignature>;
   confirmTransaction(

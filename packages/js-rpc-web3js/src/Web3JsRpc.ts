@@ -23,11 +23,18 @@ import {
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
 export class Web3JsRpc implements RpcInterface {
+  readonly context: Pick<Context, 'programs'>;
+
   readonly connection: Web3JsConnection;
 
   readonly cluster: Cluster;
 
-  constructor(endpoint: string, rpcOptions?: Web3JsRpcOptions) {
+  constructor(
+    context: Pick<Context, 'programs'>,
+    endpoint: string,
+    rpcOptions?: Web3JsRpcOptions
+  ) {
+    this.context = context;
     this.connection = new Web3JsConnection(endpoint, rpcOptions);
     this.cluster = resolveClusterFromEndpoint(endpoint);
   }
@@ -50,16 +57,15 @@ export class Web3JsRpc implements RpcInterface {
 
   async call<Result, Params extends any[]>(
     method: string,
-    params?: [...Params] | undefined,
-    options?: RpcOptions | undefined
+    params?: [...Params],
+    options?: RpcOptions
   ): Promise<Result> {
     throw new Error('Method not implemented.');
   }
 
   async sendTransaction(
     serializedTransaction: Uint8Array,
-    context: Pick<Context, 'programs'>,
-    options?: RpcSendOptions | undefined
+    options?: RpcSendOptions
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
@@ -67,7 +73,7 @@ export class Web3JsRpc implements RpcInterface {
   async confirmTransaction(
     signature: string,
     blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
-    commitment?: Commitment | undefined
+    commitment?: Commitment
   ): Promise<RpcConfirmResult> {
     throw new Error('Method not implemented.');
   }
