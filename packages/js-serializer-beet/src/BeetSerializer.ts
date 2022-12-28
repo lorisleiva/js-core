@@ -53,13 +53,13 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `vec(${itemSerializer.description})`,
       serialize: (value: T[]) => {
-        const lengthBytes = this.u32.serialize(value.length);
+        const lengthBytes = u32().serialize(value.length);
         const itemBytes = value.map((item) => itemSerializer.serialize(item));
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const values: T[] = [];
-        const [length, newOffset] = this.u32.deserialize(bytes, offset);
+        const [length, newOffset] = u32().deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
           const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
@@ -162,19 +162,7 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u32(): Serializer<number> {
-    return {
-      description: beet.u32.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.u32.byteSize);
-        beet.u32.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.u32.read(buffer, offset);
-        return [value, offset + beet.u32.byteSize];
-      },
-    };
+    return u32();
   }
 
   get u64(): Serializer<number | bigint, bigint> {
@@ -387,4 +375,20 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
+}
+
+function u32(): Serializer<number> {
+  return {
+    description: beet.u32.description,
+    serialize: (value: number) => {
+      const buffer = Buffer.alloc(beet.u32.byteSize);
+      beet.u32.write(buffer, 0, value);
+      return new Uint8Array(buffer);
+    },
+    deserialize: (bytes: Uint8Array, offset = 0) => {
+      const buffer = Buffer.from(bytes);
+      const value = beet.u32.read(buffer, offset);
+      return [value, offset + beet.u32.byteSize];
+    },
+  };
 }

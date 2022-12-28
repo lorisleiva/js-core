@@ -13,10 +13,13 @@ test('[js-serializer-beet] it can serialize booleans', (t) => {
   t.is(s(bool, true), '01');
   t.is(d(bool, '00'), false);
   t.is(d(bool, '01'), true);
+  t.is(d(bool, '0001', 0), false);
+  t.is(d(bool, '0001', 1), true);
   t.is(sd(bool, false), false);
   t.is(sd(bool, true), true);
   t.is(doffset(bool, '01'), 1);
-  t.is(doffset(bool, '0101'), 1);
+  t.is(doffset(bool, '0100'), 1);
+  t.is(doffset(bool, '0100', 1), 2);
 });
 
 test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
@@ -25,6 +28,8 @@ test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
   t.is(s(u8, 0), '00');
   t.is(s(u8, 42), '2a');
   t.is(s(u8, 255), 'ff');
+  t.is(d(u8, '2aff', 0), 42);
+  t.is(d(u8, '2aff', 1), 255);
   t.is(sd(u8, 0), 0);
   t.is(sd(u8, 42), 42);
   t.is(sd(u8, 255), 255);
@@ -246,6 +251,7 @@ test('[js-serializer-beet] it can serialize tuples', (t) => {
   t.is(doffset(twoNumbers, '00d6ff'), 3);
 
   // More examples.
+  t.deepEqual(sd(tuple([]), []), []);
   t.deepEqual(sd(tuple([string, u8]), ['Hello', 42]), ['Hello', 42]);
   t.deepEqual(sd(tuple([string, string]), ['a', 'b']), ['a', 'b']);
   t.deepEqual(sd(tuple([u8, string, u8]), [1, '語', 2]), [1, '語', 2]);
@@ -259,6 +265,32 @@ test('[js-serializer-beet] it can serialize tuples', (t) => {
   });
 });
 
+test('[js-serializer-beet] it can serialize vectors', (t) => {
+  const { vec, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  t.is(vec(u8).description, 'vec(u8)');
+  t.is(vec(string).description, 'vec(string)');
+
+  // Description can be overridden.
+  t.is(vec(u8, 'my tuple').description, 'my tuple');
+
+  // Example with numbers.
+  const number = vec(u8);
+  t.is(s(number, []), '00000000');
+  t.is(s(number, [42]), '010000002a');
+  t.is(s(number, [1, 2, 3]), '03000000010203');
+  t.deepEqual(d(number, 'ff010000002a', 1), [42]);
+  t.deepEqual(sd(number, [42]), [42]);
+  t.deepEqual(sd(number, [1, 2, 3]), [1, 2, 3]);
+  t.is(doffset(number, '010000002a'), 4 + 1);
+  t.is(doffset(number, '03000000010203'), 4 + 3);
+
+  // More examples.
+  t.deepEqual(sd(vec(string), []), []);
+  t.deepEqual(sd(vec(string), ['a', 'b', '語']), ['a', 'b', '語']);
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
@@ -268,18 +300,23 @@ function s<T, U extends T = T>(
 }
 
 /** Deserialize from a hex string. */
-function d<T, U extends T = T>(serializer: Serializer<T, U>, value: string): T {
+function d<T, U extends T = T>(
+  serializer: Serializer<T, U>,
+  value: string,
+  offset = 0
+): T {
   const bytes = hexToBytes(value);
-  return serializer.deserialize(bytes)[0];
+  return serializer.deserialize(bytes, offset)[0];
 }
 
 /** Deserialize from a hex string and get the new offset. */
 function doffset<T, U extends T = T>(
   serializer: Serializer<T, U>,
-  value: string
+  value: string,
+  offset = 0
 ): number {
   const bytes = hexToBytes(value);
-  return serializer.deserialize(bytes)[1];
+  return serializer.deserialize(bytes, offset)[1];
 }
 
 /** Serialize and deserialize. */
