@@ -557,7 +557,8 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
   type WebEvent =
     | { __kind: 'PageLoad' } // Empty variant.
     | { __kind: 'Click'; x: number; y: number } // Struct variant.
-    | { __kind: 'KeyPress'; fields: [string] }; // Tuple variant.
+    | { __kind: 'KeyPress'; fields: [string] } // Tuple variant.
+    | { __kind: 'PageUnload' }; // Empty variant (using empty struct).
   const webEvent: DataEnumToSerializerTuple<WebEvent> = [
     ['PageLoad', unit],
     [
@@ -568,12 +569,18 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
       ]),
     ],
     ['KeyPress', struct<{ fields: [string] }>([['fields', tuple([string])]])],
+    ['PageUnload', struct<{}>([])],
   ];
 
   // Description matches the vec definition.
   t.is(
     dataEnum(webEvent).description,
-    'dataEnum(PageLoad: unit, Click: struct(x: u8, y: u8), KeyPress: struct(fields: tuple(string)))'
+    'dataEnum(' +
+      'PageLoad: unit, ' +
+      'Click: struct(x: u8, y: u8), ' +
+      'KeyPress: struct(fields: tuple(string)), ' +
+      'PageUnload: struct()' +
+      ')'
   );
 
   // Description can be overridden.
@@ -581,8 +588,10 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
 
   // Empty variants.
   const pageLoad: WebEvent = { __kind: 'PageLoad' };
+  const pageUnload: WebEvent = { __kind: 'PageUnload' };
   t.is(s(dataEnum(webEvent), pageLoad), '00');
   t.deepEqual(sd(dataEnum(webEvent), pageLoad), pageLoad);
+  t.deepEqual(sd(dataEnum(webEvent), pageUnload), pageUnload);
   t.deepEqual(d(dataEnum(webEvent), '00'), pageLoad);
   t.deepEqual(d(dataEnum(webEvent), 'ff00', 1), pageLoad);
   t.is(doffset(dataEnum(webEvent), '00'), 1);
@@ -615,11 +624,12 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
   // Invalid examples.
   t.throws(() => s(dataEnum(webEvent), { __kind: 'Missing' } as any), {
     message:
-      'Invalid data enum variant. Got "Missing", expected one of [PageLoad, Click, KeyPress]',
+      'Invalid data enum variant. Got "Missing", ' +
+      'expected one of [PageLoad, Click, KeyPress, PageUnload]',
   });
-  t.throws(() => d(dataEnum(webEvent), '03'), {
+  t.throws(() => d(dataEnum(webEvent), '04'), {
     message:
-      'Data enum index "3" is out of range. Index should be between 0 and 2.',
+      'Data enum index "4" is out of range. Index should be between 0 and 3.',
   });
 });
 

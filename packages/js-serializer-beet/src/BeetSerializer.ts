@@ -299,7 +299,7 @@ export class BeetSerializer implements SerializerInterface {
         }
         const [variant, vOffset] = variantField[1].deserialize(bytes, offset);
         offset = vOffset;
-        return [{ __kind: variantField[0], ...variant } as T, offset];
+        return [{ __kind: variantField[0], ...(variant ?? {}) } as T, offset];
       },
     };
   }
