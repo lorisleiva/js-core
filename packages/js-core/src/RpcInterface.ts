@@ -1,6 +1,5 @@
 import type { MaybeRpcAccount } from './Account';
 import type { Cluster } from './Cluster';
-import type { Context } from './Context';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { PublicKey } from './PublicKey';
 import type {
