@@ -307,7 +307,6 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  // TODO: test
   get unit(): Serializer<void> {
     return {
       description: beet.unit.description,

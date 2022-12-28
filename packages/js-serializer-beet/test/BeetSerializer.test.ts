@@ -11,6 +11,21 @@ import {
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
+test('[js-serializer-beet] it can serialize units', (t) => {
+  const { unit } = new BeetSerializer();
+  t.is(unit.description, 'unit');
+  t.is(s(unit, undefined), '');
+  t.is(sd(unit, undefined), undefined);
+  // eslint-disable-next-line no-void
+  t.is(s(unit, void 0), '');
+  // eslint-disable-next-line no-void
+  t.is(sd(unit, void 0), void 0);
+  t.is(d(unit, ''), undefined);
+  t.is(d(unit, '00'), undefined);
+  t.is(doffset(unit, '00'), 0);
+  t.is(doffset(unit, '00', 1), 1);
+});
+
 test('[js-serializer-beet] it can serialize booleans', (t) => {
   const { bool } = new BeetSerializer();
   t.is(bool.description, 'bool');
