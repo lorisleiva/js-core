@@ -33,7 +33,9 @@ export class BeetSerializer implements SerializerInterface {
             `Expected tuple to have ${items.length} items but got ${value.length}.`
           );
         }
-        return mergeBytes(items.map((item) => item.serialize(value)));
+        return mergeBytes(
+          items.map((item, index) => item.serialize(value[index]))
+        );
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const values = [] as any as T;

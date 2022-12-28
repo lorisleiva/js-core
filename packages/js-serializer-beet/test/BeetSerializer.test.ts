@@ -223,6 +223,42 @@ test('[js-serializer-beet] it can serialize public keys', (t) => {
   t.is(doffset(publicKey, pubKeyHex), 32);
 });
 
+test('[js-serializer-beet] it can serialize tuples', (t) => {
+  const { tuple, u8, string, i16 } = new BeetSerializer();
+
+  // Description matches the tuple definition.
+  t.is(tuple([u8]).description, 'tuple(u8)');
+  t.is(tuple([u8, string, i16]).description, 'tuple(u8, string, i16)');
+
+  // Description can be overridden.
+  t.is(tuple([u8], 'my tuple').description, 'my tuple');
+
+  // Example with a single element.
+  const single = tuple([u8]);
+  t.is(s(single, [42]), '2a');
+  t.deepEqual(sd(single, [1]), [1]);
+  t.is(doffset(single, '2a'), 1);
+
+  // Example with two numbers.
+  const twoNumbers = tuple([u8, i16]);
+  t.is(s(twoNumbers, [0, -42]), '00d6ff');
+  t.deepEqual(sd(twoNumbers, [1, -2]), [1, -2]);
+  t.is(doffset(twoNumbers, '00d6ff'), 3);
+
+  // More examples.
+  t.deepEqual(sd(tuple([string, u8]), ['Hello', 42]), ['Hello', 42]);
+  t.deepEqual(sd(tuple([string, string]), ['a', 'b']), ['a', 'b']);
+  t.deepEqual(sd(tuple([u8, string, u8]), [1, '語', 2]), [1, '語', 2]);
+
+  // Invalid input.
+  t.throws(() => s(tuple([u8]), [] as any), {
+    message: 'Expected tuple to have 1 items but got 0.',
+  });
+  t.throws(() => s(tuple([u8, string]), [1, 2, 'three'] as any), {
+    message: 'Expected tuple to have 2 items but got 3.',
+  });
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
