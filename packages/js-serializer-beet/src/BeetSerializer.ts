@@ -217,39 +217,47 @@ export class BeetSerializer implements SerializerInterface {
     constructor: ScalarEnum<T> & {},
     description?: string
   ): Serializer<T> {
-    const enumKeys = Object.keys(constructor);
     const enumValues = Object.values(constructor);
+    const isNumericEnum = enumValues.some((v) => typeof v === 'number');
     const valueDescriptions = enumValues
       .filter((v) => typeof v === 'string')
       .join(', ');
     function getVariantKeyValue(value: T): [keyof ScalarEnum<T>, number] {
-      const isNumVariant = typeof value === 'number';
-      const variantKey = (isNumVariant
-        ? `${value}`
-        : value) as unknown as keyof ScalarEnum<T>;
-      const variantValue: number = isNumVariant
-        ? value
-        : (constructor[variantKey] as number);
-      if (!enumKeys.includes(variantKey)) {
+      if (typeof value === 'number') {
+        return [enumValues[value], value];
+      }
+      const variantKey = value as keyof ScalarEnum<T>;
+      const variantValue = constructor[variantKey];
+      if (typeof variantValue === 'number') {
+        return [variantKey, variantValue];
+      }
+      const indexOfValue = enumValues.indexOf(variantValue);
+      if (indexOfValue >= 0) {
+        return [variantValue as keyof ScalarEnum<T>, indexOfValue];
+      }
+      return [value as keyof ScalarEnum<T>, enumValues.indexOf(value)];
+    }
+    function checkVariantExists(variantKey: keyof ScalarEnum<T>): void {
+      if (!enumValues.includes(variantKey)) {
         throw new Error(
-          `${value} should be a variant of the provided enum type, ` +
+          `"${variantKey}" should be a variant of the provided enum type, ` +
             `i.e. [${enumValues.join(', ')}]`
         );
       }
-      return [variantKey, variantValue];
     }
     return {
       description: description ?? `enum(${valueDescriptions})`,
       serialize: (value: T) => {
         const [variantKey, variantValue] = getVariantKeyValue(value);
-        console.log({ value, variantKey, variantValue, enumKeys, enumValues });
+        checkVariantExists(variantKey);
         return u8().serialize(variantValue);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const [value, newOffset] = u8().deserialize(bytes, offset);
         offset = newOffset;
-        const [, variantValue] = getVariantKeyValue(value as T);
-        return [variantValue as T, offset];
+        const [variantKey, variantValue] = getVariantKeyValue(value as T);
+        checkVariantExists(variantKey);
+        return [(isNumericEnum ? variantValue : variantKey) as T, offset];
       },
     };
   }
