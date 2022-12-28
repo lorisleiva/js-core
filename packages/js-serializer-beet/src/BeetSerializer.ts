@@ -25,9 +25,8 @@ export class BeetSerializer implements SerializerInterface {
     description?: string
   ): Serializer<T> {
     const itemDescriptions = items.map((item) => item.description).join(', ');
-    const defaultDescription = `tuple(${itemDescriptions})`;
     return {
-      description: description ?? defaultDescription,
+      description: description ?? `tuple(${itemDescriptions})`,
       serialize: (value: T) => {
         if (value.length !== items.length) {
           throw new Error(
@@ -50,8 +49,26 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  vec<T>(item: Serializer<T>, description?: string): Serializer<T[]> {
-    throw new Error('Method not implemented.');
+  vec<T>(itemSerializer: Serializer<T>, description?: string): Serializer<T[]> {
+    return {
+      description: description ?? `vec(${itemSerializer.description})`,
+      serialize: (value: T[]) => {
+        const lengthBytes = this.u32.serialize(value.length);
+        const itemBytes = value.map((item) => itemSerializer.serialize(item));
+        return mergeBytes([lengthBytes, ...itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const values: T[] = [];
+        const [length, newOffset] = this.u32.deserialize(bytes, offset);
+        offset = newOffset;
+        for (let i = 0; i < length; i += 1) {
+          const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
+          values.push(value);
+          offset = newOffset;
+        }
+        return [values, offset];
+      },
+    };
   }
 
   array<T>(
