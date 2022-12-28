@@ -33,6 +33,7 @@ const createConfig = (build, options) => {
 
   const allDependencies = [
     ...Object.keys(pkg.dependencies),
+    ...Object.keys(pkg.peerDependencies ?? {}),
     ...additionalExternals,
   ];
   const external = allDependencies.filter((dependency) => {
