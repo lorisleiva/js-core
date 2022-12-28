@@ -20,6 +20,16 @@ export const u64 = () => {
     },
   };
 };
+export const u128 = () => {
+  const serializer = wrapBigintBeet(beet.u128);
+  return {
+    ...serializer,
+    serialize: (value: number | bigint) => {
+      if (value < 0) throw new RangeError('u128 cannot be negative');
+      return serializer.serialize(value);
+    },
+  };
+};
 
 function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
   return {
