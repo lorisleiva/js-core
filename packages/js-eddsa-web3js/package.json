@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@lorisleiva/js-core": "workspace:^",
+    "@noble/ed25519": "^1.7.1",
     "@solana/web3.js": "^1.72.0"
   },
   "devDependencies": {

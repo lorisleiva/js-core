@@ -78,10 +78,12 @@ importers:
     specifiers:
       '@ava/typescript': ^3.0.1
       '@lorisleiva/js-core': workspace:^
+      '@noble/ed25519': ^1.7.1
       '@solana/web3.js': ^1.72.0
       ava: ^5.1.0
     dependencies:
       '@lorisleiva/js-core': link:../js-core
+      '@noble/ed25519': 1.7.1
       '@solana/web3.js': 1.72.0
     devDependencies:
       '@ava/typescript': 3.0.1

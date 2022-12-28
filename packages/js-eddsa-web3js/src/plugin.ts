@@ -1,8 +1,8 @@
 import { MetaplexPlugin } from '@lorisleiva/js-core';
+import { Web3JsEddsa } from './Web3JsEddsa';
 
 export const eddsaWeb3Js = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+  install(metaplex) {
+    metaplex.eddsa = new Web3JsEddsa();
   },
 });
