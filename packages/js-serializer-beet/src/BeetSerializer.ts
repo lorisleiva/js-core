@@ -219,40 +219,36 @@ export class BeetSerializer implements SerializerInterface {
   ): Serializer<T> {
     const enumKeys = Object.keys(constructor);
     const enumValues = Object.values(constructor);
+    const valueDescriptions = enumValues
+      .filter((v) => typeof v === 'string')
+      .join(', ');
+    function getVariantKeyValue(value: T): [keyof ScalarEnum<T>, number] {
+      const isNumVariant = typeof value === 'number';
+      const variantKey = (isNumVariant
+        ? `${value}`
+        : value) as unknown as keyof ScalarEnum<T>;
+      const variantValue: number = isNumVariant
+        ? value
+        : (constructor[variantKey] as number);
+      if (!enumKeys.includes(variantKey)) {
+        throw new Error(
+          `${value} should be a variant of the provided enum type, ` +
+            `i.e. [${enumValues.join(', ')}]`
+        );
+      }
+      return [variantKey, variantValue];
+    }
     return {
-      description: description ?? 'enum',
+      description: description ?? `enum(${valueDescriptions})`,
       serialize: (value: T) => {
-        const isNumVariant = typeof value === 'number';
-        const variantKey = (isNumVariant
-          ? `${value}`
-          : value) as unknown as keyof ScalarEnum<T>;
-        const variantValue: number = isNumVariant
-          ? value
-          : (constructor[variantKey] as number);
-        if (!enumKeys.includes(variantKey)) {
-          throw new Error(
-            `${value} should be a variant of the provided enum type, ` +
-              `i.e. [${enumValues.join(', ')}]`
-          );
-        }
+        const [variantKey, variantValue] = getVariantKeyValue(value);
+        console.log({ value, variantKey, variantValue, enumKeys, enumValues });
         return u8().serialize(variantValue);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const [value, newOffset] = u8().deserialize(bytes, offset);
         offset = newOffset;
-        const isNumVariant = typeof value === 'number';
-        const variantKey = (isNumVariant
-          ? `${value}`
-          : value) as unknown as keyof ScalarEnum<T>;
-        const variantValue: number = isNumVariant
-          ? value
-          : (constructor[variantKey] as number);
-        if (!enumKeys.includes(variantKey)) {
-          throw new Error(
-            `${value} should be a variant of the provided enum type, ` +
-              `i.e. [${enumValues.join(', ')}]`
-          );
-        }
+        const [, variantValue] = getVariantKeyValue(value as T);
         return [variantValue as T, offset];
       },
     };

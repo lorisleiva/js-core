@@ -457,6 +457,55 @@ test('[js-serializer-beet] it can serialize structs', (t) => {
   });
 });
 
+test('[js-serializer-beet] it can serialize enums', (t) => {
+  const { enum: scalarEnum } = new BeetSerializer();
+  enum Empty {}
+  enum Feedback {
+    BAD,
+    GOOD,
+  }
+  enum Direction {
+    UP = 'Up',
+    DOWN = 'Down',
+    LEFT = 'Left',
+    RIGHT = 'Right',
+  }
+
+  // Description matches the vec definition.
+  t.is(scalarEnum(Empty).description, 'enum()');
+  t.is(scalarEnum(Feedback).description, 'enum(BAD, GOOD)');
+  t.is(scalarEnum(Direction).description, 'enum(Up, Down, Left, Right)');
+
+  // Description can be overridden.
+  t.is(scalarEnum(Direction, 'my enum').description, 'my enum');
+
+  // Simple scalar enums.
+  t.is(s(scalarEnum(Feedback), 'BAD'), '00');
+  t.is(s(scalarEnum(Feedback), '0'), '00');
+  t.is(s(scalarEnum(Feedback), 0), '00');
+  t.is(s(scalarEnum(Feedback), Feedback.BAD), '00');
+  t.is(d(scalarEnum(Feedback), '00'), 0);
+  t.is(d(scalarEnum(Feedback), '00'), Feedback.BAD);
+  t.is(sd(scalarEnum(Feedback), Feedback.BAD), Feedback.BAD);
+  t.is(sd(scalarEnum(Feedback), 0), 0);
+  t.is(s(scalarEnum(Feedback), 'GOOD'), '01');
+  t.is(s(scalarEnum(Feedback), '1'), '00');
+  t.is(s(scalarEnum(Feedback), 1), '01');
+  t.is(s(scalarEnum(Feedback), Feedback.GOOD), '01');
+  t.is(d(scalarEnum(Feedback), '01'), 1);
+  t.is(d(scalarEnum(Feedback), '01'), Feedback.GOOD);
+  t.is(sd(scalarEnum(Feedback), Feedback.GOOD), Feedback.GOOD);
+  t.is(sd(scalarEnum(Feedback), 1), 1);
+  t.is(doffset(scalarEnum(Feedback), '01'), 1);
+  t.is(doffset(scalarEnum(Feedback), 'ff01', 1), 2);
+
+  // Scalar enums with string values.
+  t.is(s(scalarEnum(Direction), Direction.UP), '00');
+
+  // Invalid examples.
+  // TODO
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
