@@ -15,12 +15,12 @@ export interface RpcInterface {
   getCluster(): Cluster;
   getAccount(address: PublicKey): Promise<MaybeRpcAccount>;
   // getAccounts(addresses: PublicKey[]): Promise<MaybeRpcAccount[]>;
-  // getProgramAccounts(addresses: PublicKey[]): Promise<MaybeRpcAccount[]>;
-  // getBalance(): Promise<SolAmount>;
-  // getRent(): Promise<...>;
-  // getLatestBlockhash(): Promise<...>;
-  // accountExists(): Promise<boolean>;
-  // airdrop(): Promise<...>;
+  // getProgramAccounts(program: PublicKey, filters: todo[]): Promise<MaybeRpcAccount[]>;
+  // getBalance(address: PublicKey): Promise<SolAmount>;
+  // getRent(bytes: number, withHeaderBytes?: boolean): Promise<SolAmount>;
+  // getLatestBlockhash(): Promise<{...}>;
+  // accountExists(address: PublicKey): Promise<boolean>;
+  // airdrop(address: PublicKey, amount: SolAmount): Promise<void>;
   call<Result, Params extends any[]>(
     method: string,
     params?: [...Params],
