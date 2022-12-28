@@ -391,7 +391,7 @@ test('[js-serializer-beet] it can serialize sets', (t) => {
   t.is(s(set(string), new Set()), '00000000');
   t.is(
     s(set(string), new Set(['a', 'b', 'c'])),
-    '02000000' + // 3 items.
+    '03000000' + // 3 items.
       '0100000061' + // String 'a'.
       '0100000062' + // String 'b'.
       '0100000063' // String 'b'.
