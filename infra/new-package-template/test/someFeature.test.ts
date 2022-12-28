@@ -1,5 +1,6 @@
-import test, { Test } from 'tape';
+import test from 'ava';
+import { myPlugin } from '../src';
 
-test('[packageName] it tests some dummy feature', async (t: Test) => {
-  t.equal(1, 1);
+test('[{{package-name}}] it tests some dummy feature', async (t) => {
+  t.is(typeof myPlugin, 'function');
 });
