@@ -278,7 +278,7 @@ export class BeetSerializer implements SerializerInterface {
         );
         if (discriminator < 0) {
           throw new Error(
-            `"${variant.__kind}" is not a variant of the provided data enum type, ` +
+            `"${variant.__kind}" should be a variant of the provided data enum type, ` +
               `i.e. [${fields.map(([key]) => key).join(', ')}]`
           );
         }
