@@ -213,8 +213,49 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T> {
-    throw new Error('Method not implemented.');
+  enum<T>(
+    constructor: ScalarEnum<T> & {},
+    description?: string
+  ): Serializer<T> {
+    const enumKeys = Object.keys(constructor);
+    const enumValues = Object.values(constructor);
+    return {
+      description: description ?? 'enum',
+      serialize: (value: T) => {
+        const isNumVariant = typeof value === 'number';
+        const variantKey = (isNumVariant
+          ? `${value}`
+          : value) as unknown as keyof ScalarEnum<T>;
+        const variantValue: number = isNumVariant
+          ? value
+          : (constructor[variantKey] as number);
+        if (!enumKeys.includes(variantKey)) {
+          throw new Error(
+            `${value} should be a variant of the provided enum type, ` +
+              `i.e. [${enumValues.join(', ')}]`
+          );
+        }
+        return u8().serialize(variantValue);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [value, newOffset] = u8().deserialize(bytes, offset);
+        offset = newOffset;
+        const isNumVariant = typeof value === 'number';
+        const variantKey = (isNumVariant
+          ? `${value}`
+          : value) as unknown as keyof ScalarEnum<T>;
+        const variantValue: number = isNumVariant
+          ? value
+          : (constructor[variantKey] as number);
+        if (!enumKeys.includes(variantKey)) {
+          throw new Error(
+            `${value} should be a variant of the provided enum type, ` +
+              `i.e. [${enumValues.join(', ')}]`
+          );
+        }
+        return [variantValue as T, offset];
+      },
+    };
   }
 
   dataEnum<T extends DataEnumUnion>(
