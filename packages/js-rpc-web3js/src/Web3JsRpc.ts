@@ -59,14 +59,14 @@ export class Web3JsRpc implements RpcInterface {
   async call<Result, Params extends any[]>(
     method: string,
     params?: [...Params],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options?: RpcOptions
+    options: RpcOptions = {}
   ): Promise<Result> {
     const client = (this.connection as any)._rpcClient;
-    const result = client.request(method, params);
-    // eslint-disable-next-line no-console
-    console.log(result);
-    return result;
+    return new Promise((resolve, reject) => {
+      const callback = (error: any, result: any) =>
+        error ? reject(error) : resolve(result);
+      client.request(method, params, options.id ?? null, callback);
+    });
   }
 
   async sendTransaction(
