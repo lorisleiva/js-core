@@ -1,7 +1,12 @@
-import { Serializer, bytesToHex, hexToBytes } from '@lorisleiva/js-core';
 import {
-  PublicKey as Web3PublicKey,
+  bytesToHex,
+  DataEnumToSerializerTuple,
+  hexToBytes,
+  Serializer,
+} from '@lorisleiva/js-core';
+import {
   Keypair as Web3Keypair,
+  PublicKey as Web3PublicKey,
 } from '@solana/web3.js';
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
@@ -530,6 +535,83 @@ test('[js-serializer-beet] it can serialize enums', (t) => {
     message:
       '"Diagonal" should be a variant of the provided enum type, i.e. [Up, Down, Left, Right]',
   });
+});
+
+test('[js-serializer-beet] it can serialize data enums', (t) => {
+  const { dataEnum, struct, tuple, string, u8 } = new BeetSerializer();
+  type WebEvent =
+    | { __kind: 'PageLoad' } // Empty variant.
+    | { __kind: 'Click'; x: number; y: number } // Struct variant.
+    | { __kind: 'KeyPress'; fields: [string] }; // Tuple variant.
+  const webEvent: DataEnumToSerializerTuple<WebEvent> = [
+    ['PageLoad'],
+    [
+      'Click',
+      struct<{ x: number; y: number }>([
+        ['x', u8],
+        ['y', u8],
+      ]),
+    ],
+    ['KeyPress', struct<{ fields: [string] }>([['fields', tuple([string])]])],
+  ];
+
+  // Description matches the vec definition.
+  t.is(dataEnum(webEvent).description, 'dataEnum()');
+
+  // Description can be overridden.
+  t.is(dataEnum(webEvent, 'my data enum').description, 'my data enum');
+
+  // Simple scalar enums.
+  // t.is(s(scalarEnum(Feedback), 'BAD'), '00');
+  // t.is(s(scalarEnum(Feedback), '0'), '00');
+  // t.is(s(scalarEnum(Feedback), 0), '00');
+  // t.is(s(scalarEnum(Feedback), Feedback.BAD), '00');
+  // t.is(d(scalarEnum(Feedback), '00'), 0);
+  // t.is(d(scalarEnum(Feedback), '00'), Feedback.BAD);
+  // t.is(sd(scalarEnum(Feedback), Feedback.BAD), Feedback.BAD);
+  // t.is(sd(scalarEnum(Feedback), 0), 0);
+  // t.is(s(scalarEnum(Feedback), 'GOOD'), '01');
+  // t.is(s(scalarEnum(Feedback), '1'), '01');
+  // t.is(s(scalarEnum(Feedback), 1), '01');
+  // t.is(s(scalarEnum(Feedback), Feedback.GOOD), '01');
+  // t.is(d(scalarEnum(Feedback), '01'), 1);
+  // t.is(d(scalarEnum(Feedback), '01'), Feedback.GOOD);
+  // t.is(sd(scalarEnum(Feedback), Feedback.GOOD), Feedback.GOOD);
+  // t.is(sd(scalarEnum(Feedback), 1), 1);
+  // t.is(doffset(scalarEnum(Feedback), '01'), 1);
+  // t.is(doffset(scalarEnum(Feedback), 'ff01', 1), 2);
+
+  // Scalar enums with string values.
+  // t.is(s(scalarEnum(Direction), Direction.UP), '00');
+  // t.is(s(scalarEnum(Direction), Direction.DOWN), '01');
+  // t.is(s(scalarEnum(Direction), Direction.LEFT), '02');
+  // t.is(s(scalarEnum(Direction), Direction.RIGHT), '03');
+  // t.is(d(scalarEnum(Direction), '00'), Direction.UP);
+  // t.is(d(scalarEnum(Direction), '01'), Direction.DOWN);
+  // t.is(d(scalarEnum(Direction), '02'), Direction.LEFT);
+  // t.is(d(scalarEnum(Direction), '03'), Direction.RIGHT);
+  // t.is(sd(scalarEnum(Direction), Direction.UP), Direction.UP);
+  // t.is(sd(scalarEnum(Direction), Direction.DOWN), Direction.DOWN);
+  // t.is(sd(scalarEnum(Direction), Direction.LEFT), Direction.LEFT);
+  // t.is(sd(scalarEnum(Direction), Direction.RIGHT), Direction.RIGHT);
+  // t.is(sd(scalarEnum(Direction), Direction.UP), 'Up' as Direction);
+  // t.is(sd(scalarEnum(Direction), Direction.DOWN), 'Down' as Direction);
+  // t.is(sd(scalarEnum(Direction), Direction.LEFT), 'Left' as Direction);
+  // t.is(sd(scalarEnum(Direction), Direction.RIGHT), 'Right' as Direction);
+  // t.is(s(scalarEnum(Direction), Direction.RIGHT), '03');
+  // t.is(s(scalarEnum(Direction), 'Right' as Direction), '03');
+  // t.is(s(scalarEnum(Direction), 'RIGHT' as Direction), '03');
+  // t.is(s(scalarEnum(Direction), 3 as unknown as Direction), '03');
+
+  // Invalid examples.
+  // t.throws(() => s(scalarEnum(Feedback), 'Missing'), {
+  //   message:
+  //     '"Missing" should be a variant of the provided enum type, i.e. [BAD, GOOD, 0, 1]',
+  // });
+  // t.throws(() => s(scalarEnum(Direction), 'Diagonal' as any), {
+  //   message:
+  //     '"Diagonal" should be a variant of the provided enum type, i.e. [Up, Down, Left, Right]',
+  // });
 });
 
 /** Serialize as a hex string. */

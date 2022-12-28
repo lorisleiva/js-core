@@ -23,7 +23,10 @@ export type StructToSerializerTuple<T extends object> = Array<
   }[keyof T]
 >;
 
-// TODO(loris): Allow [T['__kind']] only for empty variants.
 export type DataEnumToSerializerTuple<T extends DataEnumUnion> = Array<
-  T extends any ? [T['__kind'], Serializer<Omit<T, '__kind'>>] : never
+  T extends any
+    ? keyof Omit<T, '__kind'> extends never
+      ? [T['__kind']]
+      : [T['__kind'], Serializer<Omit<T, '__kind'>>]
+    : never
 >;
