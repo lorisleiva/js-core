@@ -559,7 +559,7 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
     | { __kind: 'Click'; x: number; y: number } // Struct variant.
     | { __kind: 'KeyPress'; fields: [string] }; // Tuple variant.
   const webEvent: DataEnumToSerializerTuple<WebEvent> = [
-    ['PageLoad', unit as any],
+    ['PageLoad', unit],
     [
       'Click',
       struct<{ x: number; y: number }>([

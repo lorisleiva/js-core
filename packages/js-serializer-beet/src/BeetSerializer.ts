@@ -284,9 +284,7 @@ export class BeetSerializer implements SerializerInterface {
         }
         const variantPrefix = u8().serialize(discriminator);
         const variantSerializer = fields[discriminator][1];
-        const variantBytes = variantSerializer
-          ? variantSerializer.serialize(variant)
-          : new Uint8Array();
+        const variantBytes = variantSerializer.serialize(variant as any);
         return mergeBytes([variantPrefix, variantBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
@@ -299,9 +297,7 @@ export class BeetSerializer implements SerializerInterface {
               `Index should be between 0 and ${fields.length - 1}.`
           );
         }
-        const [variant, vOffset] = variantField[1]
-          ? variantField[1].deserialize(bytes, offset)
-          : [{}, offset];
+        const [variant, vOffset] = variantField[1].deserialize(bytes, offset);
         offset = vOffset;
         return [{ __kind: variantField[0], ...variant } as T, offset];
       },
