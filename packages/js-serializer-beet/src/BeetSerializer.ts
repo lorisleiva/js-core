@@ -2,6 +2,7 @@
 import {
   DataEnumToSerializerTuple,
   DataEnumUnion,
+  mergeBytes,
   Option,
   PublicKey,
   PublicKeyInput,
@@ -369,15 +370,4 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
-}
-
-function mergeBytes(bytesArr: Uint8Array[]): Uint8Array {
-  const totalLength = bytesArr.reduce((total, arr) => total + arr.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  bytesArr.forEach((arr) => {
-    result.set(arr, offset);
-    offset += arr.length;
-  });
-  return result;
 }
