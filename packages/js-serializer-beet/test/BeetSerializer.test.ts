@@ -401,6 +401,34 @@ test('[js-serializer-beet] it can serialize sets', (t) => {
   t.deepEqual(sd(set(string), new Set(['語'])), new Set(['語']));
 });
 
+test('[js-serializer-beet] it can serialize options', (t) => {
+  const { option, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  t.is(option(u8).description, 'option(u8)');
+  t.is(option(string).description, 'option(string)');
+
+  // Description can be overridden.
+  t.is(option(string, 'my option').description, 'my option');
+
+  // Examples with numbers.
+  t.is(s(option(u8), null), '00');
+  t.is(s(option(u8), 42), '012a');
+  t.is(d(option(u8), '012a'), 42);
+  t.is(d(option(u8), 'ff012a', 1), 42);
+  t.is(d(option(u8), 'ffff00', 2), null);
+  t.is(sd(option(u8), null), null);
+  t.is(sd(option(u8), 0), 0);
+  t.is(sd(option(u8), 1), 1);
+  t.is(doffset(option(u8), '012a'), 1 + 1);
+  t.is(doffset(option(u8), 'ffffffff012a', 4), 4 + 1 + 1);
+
+  // More examples.
+  t.is(sd(option(string), null), null);
+  t.is(sd(option(string), 'Hello'), 'Hello');
+  t.is(sd(option(string), '語'), '語');
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
