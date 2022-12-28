@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-eddsa-web3js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
@@ -27,11 +27,14 @@
   },
   "dependencies": {
     "@lorisleiva/js-core": "workspace:^",
-    "@noble/ed25519": "^1.7.1",
+    "@noble/ed25519": "^1.7.1"
+  },
+  "peerDependencies": {
     "@solana/web3.js": "^1.72.0"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
+    "@solana/web3.js": "^1.72.0",
     "ava": "^5.1.0"
   },
   "publishConfig": {
