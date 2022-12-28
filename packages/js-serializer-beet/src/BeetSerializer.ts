@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   DataEnumToSerializerTuple,
   DataEnumUnion,
@@ -265,7 +264,44 @@ export class BeetSerializer implements SerializerInterface {
     fields: DataEnumToSerializerTuple<T>,
     description?: string
   ): Serializer<T> {
-    throw new Error('Method not implemented.');
+    const fieldDescriptions = fields
+      .map(([name, serializer]) => `${String(name)}: ${serializer.description}`)
+      .join(', ');
+    return {
+      description: description ?? `dataEnum(${fieldDescriptions})`,
+      serialize: (variant: T) => {
+        const discriminator = fields.findIndex(
+          ([key]) => variant.__kind === key
+        );
+        if (discriminator < 0) {
+          throw new Error(
+            `"${variant.__kind}" is not a variant of the provided data enum type, ` +
+              `i.e. [${fields.map(([key]) => key).join(', ')}]`
+          );
+        }
+        const variantPrefix = u8().serialize(discriminator);
+        const variantSerializer = fields[discriminator][1];
+        const variantBytes = variantSerializer
+          ? variantSerializer.serialize(variant)
+          : new Uint8Array();
+        return mergeBytes([variantPrefix, variantBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [discriminator, dOffset] = u8().deserialize(bytes, offset);
+        offset = dOffset;
+        const variantField = fields[discriminator] ?? null;
+        if (!variantField) {
+          throw new Error(
+            `Discriminator "${discriminator}" out of range for ${fields.length} variants.`
+          );
+        }
+        const [variant, vOffset] = variantField[1]
+          ? variantField[1].deserialize(bytes, offset)
+          : [{}, offset];
+        offset = vOffset;
+        return [{ __kind: variantField[0], ...variant } as T, offset];
+      },
+    };
   }
 
   get bool(): Serializer<boolean> {
