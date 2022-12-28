@@ -4,6 +4,7 @@ import type { Serializer } from './Serializer';
 import type {
   DataEnumToSerializerTuple,
   DataEnumUnion,
+  Option,
   ScalarEnum,
   StructToSerializerTuple,
   WrapInSerializer,
@@ -32,7 +33,7 @@ export interface SerializerInterface {
   option: <T>(
     item: Serializer<T>,
     description?: string
-  ) => Serializer<T | null>;
+  ) => Serializer<Option<T>>;
 
   // Structs.
   struct: <T extends object>(
@@ -65,4 +66,110 @@ export interface SerializerInterface {
   string: Serializer<string>;
   bytes: Serializer<Uint8Array>;
   publicKey: Serializer<PublicKey | PublicKeyInput, PublicKey>;
+}
+
+export class NullSerializer implements SerializerInterface {
+  tuple<T extends any[]>(): Serializer<T> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  vec<T>(): Serializer<T[]> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  array<T>(): Serializer<T[]> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  map<K, V>(): Serializer<Map<K, V>> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  set<T>(): Serializer<Set<T>> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  option<T>(): Serializer<Option<T>> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  struct<T extends object>(): Serializer<T> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  enum<T>(): Serializer<T> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  dataEnum<T extends DataEnumUnion>(): Serializer<T> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get unit(): Serializer<void> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get bool(): Serializer<boolean> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get u8(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get u16(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get u32(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get u64(): Serializer<number | bigint, bigint> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get u128(): Serializer<number | bigint, bigint> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get i8(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get i16(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get i32(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get i64(): Serializer<number | bigint, bigint> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get i128(): Serializer<number | bigint, bigint> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get f32(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get f64(): Serializer<number> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get string(): Serializer<string> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get bytes(): Serializer<Uint8Array> {
+    throw Error('SerializerInterface not implemented.');
+  }
+
+  get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey> {
+    throw Error('SerializerInterface not implemented.');
+  }
 }
