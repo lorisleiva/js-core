@@ -367,6 +367,40 @@ test('[js-serializer-beet] it can serialize maps', (t) => {
   t.is(doffset(letterMap, '00000000'), 4);
 });
 
+test('[js-serializer-beet] it can serialize sets', (t) => {
+  const { set, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  t.is(set(u8).description, 'set(u8)');
+  t.is(set(string).description, 'set(string)');
+
+  // Description can be overridden.
+  t.is(set(string, 'my set').description, 'my set');
+
+  // Examples with numbers.
+  t.is(s(set(u8), new Set()), '00000000');
+  t.is(s(set(u8), new Set([1, 2, 3])), '03000000010203');
+  t.deepEqual(d(set(u8), '03000000010203'), new Set([1, 2, 3]));
+  t.deepEqual(sd(set(u8), new Set()), new Set());
+  t.deepEqual(sd(set(u8), new Set([1, 2, 3])), new Set([1, 2, 3]));
+  t.is(doffset(set(u8), '00000000'), 4);
+  t.is(doffset(set(u8), '03000000010203'), 4 + 3);
+  t.is(doffset(set(u8), 'ff03000000010203', 1), 1 + 4 + 3);
+
+  // Example with strings.
+  t.is(s(set(string), new Set()), '00000000');
+  t.is(
+    s(set(string), new Set(['a', 'b', 'c'])),
+    '02000000' + // 3 items.
+      '0100000061' + // String 'a'.
+      '0100000062' + // String 'b'.
+      '0100000063' // String 'b'.
+  );
+  t.deepEqual(d(set(string), 'ff00000000', 1), new Set());
+  t.deepEqual(sd(set(string), new Set()), new Set());
+  t.deepEqual(sd(set(string), new Set(['語'])), new Set(['語']));
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
