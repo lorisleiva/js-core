@@ -1,7 +1,7 @@
 import test from 'ava';
 import { mapSerializer, Serializer } from '../src';
 
-test('[Serializer] playground', (t) => {
+test('playground', (t) => {
   const serializer: Serializer<number> = {
     description: 'number',
     serialize: (value: number) => new Uint8Array([value]),

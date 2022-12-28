@@ -11,7 +11,7 @@ import {
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
-test('[js-serializer-beet] it can serialize units', (t) => {
+test('it can serialize units', (t) => {
   const { unit } = new BeetSerializer();
   t.is(unit.description, 'unit');
   t.is(s(unit, undefined), '');
@@ -26,7 +26,7 @@ test('[js-serializer-beet] it can serialize units', (t) => {
   t.is(doffset(unit, '00', 1), 1);
 });
 
-test('[js-serializer-beet] it can serialize booleans', (t) => {
+test('it can serialize booleans', (t) => {
   const { bool } = new BeetSerializer();
   t.is(bool.description, 'bool');
   t.is(s(bool, false), '00');
@@ -42,7 +42,7 @@ test('[js-serializer-beet] it can serialize booleans', (t) => {
   t.is(doffset(bool, '0100', 1), 2);
 });
 
-test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
+test('it can serialize u8 numbers', (t) => {
   const { u8 } = new BeetSerializer();
   t.is(u8.description, 'u8');
   t.is(s(u8, 0), '00');
@@ -59,7 +59,7 @@ test('[js-serializer-beet] it can serialize u8 numbers', (t) => {
   t.is(doffset(u8, '0101'), 1);
 });
 
-test('[js-serializer-beet] it can serialize u16 numbers', (t) => {
+test('it can serialize u16 numbers', (t) => {
   const { u16 } = new BeetSerializer();
   t.is(u16.description, 'u16');
   t.is(s(u16, 0), '0000');
@@ -74,7 +74,7 @@ test('[js-serializer-beet] it can serialize u16 numbers', (t) => {
   t.throws<RangeError>(() => s(u16, 65536));
 });
 
-test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
+test('it can serialize u32 numbers', (t) => {
   const { u32 } = new BeetSerializer();
   const max = Number('0xffffffff');
   t.is(u32.description, 'u32');
@@ -89,7 +89,7 @@ test('[js-serializer-beet] it can serialize u32 numbers', (t) => {
   t.throws<RangeError>(() => s(u32, 4_294_967_296));
 });
 
-test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
+test('it can serialize u64 numbers', (t) => {
   const { u64 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffff');
   t.is(u64.description, 'u64');
@@ -104,7 +104,7 @@ test('[js-serializer-beet] it can serialize u64 numbers', (t) => {
   t.throws<RangeError>(() => s(u64, max + 1n));
 });
 
-test('[js-serializer-beet] it can serialize u128 numbers', (t) => {
+test('it can serialize u128 numbers', (t) => {
   const { u128 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffffffffffffffffffff');
   t.is(u128.description, 'u128');
@@ -118,7 +118,7 @@ test('[js-serializer-beet] it can serialize u128 numbers', (t) => {
   t.throws<RangeError>(() => s(u128, max + 1n));
 });
 
-test('[js-serializer-beet] it can serialize i8 numbers', (t) => {
+test('it can serialize i8 numbers', (t) => {
   const { i8 } = new BeetSerializer();
   t.is(i8.description, 'i8');
   t.is(s(i8, 0), '00');
@@ -133,7 +133,7 @@ test('[js-serializer-beet] it can serialize i8 numbers', (t) => {
   t.throws<RangeError>(() => s(i8, 128));
 });
 
-test('[js-serializer-beet] it can serialize i16 numbers', (t) => {
+test('it can serialize i16 numbers', (t) => {
   const { i16 } = new BeetSerializer();
   t.is(i16.description, 'i16');
   t.is(s(i16, 0), '0000');
@@ -147,7 +147,7 @@ test('[js-serializer-beet] it can serialize i16 numbers', (t) => {
   t.throws<RangeError>(() => s(i16, 32768));
 });
 
-test('[js-serializer-beet] it can serialize i32 numbers', (t) => {
+test('it can serialize i32 numbers', (t) => {
   const { i32 } = new BeetSerializer();
   const max = Math.floor(Number('0xffffffff') / 2);
   t.is(i32.description, 'i32');
@@ -162,7 +162,7 @@ test('[js-serializer-beet] it can serialize i32 numbers', (t) => {
   t.throws<RangeError>(() => s(i32, max + 1));
 });
 
-test('[js-serializer-beet] it can serialize i64 numbers', (t) => {
+test('it can serialize i64 numbers', (t) => {
   const { i64 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffff') / 2n;
   t.is(i64.description, 'i64');
@@ -178,7 +178,7 @@ test('[js-serializer-beet] it can serialize i64 numbers', (t) => {
   t.throws<RangeError>(() => s(i64, max + 1n));
 });
 
-test('[js-serializer-beet] it can serialize i128 numbers', (t) => {
+test('it can serialize i128 numbers', (t) => {
   const { i128 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffffffffffffffffffff') / 2n;
   t.is(i128.description, 'i128');
@@ -194,7 +194,7 @@ test('[js-serializer-beet] it can serialize i128 numbers', (t) => {
   t.throws<RangeError>(() => s(i128, max + 1n));
 });
 
-test('[js-serializer-beet] it cannot serialize float numbers', (t) => {
+test('it cannot serialize float numbers', (t) => {
   const { f32, f64 } = new BeetSerializer();
   const throwExpectation = { name: 'OperationNotSupportedError' };
   t.throws<OperationNotSupportedError>(() => s(f32, 1.5), throwExpectation);
@@ -203,7 +203,7 @@ test('[js-serializer-beet] it cannot serialize float numbers', (t) => {
   t.throws<OperationNotSupportedError>(() => d(f64, '00'), throwExpectation);
 });
 
-test('[js-serializer-beet] it can serialize strings', (t) => {
+test('it can serialize strings', (t) => {
   const { string, u32 } = new BeetSerializer();
   const getPrefix = (text: string) => d(u32, s(string, text).slice(0, 8));
   t.is(string.description, 'string');
@@ -219,7 +219,7 @@ test('[js-serializer-beet] it can serialize strings', (t) => {
   t.is(doffset(string, '03000000e8aa9e'), 4 + 3);
 });
 
-test('[js-serializer-beet] it can serialize bytes', (t) => {
+test('it can serialize bytes', (t) => {
   const { bytes } = new BeetSerializer();
   t.is(bytes.description, 'bytes');
   t.is(s(bytes, new Uint8Array([0])), '00');
@@ -228,7 +228,7 @@ test('[js-serializer-beet] it can serialize bytes', (t) => {
   t.is(doffset(bytes, '2aff00'), 3);
 });
 
-test('[js-serializer-beet] it can serialize public keys', (t) => {
+test('it can serialize public keys', (t) => {
   const { publicKey } = new BeetSerializer();
   t.is(publicKey.description, 'publicKey');
   const generatedPubKey = Web3Keypair.generate().publicKey;
@@ -248,7 +248,7 @@ test('[js-serializer-beet] it can serialize public keys', (t) => {
   t.is(doffset(publicKey, pubKeyHex), 32);
 });
 
-test('[js-serializer-beet] it can serialize tuples', (t) => {
+test('it can serialize tuples', (t) => {
   const { tuple, u8, string, i16 } = new BeetSerializer();
 
   // Description matches the tuple definition.
@@ -285,7 +285,7 @@ test('[js-serializer-beet] it can serialize tuples', (t) => {
   });
 });
 
-test('[js-serializer-beet] it can serialize vectors', (t) => {
+test('it can serialize vectors', (t) => {
   const { vec, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -311,7 +311,7 @@ test('[js-serializer-beet] it can serialize vectors', (t) => {
   t.deepEqual(sd(vec(string), ['a', 'b', '語']), ['a', 'b', '語']);
 });
 
-test('[js-serializer-beet] it can serialize arrays', (t) => {
+test('it can serialize arrays', (t) => {
   const { array, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -345,7 +345,7 @@ test('[js-serializer-beet] it can serialize arrays', (t) => {
   });
 });
 
-test('[js-serializer-beet] it can serialize maps', (t) => {
+test('it can serialize maps', (t) => {
   const { map, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -387,7 +387,7 @@ test('[js-serializer-beet] it can serialize maps', (t) => {
   t.is(doffset(letterMap, '00000000'), 4);
 });
 
-test('[js-serializer-beet] it can serialize sets', (t) => {
+test('it can serialize sets', (t) => {
   const { set, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -421,7 +421,7 @@ test('[js-serializer-beet] it can serialize sets', (t) => {
   t.deepEqual(sd(set(string), new Set(['語'])), new Set(['語']));
 });
 
-test('[js-serializer-beet] it can serialize options', (t) => {
+test('it can serialize options', (t) => {
   const { option, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -449,7 +449,7 @@ test('[js-serializer-beet] it can serialize options', (t) => {
   t.is(sd(option(string), '語'), '語');
 });
 
-test('[js-serializer-beet] it can serialize structs', (t) => {
+test('it can serialize structs', (t) => {
   const { struct, u8, string } = new BeetSerializer();
 
   // Description matches the vec definition.
@@ -477,7 +477,7 @@ test('[js-serializer-beet] it can serialize structs', (t) => {
   });
 });
 
-test('[js-serializer-beet] it can serialize enums', (t) => {
+test('it can serialize enums', (t) => {
   const { enum: scalarEnum } = new BeetSerializer();
   enum Empty {}
   enum Feedback {
@@ -552,7 +552,7 @@ test('[js-serializer-beet] it can serialize enums', (t) => {
   });
 });
 
-test('[js-serializer-beet] it can serialize data enums', (t) => {
+test('it can serialize data enums', (t) => {
   const { dataEnum, struct, tuple, string, u8, unit } = new BeetSerializer();
   type WebEvent =
     | { __kind: 'PageLoad' } // Empty variant.

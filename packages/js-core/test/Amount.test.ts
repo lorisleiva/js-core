@@ -23,7 +23,7 @@ import {
   toTokenAmount,
 } from '../src';
 
-test('[Amount] it can create amounts from any types', (t) => {
+test('it can create amounts from any types', (t) => {
   const usdAmount = toAmount(1500, 'USD', 2);
   const gbpAmount = toAmount(4200, 'GBP', 2);
 
@@ -35,7 +35,7 @@ test('[Amount] it can create amounts from any types', (t) => {
   t.is(gbpAmount.decimals, 2);
 });
 
-test('[Amount] it can be formatted', (t) => {
+test('it can be formatted', (t) => {
   const percentAmount = toAmount(1234, '%', 2);
   const usdAmount = toAmount(1536, 'USD', 2);
   const gbpAmount = toAmount(4210, 'GBP', 2);
@@ -60,7 +60,7 @@ test('[Amount] it can be formatted', (t) => {
   t.is(formatAmount(solAmountLeadingZeroDecimal), 'SOL 2.005000000');
 });
 
-test('[Amount] it has helpers for certain currencies', (t) => {
+test('it has helpers for certain currencies', (t) => {
   amountEquals(t, usd(15.36), 'USD 15.36');
   amountEquals(t, usd(15.36), 'USD 15.36');
   amountEquals(t, toAmount(1536, 'USD', 2), 'USD 15.36');
@@ -69,14 +69,14 @@ test('[Amount] it has helpers for certain currencies', (t) => {
   amountEquals(t, toAmount(2_500_000_000, 'SOL', 9), 'SOL 2.500000000');
 });
 
-test('[Amount] it can create amounts representing SPL tokens', (t) => {
+test('it can create amounts representing SPL tokens', (t) => {
   amountEquals(t, toTokenAmount(1), 'Token 1');
   amountEquals(t, toTokenAmount(4.5, 'DGEN'), 'DGEN 4');
   amountEquals(t, toTokenAmount(4.5, 'DGEN', 2), 'DGEN 4.50');
   amountEquals(t, toTokenAmount(6.2587, 'DGEN', 9), 'DGEN 6.258700000');
 });
 
-test('[Amount] it can add and subtract amounts together', (t) => {
+test('it can add and subtract amounts together', (t) => {
   const a = sol(1.5);
   const b = lamports(4200000000); // 4.2 SOL
 
@@ -89,7 +89,7 @@ test('[Amount] it can add and subtract amounts together', (t) => {
   amountEquals(t, subtractAmounts(a, sol(1)), 'SOL 0.500000000');
 });
 
-test('[Amount] it fail to operate on amounts of different currencies', (t) => {
+test('it fail to operate on amounts of different currencies', (t) => {
   try {
     // @ts-ignore because we want to test the error.
     addAmounts(sol(1), usd(1));
@@ -103,7 +103,7 @@ test('[Amount] it fail to operate on amounts of different currencies', (t) => {
   }
 });
 
-test('[Amount] it can multiply and divide amounts', (t) => {
+test('it can multiply and divide amounts', (t) => {
   amountEquals(t, multiplyAmount(sol(1.5), 3), 'SOL 4.500000000');
   amountEquals(t, multiplyAmount(sol(1.5), 3.78), 'SOL 5.670000000');
   amountEquals(t, multiplyAmount(sol(1.5), -1), 'SOL -1.500000000');
@@ -113,7 +113,7 @@ test('[Amount] it can multiply and divide amounts', (t) => {
   amountEquals(t, divideAmount(sol(1.5), -1), 'SOL -1.500000000');
 });
 
-test('[Amount] it can compare amounts together', (t) => {
+test('it can compare amounts together', (t) => {
   const a = sol(1.5);
   const b = lamports(4200000000); // 4.2 SOL
 
@@ -145,14 +145,14 @@ test('[Amount] it can compare amounts together', (t) => {
   t.false(isZeroAmount(sol(-1)));
 });
 
-test('[Amount] it can compare amounts together with a tolerance', (t) => {
+test('it can compare amounts together with a tolerance', (t) => {
   t.false(isEqualToAmount(sol(1.5), sol(1.6)));
   t.false(isEqualToAmount(sol(1.5), sol(1.6), sol(0.01)));
   t.true(isEqualToAmount(sol(1.5), sol(1.6), sol(0.1)));
   t.true(isEqualToAmount(sol(1.5), sol(1.6), sol(0.2)));
 });
 
-test('[Amount] it returns a new instance when running operations', (t) => {
+test('it returns a new instance when running operations', (t) => {
   const a = sol(1.5);
   const b = lamports(4200000000); // 4.2 SOL
 
