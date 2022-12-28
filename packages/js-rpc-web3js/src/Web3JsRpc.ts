@@ -3,30 +3,32 @@ import {
   Cluster,
   Commitment,
   Context,
+  ErrorWithLogs,
+  lamports,
   MaybeRpcAccount,
+  ProgramError,
   PublicKey,
+  resolveClusterFromEndpoint,
   RpcConfirmResult,
   RpcInterface,
   RpcOptions,
   RpcSendOptions,
-  resolveClusterFromEndpoint,
-  lamports,
 } from '@lorisleiva/js-core';
 import {
-  ConnectionConfig as Web3JsConnectionConfig,
-  Connection as Web3JsConnection,
-  PublicKey as Web3JsPublicKey,
   AccountInfo as Web3JSAccountInfo,
+  Connection as Web3JsConnection,
+  ConnectionConfig as Web3JsConnectionConfig,
+  PublicKey as Web3JsPublicKey,
 } from '@solana/web3.js';
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
 export class Web3JsRpc implements RpcInterface {
-  readonly context: Pick<Context, 'programs'>;
+  protected readonly context: Pick<Context, 'programs'>;
 
-  readonly connection: Web3JsConnection;
+  public readonly connection: Web3JsConnection;
 
-  readonly cluster: Cluster;
+  public readonly cluster: Cluster;
 
   constructor(
     context: Pick<Context, 'programs'>,
@@ -70,7 +72,20 @@ export class Web3JsRpc implements RpcInterface {
     serializedTransaction: Uint8Array,
     options?: RpcSendOptions
   ): Promise<string> {
-    return this.connection.sendRawTransaction(serializedTransaction, options);
+    try {
+      return await this.connection.sendRawTransaction(
+        serializedTransaction,
+        options
+      );
+    } catch (error: any) {
+      let resolvedError: ProgramError | null = null;
+      if (error instanceof Error && 'logs' in error) {
+        resolvedError = this.context.programs.resolveError(
+          error as ErrorWithLogs
+        );
+      }
+      throw resolvedError || error;
+    }
   }
 
   async confirmTransaction(
