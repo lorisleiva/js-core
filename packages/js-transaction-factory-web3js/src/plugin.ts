@@ -1,8 +1,8 @@
 import { MetaplexPlugin } from '@lorisleiva/js-core';
+import { Web3JsTransactionFactory } from './Web3JsTransactionFactory';
 
-export const myPlugin = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+export const web3JsTransactionFactory = (): MetaplexPlugin => ({
+  install(metaplex) {
+    metaplex.transactions = new Web3JsTransactionFactory();
   },
 });

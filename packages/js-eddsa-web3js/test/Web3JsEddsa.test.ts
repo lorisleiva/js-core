@@ -1,6 +1,6 @@
 import test from 'ava';
-import { eddsaWeb3Js } from '../src';
+import { web3JsEddsa } from '../src';
 
 test('example test', async (t) => {
-  t.is(typeof eddsaWeb3Js, 'function');
+  t.is(typeof web3JsEddsa, 'function');
 });
