@@ -556,7 +556,10 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
   ];
 
   // Description matches the vec definition.
-  t.is(dataEnum(webEvent).description, 'dataEnum()');
+  t.is(
+    dataEnum(webEvent).description,
+    'dataEnum(PageLoad: struct(), Click: struct(x: u8, y: u8), KeyPress: struct(fields: tuple(string)))'
+  );
 
   // Description can be overridden.
   t.is(dataEnum(webEvent, 'my data enum').description, 'my data enum');
