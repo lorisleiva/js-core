@@ -77,7 +77,8 @@ export class BeetSerializer implements SerializerInterface {
     description?: string
   ): Serializer<T[]> {
     return {
-      description: description ?? `array(${itemSerializer.description})`,
+      description:
+        description ?? `array(${itemSerializer.description}; ${size})`,
       serialize: (value: T[]) => {
         if (value.length !== size) {
           throw new Error(

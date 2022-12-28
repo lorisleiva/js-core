@@ -273,7 +273,7 @@ test('[js-serializer-beet] it can serialize vectors', (t) => {
   t.is(vec(string).description, 'vec(string)');
 
   // Description can be overridden.
-  t.is(vec(u8, 'my tuple').description, 'my tuple');
+  t.is(vec(u8, 'my vec').description, 'my vec');
 
   // Example with numbers.
   const number = vec(u8);
@@ -289,6 +289,40 @@ test('[js-serializer-beet] it can serialize vectors', (t) => {
   // More examples.
   t.deepEqual(sd(vec(string), []), []);
   t.deepEqual(sd(vec(string), ['a', 'b', '語']), ['a', 'b', '語']);
+});
+
+test('[js-serializer-beet] it can serialize arrays', (t) => {
+  const { array, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  t.is(array(u8, 5).description, 'array(u8; 5)');
+  t.is(array(string, 1).description, 'array(string; 1)');
+
+  // Description can be overridden.
+  t.is(array(u8, 10, 'my array').description, 'my array');
+
+  // Example with a single item.
+  const single = array(u8, 1);
+  t.is(s(single, [1]), '01');
+  t.is(s(single, [42]), '2a');
+  t.deepEqual(d(single, 'ff2a', 1), [42]);
+  t.deepEqual(sd(single, [42]), [42]);
+  t.is(doffset(single, '2a'), 1);
+  t.is(doffset(single, 'ff2a', 1), 2);
+
+  // More examples.
+  t.deepEqual(sd(array(string, 0), []), []);
+  t.deepEqual(sd(array(string, 1), ['Hello']), ['Hello']);
+  t.deepEqual(sd(array(string, 3), ['a', 'b', '語']), ['a', 'b', '語']);
+  t.deepEqual(sd(array(u8, 5), [1, 2, 3, 4, 5]), [1, 2, 3, 4, 5]);
+
+  // Invalid input.
+  t.throws(() => s(array(u8, 1), []), {
+    message: 'Expected array to have 1 items but got 0.',
+  });
+  t.throws(() => s(array(string, 2), ['a', 'b', 'c']), {
+    message: 'Expected array to have 2 items but got 3.',
+  });
 });
 
 /** Serialize as a hex string. */
