@@ -10,22 +10,38 @@ import {
   RpcInterface,
   RpcOptions,
   RpcSendOptions,
+  resolveClusterFromEndpoint,
 } from '@lorisleiva/js-core';
+import {
+  ConnectionConfig as Web3JsConnectionConfig,
+  Connection as Web3JsConnection,
+} from '@solana/web3.js';
+
+export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
 export class Web3JsRpc implements RpcInterface {
+  readonly connection: Web3JsConnection;
+
+  readonly cluster: Cluster;
+
+  constructor(endpoint: string, rpcOptions?: Web3JsRpcOptions) {
+    this.connection = new Web3JsConnection(endpoint, rpcOptions);
+    this.cluster = resolveClusterFromEndpoint(endpoint);
+  }
+
   getEndpoint(): string {
-    throw new Error('Method not implemented.');
+    return this.connection.rpcEndpoint;
   }
 
   getCluster(): Cluster {
+    return this.cluster;
+  }
+
+  async getAccount(address: PublicKey): Promise<MaybeRpcAccount> {
     throw new Error('Method not implemented.');
   }
 
-  getAccount(address: PublicKey): Promise<MaybeRpcAccount> {
-    throw new Error('Method not implemented.');
-  }
-
-  call<Result, Params extends any[]>(
+  async call<Result, Params extends any[]>(
     method: string,
     params?: [...Params] | undefined,
     options?: RpcOptions | undefined
@@ -33,7 +49,7 @@ export class Web3JsRpc implements RpcInterface {
     throw new Error('Method not implemented.');
   }
 
-  sendTransaction(
+  async sendTransaction(
     serializedTransaction: Uint8Array,
     context: Pick<Context, 'programs'>,
     options?: RpcSendOptions | undefined
@@ -41,7 +57,7 @@ export class Web3JsRpc implements RpcInterface {
     throw new Error('Method not implemented.');
   }
 
-  confirmTransaction(
+  async confirmTransaction(
     signature: string,
     blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
     commitment?: Commitment | undefined
