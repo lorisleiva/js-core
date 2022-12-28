@@ -190,7 +190,18 @@ export class BeetSerializer implements SerializerInterface {
     fields: StructToSerializerTuple<T>,
     description?: string
   ): Serializer<T> {
-    throw new Error('Method not implemented.');
+    const fieldDescriptions = fields
+      .map(([name, serializer]) => `${String(name)}: ${serializer.description}`)
+      .join(', ');
+    return {
+      description: description ?? `struct(${fieldDescriptions})`,
+      serialize: (option: T) => {
+        //
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        //
+      },
+    };
   }
 
   enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T> {

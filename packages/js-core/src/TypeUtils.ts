@@ -19,7 +19,7 @@ export type DataEnumRecord<T extends DataEnumUnion> = {
 
 export type StructToSerializerTuple<T extends object> = Array<
   {
-    [K in keyof T]: T[K] extends undefined ? [K] : [K, Serializer<T[K]>];
+    [K in keyof T]: [K, Serializer<T[K]>];
   }[keyof T]
 >;
 
