@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
@@ -29,6 +29,9 @@
     "@lorisleiva/js-core": "workspace:^",
     "@lorisleiva/js-eddsa-web3js": "workspace:^",
     "@lorisleiva/js-serializer-beet": "workspace:^"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.72.0"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
