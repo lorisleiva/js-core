@@ -429,6 +429,34 @@ test('[js-serializer-beet] it can serialize options', (t) => {
   t.is(sd(option(string), '語'), '語');
 });
 
+test('[js-serializer-beet] it can serialize structs', (t) => {
+  const { struct, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  const person = struct([
+    ['name', string],
+    ['age', u8],
+  ]);
+  t.is(struct([['age', u8]]).description, 'struct(age: u8)');
+  t.is(person.description, 'struct(name: string, age: u8)');
+
+  // Description can be overridden.
+  t.is(struct([['age', u8]], 'my struct').description, 'my struct');
+
+  // More examples.
+  t.is(s(struct([]), {}), '');
+  const alice = { name: 'Alice', age: 32 };
+  t.is(s(person, alice), '05000000416c69636520');
+  t.deepEqual(d(person, '05000000416c69636520'), alice);
+  t.deepEqual(d(person, 'ff05000000416c69636520', 1), alice);
+  t.deepEqual(sd(person, alice), alice);
+  t.deepEqual(sd(person, { age: 1, name: 'Bob' }), { name: 'Bob', age: 1 });
+  t.deepEqual(sd(person, { age: 1, name: 'Bob', dob: '1995-06-01' } as any), {
+    name: 'Bob',
+    age: 1,
+  });
+});
+
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
