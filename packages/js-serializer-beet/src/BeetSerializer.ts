@@ -134,8 +134,31 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  set<T>(item: Serializer<T>, description?: string): Serializer<Set<T>> {
-    throw new Error('Method not implemented.');
+  set<T>(
+    itemSerializer: Serializer<T>,
+    description?: string
+  ): Serializer<Set<T>> {
+    return {
+      description: description ?? `set(${itemSerializer.description})`,
+      serialize: (set: Set<T>) => {
+        const lengthBytes = u32().serialize(set.size);
+        const itemBytes = Array.from(set, (value) =>
+          itemSerializer.serialize(value)
+        );
+        return mergeBytes([lengthBytes, ...itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const set: Set<T> = new Set();
+        const [length, newOffset] = u32().deserialize(bytes, offset);
+        offset = newOffset;
+        for (let i = 0; i < length; i += 1) {
+          const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
+          offset = newOffset;
+          set.add(value);
+        }
+        return [set, offset];
+      },
+    };
   }
 
   option<T>(item: Serializer<T>, description?: string): Serializer<Option<T>> {
