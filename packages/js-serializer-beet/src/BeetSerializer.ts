@@ -9,7 +9,6 @@ import {
   Serializer,
   SerializerInterface,
   StructToSerializerTuple,
-  toBigInt,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import * as beet from '@metaplex-foundation/beet';
@@ -17,7 +16,19 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
-import { bool, u8, u16, u32, u64, u128, i8, i16, i32 } from './numbers';
+import {
+  bool,
+  u8,
+  u16,
+  u32,
+  u64,
+  u128,
+  i8,
+  i16,
+  i32,
+  i64,
+  i128,
+} from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[]>(
@@ -350,55 +361,11 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get i64(): Serializer<number | bigint, bigint> {
-    return {
-      description: beet.i64.description,
-      serialize: (value: number | bigint) => {
-        if (value < (-2n) ** 63n) {
-          throw new RangeError('i64 cannot be lower than -2^63');
-        }
-        if (value > 2n ** 63n - 1n) {
-          throw new RangeError('i64 cannot be greater than 2^63 - 1');
-        }
-        const buffer = Buffer.alloc(beet.i64.byteSize);
-        beet.i64.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const rawValue = beet.i64.read(buffer, offset);
-        const value =
-          typeof rawValue === 'number'
-            ? BigInt(rawValue)
-            : toBigInt(rawValue.toString());
-        return [value, offset + beet.i64.byteSize];
-      },
-    };
+    return i64();
   }
 
   get i128(): Serializer<number | bigint, bigint> {
-    return {
-      description: beet.i128.description,
-      serialize: (value: number | bigint) => {
-        if (value < (-2n) ** 127n) {
-          throw new RangeError('i128 cannot be lower than -2^127');
-        }
-        if (value > 2n ** 127n - 1n) {
-          throw new RangeError('i128 cannot be greater than 2^127 - 1');
-        }
-        const buffer = Buffer.alloc(beet.i128.byteSize);
-        beet.i128.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const rawValue = beet.i128.read(buffer, offset);
-        const value =
-          typeof rawValue === 'number'
-            ? BigInt(rawValue)
-            : toBigInt(rawValue.toString());
-        return [value, offset + beet.i128.byteSize];
-      },
-    };
+    return i128();
   }
 
   get f32(): Serializer<number> {

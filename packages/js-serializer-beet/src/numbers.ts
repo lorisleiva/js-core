@@ -2,6 +2,7 @@ import { Serializer, toBigInt } from '@lorisleiva/js-core';
 import type { FixedSizeBeet } from '@metaplex-foundation/beet';
 import * as beet from '@metaplex-foundation/beet';
 
+// Simple numbers.
 export const bool = () => wrapBeet(beet.bool);
 export const u8 = () => wrapBeet(beet.u8);
 export const u16 = () => wrapBeet(beet.u16);
@@ -10,6 +11,7 @@ export const i8 = () => wrapBeet(beet.i8);
 export const i16 = () => wrapBeet(beet.i16);
 export const i32 = () => wrapBeet(beet.i32);
 
+// Big numbers.
 export const u64 = () => {
   const serializer = wrapBigintBeet(beet.u64);
   return {
@@ -30,7 +32,38 @@ export const u128 = () => {
     },
   };
 };
+export const i64 = () => {
+  const serializer = wrapBigintBeet(beet.i64);
+  return {
+    ...serializer,
+    serialize: (value: number | bigint) => {
+      if (value < (-2n) ** 63n) {
+        throw new RangeError('i64 cannot be lower than -2^63');
+      }
+      if (value > 2n ** 63n - 1n) {
+        throw new RangeError('i64 cannot be greater than 2^63 - 1');
+      }
+      return serializer.serialize(value);
+    },
+  };
+};
+export const i128 = () => {
+  const serializer = wrapBigintBeet(beet.i128);
+  return {
+    ...serializer,
+    serialize: (value: number | bigint) => {
+      if (value < (-2n) ** 127n) {
+        throw new RangeError('i128 cannot be lower than -2^127');
+      }
+      if (value > 2n ** 127n - 1n) {
+        throw new RangeError('i128 cannot be greater than 2^127 - 1');
+      }
+      return serializer.serialize(value);
+    },
+  };
+};
 
+// Helpers.
 function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
   return {
     description: fixedBeet.description,
