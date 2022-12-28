@@ -100,11 +100,38 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   map<K, V>(
-    key: Serializer<K>,
-    value: Serializer<V>,
+    keySerializer: Serializer<K>,
+    valueSerializer: Serializer<V>,
     description?: string
   ): Serializer<Map<K, V>> {
-    throw new Error('Method not implemented.');
+    return {
+      description:
+        description ??
+        `map(${keySerializer.description}, ${valueSerializer.description})`,
+      serialize: (map: Map<K, V>) => {
+        const lengthBytes = u32().serialize(map.size);
+        const itemBytes = Array.from(map, ([key, value]) =>
+          mergeBytes([
+            keySerializer.serialize(key),
+            valueSerializer.serialize(value),
+          ])
+        );
+        return mergeBytes([lengthBytes, ...itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const map: Map<K, V> = new Map();
+        const [length, newOffset] = u32().deserialize(bytes, offset);
+        offset = newOffset;
+        for (let i = 0; i < length; i += 1) {
+          const [key, kOffset] = keySerializer.deserialize(bytes, offset);
+          offset = kOffset;
+          const [value, vOffset] = valueSerializer.deserialize(bytes, offset);
+          offset = vOffset;
+          map.set(key, value);
+        }
+        return [map, offset];
+      },
+    };
   }
 
   set<T>(item: Serializer<T>, description?: string): Serializer<Set<T>> {
