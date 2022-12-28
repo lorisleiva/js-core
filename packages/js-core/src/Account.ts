@@ -11,7 +11,7 @@ export type AccountHeader = {
 };
 
 export type RpcAccount = AccountHeader & {
-  publicKey: PublicKey;
+  address: PublicKey;
   data: Uint8Array;
 };
 
@@ -28,9 +28,9 @@ export function deserializeAccount<T extends object>(
   rawAccount: RpcAccount,
   dataSerializer: Serializer<T>
 ): Account<T> {
-  const { data, publicKey, ...rest } = rawAccount;
+  const { data, address, ...rest } = rawAccount;
   const [parsedData] = dataSerializer.deserialize(data);
-  return { address: publicKey, header: rest, ...parsedData };
+  return { address, header: rest, ...parsedData };
 }
 
 export function assertAccountExists(

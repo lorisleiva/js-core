@@ -11,10 +11,13 @@ import {
   RpcOptions,
   RpcSendOptions,
   resolveClusterFromEndpoint,
+  lamports,
 } from '@lorisleiva/js-core';
 import {
   ConnectionConfig as Web3JsConnectionConfig,
   Connection as Web3JsConnection,
+  PublicKey as Web3JsPublicKey,
+  AccountInfo as Web3JSAccountInfo,
 } from '@solana/web3.js';
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
@@ -38,7 +41,11 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async getAccount(address: PublicKey): Promise<MaybeRpcAccount> {
-    throw new Error('Method not implemented.');
+    const account = await this.connection.getAccountInfo(
+      address as Web3JsPublicKey
+    );
+
+    return this.parseMaybeAccount(account, address);
   }
 
   async call<Result, Params extends any[]>(
@@ -63,5 +70,19 @@ export class Web3JsRpc implements RpcInterface {
     commitment?: Commitment | undefined
   ): Promise<RpcConfirmResult> {
     throw new Error('Method not implemented.');
+  }
+
+  protected parseMaybeAccount(
+    account: Web3JSAccountInfo<Uint8Array> | null,
+    address: PublicKey
+  ): MaybeRpcAccount {
+    return account
+      ? {
+          ...account,
+          exists: true,
+          address,
+          lamports: lamports(account.lamports),
+        }
+      : { exists: false, address };
   }
 }
