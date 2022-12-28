@@ -64,6 +64,7 @@ export class Web3JsRpc implements RpcInterface {
   ): Promise<Result> {
     const client = (this.connection as any)._rpcClient;
     const result = client.request(method, params);
+    // eslint-disable-next-line no-console
     console.log(result);
     return result;
   }
