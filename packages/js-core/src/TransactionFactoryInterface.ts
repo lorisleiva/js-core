@@ -45,3 +45,25 @@ export type AddressLookupTableState = {
   authority?: PublicKey;
   addresses: PublicKey[];
 };
+
+export class NullTransactionFactory implements TransactionFactoryInterface {
+  create(): Transaction {
+    throw Error('TransactionFactoryInterface not implemented.');
+  }
+
+  createLegacyMessage(): LegacyTransactionMessage {
+    throw Error('TransactionFactoryInterface not implemented.');
+  }
+
+  createMessageV0(): TransactionMessageV0 {
+    throw Error('TransactionFactoryInterface not implemented.');
+  }
+
+  deserialize(): Transaction {
+    throw Error('TransactionFactoryInterface not implemented.');
+  }
+
+  deserializeMessage(): TransactionMessage {
+    throw Error('TransactionFactoryInterface not implemented.');
+  }
+}

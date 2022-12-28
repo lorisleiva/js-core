@@ -9,13 +9,13 @@ import type { TransactionFactoryInterface } from './TransactionFactoryInterface'
 import type { UploaderInterface } from './UploaderInterface';
 
 export interface Context {
-  http: HttpInterface;
-  rpc: RpcInterface;
-  uploader: UploaderInterface;
   downloader: DownloaderInterface;
-  programs: ProgramRepositoryInterface;
-  transactions: TransactionFactoryInterface;
   eddsa: EddsaInterface;
+  http: HttpInterface;
   identity: Signer;
+  programs: ProgramRepositoryInterface;
+  rpc: RpcInterface;
   serializer: SerializerInterface;
+  transactions: TransactionFactoryInterface;
+  uploader: UploaderInterface;
 }
