@@ -48,6 +48,7 @@ export interface SerializerInterface {
   ): Serializer<T>;
 
   // Leaves.
+  unit: Serializer<void>;
   bool: Serializer<boolean>;
   u8: Serializer<number>;
   u16: Serializer<number>;

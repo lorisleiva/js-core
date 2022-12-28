@@ -265,7 +265,10 @@ export class BeetSerializer implements SerializerInterface {
     description?: string
   ): Serializer<T> {
     const fieldDescriptions = fields
-      .map(([name, serializer]) => `${String(name)}: ${serializer.description}`)
+      .map(
+        ([name, serializer]) =>
+          `${String(name)}${serializer ? `: ${serializer.description}` : ''}`
+      )
       .join(', ');
     return {
       description: description ?? `dataEnum(${fieldDescriptions})`,
@@ -301,6 +304,15 @@ export class BeetSerializer implements SerializerInterface {
         offset = vOffset;
         return [{ __kind: variantField[0], ...variant } as T, offset];
       },
+    };
+  }
+
+  // TODO: test
+  get unit(): Serializer<void> {
+    return {
+      description: beet.unit.description,
+      serialize: () => new Uint8Array(),
+      deserialize: (_bytes: Uint8Array, offset = 0) => [undefined, offset],
     };
   }
 

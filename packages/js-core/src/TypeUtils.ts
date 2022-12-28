@@ -24,9 +24,5 @@ export type StructToSerializerTuple<T extends object> = Array<
 >;
 
 export type DataEnumToSerializerTuple<T extends DataEnumUnion> = Array<
-  T extends any
-    ? keyof Omit<T, '__kind'> extends never
-      ? [T['__kind']]
-      : [T['__kind'], Serializer<Omit<T, '__kind'>>]
-    : never
+  T extends any ? [T['__kind'], Serializer<Omit<T, '__kind'>>] : never
 >;
