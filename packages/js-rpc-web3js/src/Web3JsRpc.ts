@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BlockhashWithExpiryBlockHeight,
   Cluster,
@@ -58,9 +57,13 @@ export class Web3JsRpc implements RpcInterface {
   async call<Result, Params extends any[]>(
     method: string,
     params?: [...Params],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: RpcOptions
   ): Promise<Result> {
-    throw new Error('Method not implemented.');
+    const client = (this.connection as any)._rpcClient;
+    const result = client.request(method, params);
+    console.log(result);
+    return result;
   }
 
   async sendTransaction(
