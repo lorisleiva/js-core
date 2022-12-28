@@ -1,8 +1,10 @@
 import { MetaplexPlugin } from '@lorisleiva/js-core';
+import { MockStorage, MockStorageOptions } from './MockStorage';
 
-export const myPlugin = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+export const mockStorage = (options?: MockStorageOptions): MetaplexPlugin => ({
+  install(metaplex) {
+    const mockStorage = new MockStorage(options);
+    metaplex.uploader = mockStorage;
+    metaplex.downloader = mockStorage;
   },
 });

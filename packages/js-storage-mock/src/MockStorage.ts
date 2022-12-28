@@ -1,9 +1,9 @@
-import type { DownloaderInterface } from './DownloaderInterface';
-import { AssetNotFoundError } from './errors';
-import type { GenericFile } from './GenericFile';
-import type { Metaplex } from './Metaplex';
-import type { MetaplexPlugin } from './MetaplexPlugin';
-import type { UploaderInterface } from './UploaderInterface';
+import {
+  AssetNotFoundError,
+  DownloaderInterface,
+  GenericFile,
+  UploaderInterface,
+} from '@lorisleiva/js-core';
 
 const DEFAULT_BASE_URL = 'https://mockstorage.example.com/';
 
@@ -45,11 +45,3 @@ export class MockStorage implements UploaderInterface, DownloaderInterface {
     return file;
   }
 }
-
-export const mockStorage = (options?: MockStorageOptions): MetaplexPlugin => ({
-  install(metaplex: Metaplex) {
-    const mockStorage = new MockStorage(options);
-    metaplex.uploader = mockStorage;
-    metaplex.downloader = mockStorage;
-  },
-});

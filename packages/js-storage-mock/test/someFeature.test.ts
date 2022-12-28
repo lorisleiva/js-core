@@ -1,6 +1,6 @@
 import test from 'ava';
-import { myPlugin } from '../src';
+import { mockStorage } from '../src';
 
-test('[js-storage-mock] it tests some dummy feature', async (t) => {
-  t.is(typeof myPlugin, 'function');
+test('example test', async (t) => {
+  t.is(typeof mockStorage, 'function');
 });

@@ -12,7 +12,6 @@ export * from './Instruction';
 export * from './Keypair';
 export * from './Metaplex';
 export * from './MetaplexPlugin';
-export * from './MockStorage';
 export * from './Program';
 export * from './ProgramRepositoryInterface';
 export * from './PublicKey';
