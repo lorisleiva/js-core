@@ -195,11 +195,20 @@ export class BeetSerializer implements SerializerInterface {
       .join(', ');
     return {
       description: description ?? `struct(${fieldDescriptions})`,
-      serialize: (option: T) => {
-        //
+      serialize: (struct: T) => {
+        const fieldBytes = fields.map(([key, serializer]) =>
+          serializer.serialize(struct[key])
+        );
+        return mergeBytes(fieldBytes);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        //
+        const struct: Partial<T> = {};
+        fields.forEach(([key, serializer]) => {
+          const [value, newOffset] = serializer.deserialize(bytes, offset);
+          offset = newOffset;
+          struct[key] = value;
+        });
+        return [struct as T, offset];
       },
     };
   }
