@@ -544,11 +544,11 @@ test('[js-serializer-beet] it can serialize enums', (t) => {
   // Invalid examples.
   t.throws(() => s(scalarEnum(Feedback), 'Missing'), {
     message:
-      '"Missing" should be a variant of the provided enum type, i.e. [BAD, GOOD, 0, 1]',
+      'Invalid enum variant. Got "Missing", expected one of [BAD, GOOD, 0, 1]',
   });
   t.throws(() => s(scalarEnum(Direction), 'Diagonal' as any), {
     message:
-      '"Diagonal" should be a variant of the provided enum type, i.e. [Up, Down, Left, Right]',
+      'Invalid enum variant. Got "Diagonal", expected one of [Up, Down, Left, Right]',
   });
 });
 
@@ -615,12 +615,12 @@ test('[js-serializer-beet] it can serialize data enums', (t) => {
   // Invalid examples.
   t.throws(() => s(dataEnum(webEvent), { __kind: 'Missing' } as any), {
     message:
-      '"Missing" should be a variant of the provided data enum type, i.e. [PageLoad, Click, KeyPress]',
+      'Invalid data enum variant. Got "Missing", expected one of [PageLoad, Click, KeyPress]',
   });
-  // t.throws(() => s(scalarEnum(Direction), 'Diagonal' as any), {
-  //   message:
-  //     '"Diagonal" should be a variant of the provided enum type, i.e. [Up, Down, Left, Right]',
-  // });
+  t.throws(() => d(dataEnum(webEvent), '03'), {
+    message:
+      'Data enum index "3" is out of range. Index should be between 0 and 2.',
+  });
 });
 
 /** Serialize as a hex string. */

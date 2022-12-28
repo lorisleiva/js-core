@@ -238,8 +238,8 @@ export class BeetSerializer implements SerializerInterface {
     function checkVariantExists(variantKey: keyof ScalarEnum<T>): void {
       if (!enumValues.includes(variantKey)) {
         throw new Error(
-          `"${variantKey}" should be a variant of the provided enum type, ` +
-            `i.e. [${enumValues.join(', ')}]`
+          `Invalid enum variant. Got "${variantKey}", expected one of ` +
+            `[${enumValues.join(', ')}]`
         );
       }
     }
@@ -278,8 +278,8 @@ export class BeetSerializer implements SerializerInterface {
         );
         if (discriminator < 0) {
           throw new Error(
-            `"${variant.__kind}" should be a variant of the provided data enum type, ` +
-              `i.e. [${fields.map(([key]) => key).join(', ')}]`
+            `Invalid data enum variant. Got "${variant.__kind}", expected one of ` +
+              `[${fields.map(([key]) => key).join(', ')}]`
           );
         }
         const variantPrefix = u8().serialize(discriminator);
@@ -295,7 +295,8 @@ export class BeetSerializer implements SerializerInterface {
         const variantField = fields[discriminator] ?? null;
         if (!variantField) {
           throw new Error(
-            `Discriminator "${discriminator}" out of range for ${fields.length} variants.`
+            `Data enum index "${discriminator}" is out of range. ` +
+              `Index should be between 0 and ${fields.length - 1}.`
           );
         }
         const [variant, vOffset] = variantField[1]
