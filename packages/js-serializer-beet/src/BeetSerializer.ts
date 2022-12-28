@@ -226,10 +226,9 @@ export class BeetSerializer implements SerializerInterface {
       if (typeof value === 'number') {
         return [enumValues[value], value];
       }
-      const variantKey = value as keyof ScalarEnum<T>;
-      const variantValue = constructor[variantKey];
+      const variantValue = constructor[value as keyof ScalarEnum<T>];
       if (typeof variantValue === 'number') {
-        return [variantKey, variantValue];
+        return [value as keyof ScalarEnum<T>, variantValue];
       }
       const indexOfValue = enumValues.indexOf(variantValue);
       if (indexOfValue >= 0) {
