@@ -1,12 +1,18 @@
-import type { DownloaderInterface } from './DownloaderInterface';
-import type { EddsaInterface } from './EddsaInterface';
-import type { HttpInterface } from './HttpInterface';
-import type { ProgramRepositoryInterface } from './ProgramRepositoryInterface';
-import type { RpcInterface } from './RpcInterface';
-import type { SerializerInterface } from './SerializerInterface';
-import type { Signer } from './Signer';
-import type { TransactionFactoryInterface } from './TransactionFactoryInterface';
-import type { UploaderInterface } from './UploaderInterface';
+import { DownloaderInterface, NullDownloader } from './DownloaderInterface';
+import { EddsaInterface, NullEddsa } from './EddsaInterface';
+import { HttpInterface, NullHttp } from './HttpInterface';
+import {
+  NullProgramRepository,
+  ProgramRepositoryInterface,
+} from './ProgramRepositoryInterface';
+import { NullRpc, RpcInterface } from './RpcInterface';
+import { NullSerializer, SerializerInterface } from './SerializerInterface';
+import { NullSigner, Signer } from './Signer';
+import {
+  NullTransactionFactory,
+  TransactionFactoryInterface,
+} from './TransactionFactoryInterface';
+import { NullUploader, UploaderInterface } from './UploaderInterface';
 
 export interface Context {
   downloader: DownloaderInterface;
@@ -19,3 +25,15 @@ export interface Context {
   transactions: TransactionFactoryInterface;
   uploader: UploaderInterface;
 }
+
+export const createNullContext = (): Context => ({
+  downloader: new NullDownloader(),
+  eddsa: new NullEddsa(),
+  http: new NullHttp(),
+  identity: new NullSigner(),
+  programs: new NullProgramRepository(),
+  rpc: new NullRpc(),
+  serializer: new NullSerializer(),
+  transactions: new NullTransactionFactory(),
+  uploader: new NullUploader(),
+});

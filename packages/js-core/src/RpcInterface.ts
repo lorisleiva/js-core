@@ -69,3 +69,29 @@ export type RpcSendOptions = {
   /** The minimum slot that the request can be evaluated at */
   minContextSlot?: number;
 };
+
+export class NullRpc implements RpcInterface {
+  getEndpoint(): string {
+    throw Error('RpcInterface not implemented.');
+  }
+
+  getCluster(): Cluster {
+    throw Error('RpcInterface not implemented.');
+  }
+
+  getAccount(): Promise<MaybeRpcAccount> {
+    throw Error('RpcInterface not implemented.');
+  }
+
+  call<Result>(): Promise<Result> {
+    throw Error('RpcInterface not implemented.');
+  }
+
+  sendTransaction(): Promise<string> {
+    throw Error('RpcInterface not implemented.');
+  }
+
+  confirmTransaction(): Promise<RpcConfirmResult> {
+    throw Error('RpcInterface not implemented.');
+  }
+}

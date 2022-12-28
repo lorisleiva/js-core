@@ -36,3 +36,9 @@ export enum HttpMethod {
   CONNECT = 'CONNECT',
   TRACE = 'TRACE',
 }
+
+export class NullHttp implements HttpInterface {
+  send<ResponseData>(): Promise<HttpResponse<ResponseData>> {
+    throw Error('HttpInterface not implemented.');
+  }
+}
