@@ -42,5 +42,14 @@
     "entryPoint": "./src/index.ts",
     "readmeFile": "./README.md",
     "displayName": "js-core"
+  },
+  "ava": {
+    "typescript": {
+      "compile": false,
+      "rewritePaths": {
+        "src/": "dist/test/src/",
+        "test/": "dist/test/test/"
+      }
+    }
   }
 }
