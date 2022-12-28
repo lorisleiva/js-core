@@ -2,6 +2,14 @@ import type { Serializer } from '@lorisleiva/js-core';
 import type { FixedSizeBeet } from '@metaplex-foundation/beet';
 import * as beet from '@metaplex-foundation/beet';
 
+export const bool = (): Serializer<boolean> => wrapBeet(beet.bool);
+export const u8 = (): Serializer<number> => wrapBeet(beet.u8);
+export const u16 = (): Serializer<number> => wrapBeet(beet.u16);
+export const u32 = (): Serializer<number> => wrapBeet(beet.u32);
+export const i8 = (): Serializer<number> => wrapBeet(beet.i8);
+export const i16 = (): Serializer<number> => wrapBeet(beet.i16);
+export const i32 = (): Serializer<number> => wrapBeet(beet.i32);
+
 function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
   return {
     description: fixedBeet.description,
@@ -16,20 +24,4 @@ function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
       return [value, offset + fixedBeet.byteSize];
     },
   };
-}
-
-export function bool(): Serializer<boolean> {
-  return wrapBeet(beet.bool);
-}
-
-export function u8(): Serializer<number> {
-  return wrapBeet(beet.u8);
-}
-
-export function u16(): Serializer<number> {
-  return wrapBeet(beet.u16);
-}
-
-export function u32(): Serializer<number> {
-  return wrapBeet(beet.u32);
 }

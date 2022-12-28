@@ -17,7 +17,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
-import { bool, u32, u8, u16 } from './numbers';
+import { bool, u8, u16, u32, i8, i16, i32 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[]>(
@@ -372,51 +372,15 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get i8(): Serializer<number> {
-    return {
-      description: beet.i8.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.i8.byteSize);
-        beet.i8.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.i8.read(buffer, offset);
-        return [value, offset + beet.i8.byteSize];
-      },
-    };
+    return i8();
   }
 
   get i16(): Serializer<number> {
-    return {
-      description: beet.i16.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.i16.byteSize);
-        beet.i16.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.i16.read(buffer, offset);
-        return [value, offset + beet.i16.byteSize];
-      },
-    };
+    return i16();
   }
 
   get i32(): Serializer<number> {
-    return {
-      description: beet.i32.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.i32.byteSize);
-        beet.i32.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.i32.read(buffer, offset);
-        return [value, offset + beet.i32.byteSize];
-      },
-    };
+    return i32();
   }
 
   get i64(): Serializer<number | bigint, bigint> {
