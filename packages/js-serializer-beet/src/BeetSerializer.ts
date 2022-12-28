@@ -17,7 +17,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
-import { bool, u32, u8 } from './numbers';
+import { bool, u32, u8, u16 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[]>(
@@ -322,19 +322,7 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   get u16(): Serializer<number> {
-    return {
-      description: beet.u16.description,
-      serialize: (value: number) => {
-        const buffer = Buffer.alloc(beet.u16.byteSize);
-        beet.u16.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const value = beet.u16.read(buffer, offset);
-        return [value, offset + beet.u16.byteSize];
-      },
-    };
+    return u16();
   }
 
   get u32(): Serializer<number> {
