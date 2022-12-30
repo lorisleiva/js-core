@@ -1,8 +1,8 @@
 import { MetaplexPlugin } from '@lorisleiva/js-core';
+import { FetchHttp } from './FetchHttp';
 
-export const myPlugin = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+export const fetchHttp = (): MetaplexPlugin => ({
+  install(metaplex) {
+    metaplex.http = new FetchHttp();
   },
 });

@@ -24,7 +24,7 @@ export type HttpResponse<ResponseData = any> = {
   headers: HttpHeaders;
 };
 
-export type HttpHeaders = Record<string, string>;
+export type HttpHeaders = Record<string, string[]>;
 
 export enum HttpMethod {
   GET = 'GET',
