@@ -3,7 +3,7 @@ import { DataEnum, ScalarEnum } from './Enums';
 import { InterfaceImplementationMissingError } from './errors';
 import type { PublicKey } from './PublicKey';
 import type { Serializer, WrapInSerializer } from './Serializer';
-import type { Option } from './Option';
+import type { Nullable, Option } from './Option';
 
 export type StructToSerializerTuple<T extends object> = Array<
   {
@@ -46,6 +46,10 @@ export interface SerializerInterface {
     item: Serializer<T>,
     description?: string
   ) => Serializer<Option<T>>;
+  nullable: <T>(
+    item: Serializer<T>,
+    description?: string
+  ) => Serializer<Nullable<T>>;
 
   // Structs.
   struct: <T extends object>(
@@ -107,6 +111,10 @@ export class NullSerializer implements SerializerInterface {
   }
 
   option<T>(): Serializer<Option<T>> {
+    throw this.error;
+  }
+
+  nullable<T>(): Serializer<Nullable<T>> {
     throw this.error;
   }
 
