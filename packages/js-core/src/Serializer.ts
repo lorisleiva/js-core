@@ -4,6 +4,10 @@ export type Serializer<From, To extends From = From> = {
   deserialize: (buffer: Uint8Array, offset?: number) => [To, number];
 };
 
+export type WrapInSerializer<T> = {
+  [P in keyof T]: Serializer<T[P]>;
+};
+
 export function mapSerializer<NewFrom, OldFrom, To extends NewFrom & OldFrom>(
   serializer: Serializer<OldFrom, To>,
   unmap: (value: NewFrom) => OldFrom

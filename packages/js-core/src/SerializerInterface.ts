@@ -1,15 +1,26 @@
-import type { PublicKey } from './PublicKey';
 import type { PublicKeyInput } from './EddsaInterface';
-import type { Serializer } from './Serializer';
-import type {
-  DataEnumToSerializerTuple,
-  DataEnumUnion,
-  Option,
-  ScalarEnum,
-  StructToSerializerTuple,
-  WrapInSerializer,
-} from './TypeUtils';
+import { DataEnum, ScalarEnum } from './Enums';
 import { InterfaceImplementationMissingError } from './errors';
+import type { PublicKey } from './PublicKey';
+import type { Serializer, WrapInSerializer } from './Serializer';
+import type { Option } from './Option';
+
+export type StructToSerializerTuple<T extends object> = Array<
+  {
+    [K in keyof T]: [K, Serializer<T[K]>];
+  }[keyof T]
+>;
+
+export type DataEnumToSerializerTuple<T extends DataEnum> = Array<
+  T extends any
+    ? [
+        T['__kind'],
+        keyof Omit<T, '__kind'> extends never
+          ? Serializer<Omit<T, '__kind'>> | Serializer<void>
+          : Serializer<Omit<T, '__kind'>>
+      ]
+    : never
+>;
 
 export interface SerializerInterface {
   // Lists.
@@ -44,7 +55,7 @@ export interface SerializerInterface {
 
   // Enums.
   enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T>;
-  dataEnum<T extends DataEnumUnion>(
+  dataEnum<T extends DataEnum>(
     fields: DataEnumToSerializerTuple<T>,
     description?: string
   ): Serializer<T>;
@@ -107,7 +118,7 @@ export class NullSerializer implements SerializerInterface {
     throw this.error;
   }
 
-  dataEnum<T extends DataEnumUnion>(): Serializer<T> {
+  dataEnum<T extends DataEnum>(): Serializer<T> {
     throw this.error;
   }
 
