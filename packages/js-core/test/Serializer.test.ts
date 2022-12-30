@@ -1,70 +1,119 @@
 import test from 'ava';
 import { mapSerializer, Serializer } from '../src';
 
-test('playground', (t) => {
-  const serializer: Serializer<number> = {
-    description: 'number',
-    serialize: (value: number) => new Uint8Array([value]),
-    deserialize: (buffer: Uint8Array): [number, number] => [buffer[0], 1],
-  };
-  log(serializer, 42);
+const numberSerializer: Serializer<number> = {
+  description: 'number',
+  serialize: (value: number) => new Uint8Array([value]),
+  deserialize: (buffer: Uint8Array): [number, number] => [buffer[0], 1],
+};
 
-  const serializer2 = mapSerializer(serializer, (value: number | string) =>
-    typeof value === 'number' ? value : value.length
+test('it can loosen the serializer input with a map', (t) => {
+  // From <number> to <number | string, number>.
+  const mappedSerializer: Serializer<number | string, number> = mapSerializer(
+    numberSerializer,
+    (value: number | string) =>
+      typeof value === 'number' ? value : value.length
   );
-  log(serializer2, 'hello world!');
 
-  const serializer3 = mapSerializer(
-    serializer,
+  const bufferA = mappedSerializer.serialize(42);
+  t.is(mappedSerializer.deserialize(bufferA)[0], 42);
+
+  const bufferB = mappedSerializer.serialize('Hello world');
+  t.is(mappedSerializer.deserialize(bufferB)[0], 11);
+});
+
+test('it can map both the input and output of a serializer', (t) => {
+  // From <number> to <number | string, string>.
+  const mappedSerializer: Serializer<number | string, string> = mapSerializer(
+    numberSerializer,
     (value: number | string) =>
       typeof value === 'number' ? value : value.length,
     (value: number) => 'x'.repeat(value)
   );
-  log(serializer3, 'hello world!');
 
-  const serializer4: Serializer<string> = mapSerializer(
-    serializer,
+  const bufferA = mappedSerializer.serialize(42);
+  t.is(mappedSerializer.deserialize(bufferA)[0], 'x'.repeat(42));
+
+  const bufferB = mappedSerializer.serialize('Hello world');
+  t.is(mappedSerializer.deserialize(bufferB)[0], 'x'.repeat(11));
+});
+
+test('it can map the input and output of a serializer to the same type', (t) => {
+  // From <number> to <string>.
+  const mappedSerializer: Serializer<string> = mapSerializer(
+    numberSerializer,
     (value: string) => value.length,
     (value: number) => 'x'.repeat(value)
   );
-  log(serializer4, 'hello world!');
 
-  type Dummy = { a: number };
-  const serializer5: Serializer<Dummy> = mapSerializer(
-    serializer,
-    (value: Dummy) => value.a,
-    (value: number): Dummy => ({ a: value })
+  const bufferA = mappedSerializer.serialize('42');
+  t.is(mappedSerializer.deserialize(bufferA)[0], 'xx');
+
+  const bufferB = mappedSerializer.serialize('Hello world');
+  t.is(mappedSerializer.deserialize(bufferB)[0], 'xxxxxxxxxxx');
+});
+
+test('it can wrap a serializer type in an object using a map', (t) => {
+  // From <number> to <{ value: number }>.
+  type Wrap<T> = { value: T };
+  const mappedSerializer: Serializer<Wrap<number>> = mapSerializer(
+    numberSerializer,
+    (value: Wrap<number>) => value.value,
+    (value: number): Wrap<number> => ({ value })
   );
-  log(serializer5, { a: 123 });
 
-  type DummyStrict = { discriminator: number; label: string };
-  type DummyLoose = { discriminator?: number; label: string };
-  const serializer6: Serializer<DummyStrict> = {
-    description: 'DummyStrict',
-    serialize: (value: DummyStrict) =>
+  const buffer = mappedSerializer.serialize({ value: 42 });
+  t.deepEqual(mappedSerializer.deserialize(buffer)[0], { value: 42 });
+});
+
+test('it map a serializer to loosen its input by providing default values', (t) => {
+  // Create Serializer<Strict>.
+  type Strict = { discriminator: number; label: string };
+  const strictSerializer: Serializer<Strict> = {
+    description: 'Strict',
+    serialize: (value: Strict) =>
       new Uint8Array([value.discriminator, value.label.length]),
-    deserialize: (buffer: Uint8Array): [DummyStrict, number] => [
+    deserialize: (buffer: Uint8Array): [Strict, number] => [
       { discriminator: buffer[0], label: 'x'.repeat(buffer[1]) },
       1,
     ],
   };
-  log(serializer6, { discriminator: 5, label: 'hello world!' });
 
-  const serializer7: Serializer<DummyLoose, DummyStrict> = mapSerializer(
-    serializer6,
-    (value: DummyLoose): DummyStrict => ({ discriminator: 3, ...value })
+  const bufferA = strictSerializer.serialize({
+    discriminator: 5,
+    label: 'Hello world',
+  });
+  t.deepEqual(strictSerializer.deserialize(bufferA)[0], {
+    discriminator: 5,
+    label: 'xxxxxxxxxxx',
+  });
+
+  // From <Strict> to <Loose, Strict>.
+  type Loose = { discriminator?: number; label: string };
+  const looseSerializer: Serializer<Loose, Strict> = mapSerializer(
+    strictSerializer,
+    (value: Loose): Strict => ({
+      discriminator: 42, // <- Default value.
+      ...value,
+    })
   );
-  log(serializer7, { discriminator: 5, label: 'hello world!' });
-  log(serializer7, { label: 'hello world!' });
-  t.pass();
-});
 
-function log<From, V extends From, To extends From = From>(
-  serializer: Serializer<From, To>,
-  value: V
-) {
-  const buffer = serializer.serialize(value);
-  const [deserialized] = serializer.deserialize(buffer);
-  // eslint-disable-next-line no-console
-  console.log({ buffer, deserialized });
-}
+  // With explicit discriminator.
+  const bufferB = looseSerializer.serialize({
+    discriminator: 5,
+    label: 'Hello world',
+  });
+  t.deepEqual(looseSerializer.deserialize(bufferB)[0], {
+    discriminator: 5,
+    label: 'xxxxxxxxxxx',
+  });
+
+  // With implicit discriminator.
+  const bufferC = looseSerializer.serialize({
+    label: 'Hello world',
+  });
+  t.deepEqual(looseSerializer.deserialize(bufferC)[0], {
+    discriminator: 42,
+    label: 'xxxxxxxxxxx',
+  });
+});
