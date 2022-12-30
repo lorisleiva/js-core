@@ -1,6 +1,6 @@
 import {
   DataEnumToSerializerTuple,
-  DataEnumUnion,
+  DataEnum,
   mergeBytes,
   Option,
   PublicKey,
@@ -10,6 +10,10 @@ import {
   SerializerInterface,
   StructToSerializerTuple,
   WrapInSerializer,
+  Nullable,
+  isSome,
+  none,
+  some,
 } from '@lorisleiva/js-core';
 import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
@@ -179,6 +183,32 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `option(${itemSerializer.description})`,
       serialize: (option: Option<T>) => {
+        const prefixByte = bool().serialize(isSome(option));
+        const itemBytes = isSome(option)
+          ? itemSerializer.serialize(option.value)
+          : new Uint8Array();
+        return mergeBytes([prefixByte, itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [isSome, prefixOffset] = bool().deserialize(bytes, offset);
+        offset = prefixOffset;
+        if (!isSome) {
+          return [none(), offset];
+        }
+        const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
+        offset = newOffset;
+        return [some(value), offset];
+      },
+    };
+  }
+
+  nullable<T>(
+    itemSerializer: Serializer<T>,
+    description?: string
+  ): Serializer<Nullable<T>> {
+    return {
+      description: description ?? `nullable(${itemSerializer.description})`,
+      serialize: (option: Nullable<T>) => {
         const prefixByte = bool().serialize(option !== null);
         const itemBytes =
           option !== null ? itemSerializer.serialize(option) : new Uint8Array();
@@ -272,7 +302,7 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  dataEnum<T extends DataEnumUnion>(
+  dataEnum<T extends DataEnum>(
     fields: DataEnumToSerializerTuple<T>,
     description?: string
   ): Serializer<T> {

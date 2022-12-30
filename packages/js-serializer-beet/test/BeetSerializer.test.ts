@@ -2,7 +2,9 @@ import {
   bytesToHex,
   DataEnumToSerializerTuple,
   hexToBytes,
+  none,
   Serializer,
+  some,
 } from '@lorisleiva/js-core';
 import {
   Keypair as Web3Keypair,
@@ -431,22 +433,53 @@ test('it can serialize options', (t) => {
   // Description can be overridden.
   t.is(option(string, 'my option').description, 'my option');
 
+  // Examples with none.
+  t.is(s(option(u8), none()), '00');
+  t.is(s(option(string), none<string>()), '00');
+  t.deepEqual(d(option(u8), '00'), none());
+  t.deepEqual(d(option(u8), 'ffff00', 2), none());
+  t.deepEqual(sd(option(u8), none()), none());
+
   // Examples with numbers.
-  t.is(s(option(u8), null), '00');
-  t.is(s(option(u8), 42), '012a');
-  t.is(d(option(u8), '012a'), 42);
-  t.is(d(option(u8), 'ff012a', 1), 42);
-  t.is(d(option(u8), 'ffff00', 2), null);
-  t.is(sd(option(u8), null), null);
-  t.is(sd(option(u8), 0), 0);
-  t.is(sd(option(u8), 1), 1);
+  t.is(s(option(u8), some(42)), '012a');
+  t.deepEqual(d(option(u8), '012a'), some(42));
+  t.deepEqual(d(option(u8), 'ff012a', 1), some(42));
+  t.deepEqual(sd(option(u8), some(0)), some(0));
+  t.deepEqual(sd(option(u8), some(1)), some(1));
   t.is(doffset(option(u8), '012a'), 1 + 1);
   t.is(doffset(option(u8), 'ffffffff012a', 4), 4 + 1 + 1);
 
+  // Example with strings.
+  t.deepEqual(sd(option(string), some('Hello')), some('Hello'));
+  t.deepEqual(sd(option(string), some('語')), some('語'));
+});
+
+test('it can serialize nullables', (t) => {
+  const { nullable, u8, string } = new BeetSerializer();
+
+  // Description matches the vec definition.
+  t.is(nullable(u8).description, 'nullable(u8)');
+  t.is(nullable(string).description, 'nullable(string)');
+
+  // Description can be overridden.
+  t.is(nullable(string, 'my nullable').description, 'my nullable');
+
+  // Examples with numbers.
+  t.is(s(nullable(u8), null), '00');
+  t.is(s(nullable(u8), 42), '012a');
+  t.is(d(nullable(u8), '012a'), 42);
+  t.is(d(nullable(u8), 'ff012a', 1), 42);
+  t.is(d(nullable(u8), 'ffff00', 2), null);
+  t.is(sd(nullable(u8), null), null);
+  t.is(sd(nullable(u8), 0), 0);
+  t.is(sd(nullable(u8), 1), 1);
+  t.is(doffset(nullable(u8), '012a'), 1 + 1);
+  t.is(doffset(nullable(u8), 'ffffffff012a', 4), 4 + 1 + 1);
+
   // More examples.
-  t.is(sd(option(string), null), null);
-  t.is(sd(option(string), 'Hello'), 'Hello');
-  t.is(sd(option(string), '語'), '語');
+  t.is(sd(nullable(string), null), null);
+  t.is(sd(nullable(string), 'Hello'), 'Hello');
+  t.is(sd(nullable(string), '語'), '語');
 });
 
 test('it can serialize structs', (t) => {
