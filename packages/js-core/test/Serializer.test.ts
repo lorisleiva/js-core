@@ -117,3 +117,32 @@ test('it map a serializer to loosen its input by providing default values', (t) 
     label: 'xxxxxxxxxxx',
   });
 });
+
+test('it can loosen a tuple serializer', (t) => {
+  const serializer = {
+    description: 'Tuple',
+    serialize: (value: [number, string]) =>
+      new Uint8Array([value[0], value[1].length]),
+    deserialize: (buffer: Uint8Array): [[number, string], number] => [
+      [buffer[0], 'x'.repeat(buffer[1])],
+      2,
+    ],
+  };
+
+  const bufferA = serializer.serialize([42, 'Hello world']);
+  t.deepEqual(serializer.deserialize(bufferA)[0], [42, 'xxxxxxxxxxx']);
+
+  const mappedSerializer = mapSerializer(
+    serializer,
+    (value: [number | null, string]): [number, string] => [
+      value[0] ?? value[1].length,
+      value[1],
+    ]
+  );
+
+  const bufferB = mappedSerializer.serialize([null, 'Hello world']);
+  t.deepEqual(mappedSerializer.deserialize(bufferB)[0], [11, 'xxxxxxxxxxx']);
+
+  const bufferC = mappedSerializer.serialize([42, 'Hello world']);
+  t.deepEqual(mappedSerializer.deserialize(bufferC)[0], [42, 'xxxxxxxxxxx']);
+});
