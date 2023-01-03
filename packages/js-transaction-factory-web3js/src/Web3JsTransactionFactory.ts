@@ -1,55 +1,81 @@
 import {
   Instruction,
-  LegacyTransactionMessage,
-  LegacyTransactionMessageArgs,
   PublicKey,
+  SerializedTransactionMessage,
+  Signer,
   Transaction,
   TransactionFactoryInterface,
+  TransactionInput,
+  TransactionInputLegacy,
+  TransactionInputV0,
   TransactionMessage,
-  TransactionMessageV0,
-  TransactionMessageV0Args,
 } from '@lorisleiva/js-core';
 import {
-  CompileV0Args as Web3JsV0Args,
+  AddressLookupTableAccount as Web3JsAddressLookupTableAccount,
   Message as Web3JsMessageLegacy,
   MessageV0 as Web3JsMessageV0,
   PublicKey as Web3JsPublicKey,
   TransactionInstruction as Web3JsTransactionInstruction,
-  VersionedMessage as Web3JsMessage,
   VersionedTransaction as Web3JsTransaction,
 } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 
 export class Web3JsTransactionFactory implements TransactionFactoryInterface {
-  create(
-    message: TransactionMessage,
-    signatures?: Uint8Array[] | undefined
-  ): Transaction {
-    return new Web3JsTransaction(message as Web3JsMessage, signatures);
+  create(input: TransactionInput): Transaction {
+    const [message, serializedMessage] =
+      input.version === 'legacy'
+        ? this.createLegacyMessage(input)
+        : this.createMessageV0(input);
+    return { message, serializedMessage, signatures: input.signatures ?? [] };
   }
 
   createLegacyMessage(
-    args: LegacyTransactionMessageArgs
-  ): LegacyTransactionMessage {
+    input: TransactionInputLegacy
+  ): [TransactionMessage, SerializedTransactionMessage] {
     const web3JsMessage = Web3JsMessageLegacy.compile({
-      payerKey: toWeb3JsPublicKey(args.payerKey),
-      instructions: args.instructions.map(toWeb3JsInstruction),
-      recentBlockhash: args.recentBlockhash,
+      payerKey: toWeb3JsPublicKey(input.payer),
+      instructions: input.instructions.map(toWeb3JsInstruction),
+      recentBlockhash: input.recentBlockhash,
     });
 
-    return fromWebJsLegacyMessage(web3JsMessage);
+    return [fromWebJsMessage(web3JsMessage), web3JsMessage.serialize()];
   }
 
-  createMessageV0(args: TransactionMessageV0Args): TransactionMessageV0 {
-    return Web3JsMessageV0.compile(args as Web3JsV0Args);
+  createMessageV0(
+    input: TransactionInputV0
+  ): [TransactionMessage, SerializedTransactionMessage] {
+    const web3JsMessage = Web3JsMessageV0.compile({
+      payerKey: toWeb3JsPublicKey(input.payer),
+      instructions: input.instructions.map(toWeb3JsInstruction),
+      recentBlockhash: input.recentBlockhash,
+      addressLookupTableAccounts: input.addressLookupTables?.map(
+        (account) =>
+          new Web3JsAddressLookupTableAccount({
+            key: toWeb3JsPublicKey(account.address),
+            state: {
+              ...account,
+              authority: account.authority
+                ? toWeb3JsPublicKey(account.authority)
+                : undefined,
+              addresses: account.addresses.map(toWeb3JsPublicKey),
+            },
+          })
+      ),
+    });
+
+    return [fromWebJsMessage(web3JsMessage), web3JsMessage.serialize()];
+  }
+
+  sign(transaction: Transaction, signer: Signer): Transaction {
+    throw new Error('Method not implemented.');
+  }
+
+  serialize(transaction: Transaction): Uint8Array {
+    throw new Error('Method not implemented.');
   }
 
   deserialize(serializedTransaction: Uint8Array): Transaction {
     return Web3JsTransaction.deserialize(serializedTransaction);
-  }
-
-  deserializeMessage(serializedMessage: Uint8Array): TransactionMessage {
-    return Web3JsMessage.deserialize(serializedMessage);
   }
 }
 
@@ -74,20 +100,23 @@ function toWeb3JsInstruction(
   });
 }
 
-function fromWebJsLegacyMessage(
-  message: Web3JsMessageLegacy
-): LegacyTransactionMessage {
+function fromWebJsMessage(
+  message: Web3JsMessageLegacy | Web3JsMessageV0
+): TransactionMessage {
   return {
     version: 'legacy',
-    staticAccountKeys: message.staticAccountKeys.map(fromWeb3JsPublicKey),
+    header: message.header,
+    accounts: message.staticAccountKeys.map(fromWeb3JsPublicKey),
     recentBlockhash: message.recentBlockhash,
-    compiledInstructions: message.compiledInstructions,
-    addressTableLookups: message.addressTableLookups.map((lookup) => ({
-      ...lookup,
-      accountKey: fromWeb3JsPublicKey(lookup.accountKey),
+    instructions: message.compiledInstructions.map((instruction) => ({
+      programIndex: instruction.programIdIndex,
+      accountIndexes: instruction.accountKeyIndexes,
+      data: instruction.data,
     })),
-    isAccountSigner: message.isAccountSigner.bind(message),
-    isAccountWritable: message.isAccountWritable.bind(message),
-    serialize: message.serialize.bind(message),
+    addressLookupTables: message.addressTableLookups.map((lookup) => ({
+      address: fromWeb3JsPublicKey(lookup.accountKey),
+      writableIndexes: lookup.writableIndexes,
+      readonlyIndexes: lookup.readonlyIndexes,
+    })),
   };
 }

@@ -9,20 +9,25 @@ export type TransactionError = {} | string;
 export type Blockhash = string;
 
 export interface Transaction {
-  readonly signatures: TransactionSignature[];
   readonly message: TransactionMessage;
   readonly serializedMessage: SerializedTransactionMessage;
+  readonly signatures: TransactionSignature[];
 }
 
 export interface TransactionMessage {
   readonly version: TransactionVersion;
+  readonly header: TransactionMessageHeader;
   readonly accounts: PublicKey[];
   readonly recentBlockhash: Blockhash;
   readonly instructions: CompiledInstruction[];
   readonly addressLookupTables: CompiledAddressLookupTable[];
-  readonly signerIndexes: number[];
-  readonly writableIndexes: number[];
 }
+
+export type TransactionMessageHeader = {
+  numRequiredSignatures: number;
+  numReadonlySignedAccounts: number;
+  numReadonlyUnsignedAccounts: number;
+};
 
 export type CompiledInstruction = {
   readonly programIndex: number;
@@ -31,7 +36,7 @@ export type CompiledInstruction = {
 };
 
 export type CompiledAddressLookupTable = {
-  readonly publicKey: PublicKey;
+  readonly address: PublicKey;
   readonly writableIndexes: number[];
   readonly readonlyIndexes: number[];
 };
