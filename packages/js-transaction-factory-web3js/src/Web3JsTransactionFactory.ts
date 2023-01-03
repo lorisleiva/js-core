@@ -2,7 +2,6 @@ import {
   Instruction,
   PublicKey,
   SerializedTransactionMessage,
-  Signer,
   Transaction,
   TransactionFactoryInterface,
   TransactionInput,
@@ -65,11 +64,6 @@ export class Web3JsTransactionFactory implements TransactionFactoryInterface {
     });
 
     return [fromWebJsMessage(web3JsMessage), web3JsMessage.serialize()];
-  }
-
-  sign(transaction: Transaction, signer: Signer): Transaction {
-    const web3Transaction = toWeb3JsTransaction(transaction);
-    throw new Error('Method not implemented.');
   }
 
   serialize(transaction: Transaction): Uint8Array {

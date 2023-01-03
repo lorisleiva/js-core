@@ -1,5 +1,4 @@
 import { InterfaceImplementationMissingError } from './errors';
-import { Signer } from './Signer';
 import type {
   SerializedTransaction,
   Transaction,
@@ -8,7 +7,6 @@ import type {
 
 export interface TransactionFactoryInterface {
   create(input: TransactionInput): Transaction;
-  sign(transaction: Transaction, signer: Signer): Transaction;
   serialize(transaction: Transaction): SerializedTransaction;
   deserialize(serializedTransaction: SerializedTransaction): Transaction;
 }
@@ -20,10 +18,6 @@ export class NullTransactionFactory implements TransactionFactoryInterface {
   );
 
   create(): Transaction {
-    throw this.error;
-  }
-
-  sign(): Transaction {
     throw this.error;
   }
 
