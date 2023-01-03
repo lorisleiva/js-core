@@ -4,6 +4,7 @@ import {
   Commitment,
   Context,
   ErrorWithLogs,
+  isZeroAmount,
   lamports,
   MaybeRpcAccount,
   ProgramError,
@@ -139,14 +140,14 @@ export class Web3JsRpc implements RpcInterface {
   async getLatestBlockhash(
     options: RpcBaseOptions = {}
   ): Promise<BlockhashWithExpiryBlockHeight> {
-    throw new Error('Method not implemented.');
+    return this.connection.getLatestBlockhash(options);
   }
 
   async accountExists(
     address: PublicKey,
     options: RpcBaseOptions = {}
   ): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    return !isZeroAmount(await this.getBalance(address, options));
   }
 
   async airdrop(
@@ -154,7 +155,11 @@ export class Web3JsRpc implements RpcInterface {
     amount: SolAmount,
     options: RpcBaseOptions = {}
   ): Promise<void> {
-    throw new Error('Method not implemented.');
+    const signature = await this.connection.requestAirdrop(
+      toWeb3JsPublicKey(address),
+      Number(amount.basisPoints)
+    );
+    await this.confirmTransaction(fromBase58(signature), options);
   }
 
   async call<Result, Params extends any[]>(
