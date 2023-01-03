@@ -1,6 +1,6 @@
 import type { Context } from './Context';
 import type { Keypair } from './KeyPair';
-import type { PublicKey } from './PublicKey';
+import { isEqualToPublicKey, PublicKey } from './PublicKey';
 import type { Transaction } from './Transaction';
 
 export type Signer = {
@@ -25,10 +25,21 @@ export const createSignerFromKeypair = (
     const message = transaction.serializedMessage;
     const signature = context.eddsa.sign(message, keypair);
 
-    return {
-      ...transaction,
-      signatures: [...transaction.signatures, signature],
-    };
+    const maxSigners = transaction.message.header.numRequiredSignatures;
+    const signerPublicKeys = transaction.message.accounts.slice(0, maxSigners);
+    const signerIndex = signerPublicKeys.findIndex((key) =>
+      isEqualToPublicKey(key, keypair.publicKey)
+    );
+
+    if (signerIndex < 0) {
+      throw new Error(
+        'The provided signer is not required to sign this transaction.'
+      );
+    }
+
+    const newSignatures = [...transaction.signatures];
+    newSignatures[signerIndex] = signature;
+    return { ...transaction, signatures: newSignatures };
   },
   async signAllTransactions(
     transactions: Transaction[]
