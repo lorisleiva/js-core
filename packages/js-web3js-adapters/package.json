@@ -1,5 +1,5 @@
 {
-  "name": "@lorisleiva/js-transaction-factory-web3js",
+  "name": "@lorisleiva/js-web3js-adapters",
   "version": "0.0.1",
   "license": "MIT",
   "sideEffects": false,
@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@lorisleiva/js-core": "workspace:^",
-    "@lorisleiva/js-web3js-adapters": "workspace:^"
+    "bs58": "^5.0.0",
+    "buffer": "^6.0.3"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.72.0"
@@ -48,7 +49,7 @@
   "typedoc": {
     "entryPoint": "./src/index.ts",
     "readmeFile": "./README.md",
-    "displayName": "js-transaction-factory-web3js"
+    "displayName": "js-web3js-adapters"
   },
   "ava": {
     "typescript": {
