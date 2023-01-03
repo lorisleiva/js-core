@@ -26,7 +26,8 @@
     "test": "ava"
   },
   "dependencies": {
-    "@lorisleiva/js-core": "workspace:^"
+    "@lorisleiva/js-core": "workspace:^",
+    "@lorisleiva/js-web3js-adapters": "workspace:^"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.72.0"
