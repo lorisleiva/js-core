@@ -12,6 +12,7 @@ import {
   resolveClusterFromEndpoint,
   RpcAccount,
   RpcAccountExistsOptions,
+  RpcAirdropOptions,
   RpcCallOptions,
   RpcConfirmTransactionOptions,
   RpcConfirmTransactionResult,
@@ -41,7 +42,8 @@ import {
   GetProgramAccountsFilter as Web3JsGetProgramAccountsFilter,
   TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
-import { RpcAirdropOptions } from 'packages/js-core/dist/types';
+import type { JSONRPCCallbackTypePlain } from 'jayson';
+import type RpcClient from 'jayson/lib/client/browser';
 
 export const ACCOUNT_HEADER_SIZE = 128n;
 
@@ -180,9 +182,9 @@ export class Web3JsRpc implements RpcInterface {
     params?: [...Params],
     options: RpcCallOptions = {}
   ): Promise<Result> {
-    const client = (this.connection as any)._rpcClient;
+    const client = (this.connection as any)._rpcClient as RpcClient;
     return new Promise((resolve, reject) => {
-      const callback = (error: any, result: any) =>
+      const callback: JSONRPCCallbackTypePlain = (error, result) =>
         error ? reject(error) : resolve(result);
       client.request(method, params, options.id ?? null, callback);
     });
