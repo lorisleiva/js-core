@@ -144,6 +144,7 @@ importers:
     specifiers:
       '@ava/typescript': ^3.0.1
       '@lorisleiva/js-core': workspace:^
+      '@lorisleiva/js-web3js-adapters': workspace:^
       '@metaplex-foundation/beet': ^0.7.1
       '@metaplex-foundation/beet-solana': ^0.4.0
       '@solana/web3.js': ^1.72.0
@@ -151,6 +152,7 @@ importers:
       buffer: ^6.0.3
     dependencies:
       '@lorisleiva/js-core': link:../js-core
+      '@lorisleiva/js-web3js-adapters': link:../js-web3js-adapters
       '@metaplex-foundation/beet': 0.7.1
       '@metaplex-foundation/beet-solana': 0.4.0
       buffer: 6.0.3

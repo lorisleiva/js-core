@@ -1,20 +1,24 @@
 import {
-  DataEnumToSerializerTuple,
   DataEnum,
+  DataEnumToSerializerTuple,
+  isSome,
   mergeBytes,
+  none,
+  Nullable,
   Option,
   PublicKey,
   PublicKeyInput,
   ScalarEnum,
   Serializer,
   SerializerInterface,
+  some,
   StructToSerializerTuple,
   WrapInSerializer,
-  Nullable,
-  isSome,
-  none,
-  some,
 } from '@lorisleiva/js-core';
+import {
+  fromWeb3JsPublicKey,
+  toWeb3JsPublicKeyInput,
+} from '@lorisleiva/js-web3js-adapters';
 import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
@@ -22,16 +26,16 @@ import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
 import {
   bool,
-  u8,
-  u16,
-  u32,
-  u64,
-  u128,
-  i8,
+  i128,
   i16,
   i32,
   i64,
-  i128,
+  i8,
+  u128,
+  u16,
+  u32,
+  u64,
+  u8,
 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
@@ -451,18 +455,22 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  get publicKey(): Serializer<PublicKey | PublicKeyInput, PublicKey> {
+  get publicKey(): Serializer<PublicKeyInput, PublicKey> {
     return {
       description: 'publicKey',
-      serialize: (value: PublicKey | PublicKeyInput) => {
+      serialize: (value: PublicKeyInput) => {
         const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
-        beetSolana.publicKey.write(buffer, 0, new Web3PublicKey(value));
+        const publicKey = new Web3PublicKey(toWeb3JsPublicKeyInput(value));
+        beetSolana.publicKey.write(buffer, 0, publicKey);
         return new Uint8Array(buffer);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const buffer = Buffer.from(bytes);
         const value = beetSolana.publicKey.read(buffer, offset);
-        return [value, offset + beetSolana.publicKey.byteSize];
+        return [
+          fromWeb3JsPublicKey(value),
+          offset + beetSolana.publicKey.byteSize,
+        ];
       },
     };
   }

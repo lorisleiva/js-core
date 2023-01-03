@@ -8,13 +8,12 @@ import {
 import {
   fromWeb3JsKeypair,
   fromWeb3JsPublicKey,
-  toWeb3JsPublicKey,
+  toWeb3JsPublicKeyInput,
 } from '@lorisleiva/js-web3js-adapters';
 import * as ed25519 from '@noble/ed25519';
 import {
   Keypair as Web3JsKeypair,
   PublicKey as Web3JsPublicKey,
-  PublicKeyInitData as Web3JsPublicKeyInput,
 } from '@solana/web3.js';
 
 export class Web3JsEddsa implements EddsaInterface {
@@ -63,12 +62,4 @@ export class Web3JsEddsa implements EddsaInterface {
   ): boolean {
     return ed25519.sync.verify(signature, message, publicKey.bytes);
   }
-}
-
-function toWeb3JsPublicKeyInput(input: PublicKeyInput): Web3JsPublicKeyInput {
-  return isPublicKey(input) ? toWeb3JsPublicKey(input) : input;
-}
-
-function isPublicKey(input: PublicKeyInput): input is PublicKey {
-  return typeof input === 'object' && 'bytes' in input;
 }
