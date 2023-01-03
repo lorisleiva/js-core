@@ -1,5 +1,4 @@
 import {
-  BlockhashWithExpiryBlockHeight,
   Cluster,
   Commitment,
   Context,
@@ -9,10 +8,12 @@ import {
   ProgramError,
   PublicKey,
   resolveClusterFromEndpoint,
-  RpcConfirmResult,
+  RpcCallOptions,
+  RpcConfirmTransactionOptions,
+  RpcConfirmTransactionResult,
+  RpcGetAccountOptions,
   RpcInterface,
-  RpcOptions,
-  RpcSendOptions,
+  RpcSendTransactionOptions,
   SerializedTransaction,
   TransactionSignature,
 } from '@lorisleiva/js-core';
@@ -26,6 +27,7 @@ import {
   AccountInfo as Web3JSAccountInfo,
   Connection as Web3JsConnection,
   ConnectionConfig as Web3JsConnectionConfig,
+  TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
@@ -55,9 +57,13 @@ export class Web3JsRpc implements RpcInterface {
     return this.cluster;
   }
 
-  async getAccount(address: PublicKey): Promise<MaybeRpcAccount> {
+  async getAccount(
+    address: PublicKey,
+    options: RpcGetAccountOptions = {}
+  ): Promise<MaybeRpcAccount> {
     const account = await this.connection.getAccountInfo(
-      toWeb3JsPublicKey(address)
+      toWeb3JsPublicKey(address),
+      options
     );
 
     return this.parseMaybeAccount(account, address);
@@ -66,7 +72,7 @@ export class Web3JsRpc implements RpcInterface {
   async call<Result, Params extends any[]>(
     method: string,
     params?: [...Params],
-    options: RpcOptions = {}
+    options: RpcCallOptions = {}
   ): Promise<Result> {
     const client = (this.connection as any)._rpcClient;
     return new Promise((resolve, reject) => {
@@ -78,7 +84,7 @@ export class Web3JsRpc implements RpcInterface {
 
   async sendTransaction(
     serializedTransaction: SerializedTransaction,
-    options?: RpcSendOptions
+    options: RpcSendTransactionOptions = {}
   ): Promise<TransactionSignature> {
     try {
       const signature = await this.connection.sendRawTransaction(
@@ -99,16 +105,32 @@ export class Web3JsRpc implements RpcInterface {
 
   async confirmTransaction(
     signature: TransactionSignature,
-    blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
-    commitment?: Commitment
-  ): Promise<RpcConfirmResult> {
+    options: RpcConfirmTransactionOptions
+  ): Promise<RpcConfirmTransactionResult> {
     return this.connection.confirmTransaction(
-      {
-        signature: toBase58(signature),
-        ...blockhashWithExpiryBlockHeight,
-      },
-      commitment
+      this.parseConfirmStrategy(signature, options),
+      options.commitment
     );
+  }
+
+  protected parseConfirmStrategy(
+    signature: TransactionSignature,
+    options: RpcConfirmTransactionOptions
+  ): Web3JsTransactionConfirmationStrategy {
+    if (options.strategy.type === 'blockhash') {
+      return {
+        ...options.strategy,
+        signature: toBase58(signature),
+      };
+    }
+
+    return {
+      ...options.strategy,
+      signature: toBase58(signature),
+      nonceAccountPubkey: toWeb3JsPublicKey(
+        options.strategy.nonceAccountPubkey
+      ),
+    };
   }
 
   protected parseMaybeAccount(

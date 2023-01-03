@@ -123,12 +123,12 @@ export type RpcConfirmTransactionOptions = RpcBaseOptions & {
 
 export type RpcConfirmTransactionStrategy =
   | {
-      strategy: 'blockhash';
+      type: 'blockhash';
       blockhash: Blockhash;
       lastValidBlockHeight: number;
     }
   | {
-      strategy: 'durableNonce';
+      type: 'durableNonce';
       minContextSlot: number;
       nonceAccountPubkey: PublicKey;
       nonceValue: string;
