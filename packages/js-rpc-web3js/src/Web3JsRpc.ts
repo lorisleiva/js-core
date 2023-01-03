@@ -13,13 +13,19 @@ import {
   RpcInterface,
   RpcOptions,
   RpcSendOptions,
+  SerializedTransaction,
+  TransactionSignature,
 } from '@lorisleiva/js-core';
+import {
+  fromWeb3JsPublicKey,
+  toWeb3JsPublicKey,
+} from '@lorisleiva/js-web3js-adapters';
 import {
   AccountInfo as Web3JSAccountInfo,
   Connection as Web3JsConnection,
   ConnectionConfig as Web3JsConnectionConfig,
-  PublicKey as Web3JsPublicKey,
 } from '@solana/web3.js';
+import bs58 from 'bs58';
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
@@ -50,7 +56,7 @@ export class Web3JsRpc implements RpcInterface {
 
   async getAccount(address: PublicKey): Promise<MaybeRpcAccount> {
     const account = await this.connection.getAccountInfo(
-      address as Web3JsPublicKey
+      toWeb3JsPublicKey(address)
     );
 
     return this.parseMaybeAccount(account, address);
@@ -70,14 +76,15 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async sendTransaction(
-    serializedTransaction: Uint8Array,
+    serializedTransaction: SerializedTransaction,
     options?: RpcSendOptions
-  ): Promise<string> {
+  ): Promise<TransactionSignature> {
     try {
-      return await this.connection.sendRawTransaction(
+      const signature = await this.connection.sendRawTransaction(
         serializedTransaction,
         options
       );
+      return bs58.decode(signature);
     } catch (error: any) {
       let resolvedError: ProgramError | null = null;
       if (error instanceof Error && 'logs' in error) {
@@ -90,13 +97,13 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async confirmTransaction(
-    signature: string,
+    signature: TransactionSignature,
     blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
     commitment?: Commitment
   ): Promise<RpcConfirmResult> {
     return this.connection.confirmTransaction(
       {
-        signature,
+        signature: bs58.encode(signature),
         ...blockhashWithExpiryBlockHeight,
       },
       commitment
@@ -110,6 +117,7 @@ export class Web3JsRpc implements RpcInterface {
     return account
       ? {
           ...account,
+          owner: fromWeb3JsPublicKey(account.owner),
           exists: true,
           address,
           lamports: lamports(account.lamports),

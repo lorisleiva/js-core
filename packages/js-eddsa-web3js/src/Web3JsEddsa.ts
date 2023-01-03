@@ -6,42 +6,50 @@ import {
   PublicKeyInput,
 } from '@lorisleiva/js-core';
 import {
+  fromWeb3JsKeypair,
+  fromWeb3JsPublicKey,
+  toWeb3JsPublicKey,
+} from '@lorisleiva/js-web3js-adapters';
+import * as ed25519 from '@noble/ed25519';
+import {
   Keypair as Web3JsKeypair,
   PublicKey as Web3JsPublicKey,
+  PublicKeyInitData as Web3JsPublicKeyInput,
 } from '@solana/web3.js';
-import * as ed25519 from '@noble/ed25519';
 
 export class Web3JsEddsa implements EddsaInterface {
   generateKeypair(): Keypair {
-    return Web3JsKeypair.generate();
+    return fromWeb3JsKeypair(Web3JsKeypair.generate());
   }
 
   createKeypairFromSecretKey(secretKey: Uint8Array): Keypair {
-    return Web3JsKeypair.fromSecretKey(secretKey);
+    return fromWeb3JsKeypair(Web3JsKeypair.fromSecretKey(secretKey));
   }
 
   createKeypairFromSeed(seed: Uint8Array): Keypair {
-    return Web3JsKeypair.fromSeed(seed);
+    return fromWeb3JsKeypair(Web3JsKeypair.fromSeed(seed));
   }
 
   createPublicKey(input: PublicKeyInput): PublicKey {
-    return new Web3JsPublicKey(input);
+    return fromWeb3JsPublicKey(
+      new Web3JsPublicKey(toWeb3JsPublicKeyInput(input))
+    );
   }
 
   createDefaultPublicKey(): PublicKey {
-    return Web3JsPublicKey.default;
+    return fromWeb3JsPublicKey(Web3JsPublicKey.default);
   }
 
   isOnCurve(input: PublicKeyInput): boolean {
-    return Web3JsPublicKey.isOnCurve(input);
+    return Web3JsPublicKey.isOnCurve(toWeb3JsPublicKeyInput(input));
   }
 
-  findPda(programId: PublicKey, seeds: Uint8Array[]): Pda {
+  findPda(programId: PublicKeyInput, seeds: Uint8Array[]): Pda {
     const [key, bump] = Web3JsPublicKey.findProgramAddressSync(
       seeds,
-      new Web3JsPublicKey(programId)
+      new Web3JsPublicKey(toWeb3JsPublicKeyInput(programId))
     );
-    return { ...(key as PublicKey), bump };
+    return { ...fromWeb3JsPublicKey(key), bump };
   }
 
   sign(message: Uint8Array, keypair: Keypair): Uint8Array {
@@ -53,6 +61,14 @@ export class Web3JsEddsa implements EddsaInterface {
     signature: Uint8Array,
     publicKey: PublicKey
   ): boolean {
-    return ed25519.sync.verify(signature, message, publicKey.toBytes());
+    return ed25519.sync.verify(signature, message, publicKey.bytes);
   }
+}
+
+function toWeb3JsPublicKeyInput(input: PublicKeyInput): Web3JsPublicKeyInput {
+  return isPublicKey(input) ? toWeb3JsPublicKey(input) : input;
+}
+
+function isPublicKey(input: PublicKeyInput): input is PublicKey {
+  return typeof input === 'object' && 'bytes' in input;
 }
