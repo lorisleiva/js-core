@@ -27,8 +27,6 @@ export interface RpcInterface {
 
   // call<R, P>(method: string, params?: [...P], options?: RpcCallOptions): Promise<R>;
   // sendTransaction(tx: UInt8Array, options?: RpcSendTransactionOptions): Promise<UInt8Array>;
-  // confirmTransaction(tx: Transaction, signature: UInt8Array, options?: RpcConfirmTransactionOptions): Promise<RpcConfirmTransactionResult>;
-
   // confirmTransaction(signature: UInt8Array, strategy: RpcConfirmTransactionStrategy, options?: RpcConfirmTransactionOptions): Promise<RpcConfirmTransactionResult>;
   // type RpcConfirmTransactionStrategy =
   //   | { strategy: 'blockhash'; blockhash: Blockhash; lastValidBlockHeight: number; }
