@@ -11,13 +11,15 @@ import {
   PublicKey,
   resolveClusterFromEndpoint,
   RpcAccount,
-  RpcBaseOptions,
+  RpcAccountExistsOptions,
   RpcCallOptions,
   RpcConfirmTransactionOptions,
   RpcConfirmTransactionResult,
   RpcDataFilter,
   RpcGetAccountOptions,
   RpcGetAccountsOptions,
+  RpcGetBalanceOptions,
+  RpcGetLatestBlockhashOptions,
   RpcGetProgramAccountsOptions,
   RpcGetRentOptions,
   RpcInterface,
@@ -39,6 +41,7 @@ import {
   GetProgramAccountsFilter as Web3JsGetProgramAccountsFilter,
   TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
+import { RpcAirdropOptions } from 'packages/js-core/dist/types';
 
 export const ACCOUNT_HEADER_SIZE = 128n;
 
@@ -111,7 +114,7 @@ export class Web3JsRpc implements RpcInterface {
 
   async getBalance(
     address: PublicKey,
-    options: RpcBaseOptions = {}
+    options: RpcGetBalanceOptions = {}
   ): Promise<SolAmount> {
     const balanceInLamports = await this.connection.getBalance(
       toWeb3JsPublicKey(address),
@@ -138,14 +141,14 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async getLatestBlockhash(
-    options: RpcBaseOptions = {}
+    options: RpcGetLatestBlockhashOptions = {}
   ): Promise<BlockhashWithExpiryBlockHeight> {
     return this.connection.getLatestBlockhash(options);
   }
 
   async accountExists(
     address: PublicKey,
-    options: RpcBaseOptions = {}
+    options: RpcAccountExistsOptions = {}
   ): Promise<boolean> {
     return !isZeroAmount(await this.getBalance(address, options));
   }
@@ -153,13 +156,23 @@ export class Web3JsRpc implements RpcInterface {
   async airdrop(
     address: PublicKey,
     amount: SolAmount,
-    options: RpcBaseOptions = {}
+    options: RpcAirdropOptions = {}
   ): Promise<void> {
     const signature = await this.connection.requestAirdrop(
       toWeb3JsPublicKey(address),
       Number(amount.basisPoints)
     );
-    await this.confirmTransaction(fromBase58(signature), options);
+    if (options.strategy) {
+      this.confirmTransaction(
+        fromBase58(signature),
+        options as RpcConfirmTransactionOptions
+      );
+      return;
+    }
+    this.confirmTransaction(fromBase58(signature), {
+      ...options,
+      strategy: { type: 'blockhash', ...(await this.getLatestBlockhash()) },
+    });
   }
 
   async call<Result, Params extends any[]>(
@@ -245,7 +258,6 @@ export class Web3JsRpc implements RpcInterface {
         signature: toBase58(signature),
       };
     }
-
     return {
       ...options.strategy,
       signature: toBase58(signature),

@@ -107,7 +107,7 @@ export type RpcGetLatestBlockhashOptions = RpcBaseOptions;
 
 export type RpcAccountExistsOptions = RpcBaseOptions;
 
-export type RpcAirdropOptions = RpcBaseOptions;
+export type RpcAirdropOptions = Partial<RpcConfirmTransactionOptions>;
 
 export type RpcCallOptions = RpcBaseOptions;
 
