@@ -14,13 +14,26 @@ export interface RpcInterface {
   getEndpoint(): string;
   getCluster(): Cluster;
   getAccount(address: PublicKey): Promise<MaybeRpcAccount>;
-  // getAccounts(addresses: PublicKey[]): Promise<MaybeRpcAccount[]>;
-  // getProgramAccounts(program: PublicKey, filters: todo[]): Promise<MaybeRpcAccount[]>;
-  // getBalance(address: PublicKey): Promise<SolAmount>;
-  // getRent(bytes: number, withHeaderBytes?: boolean): Promise<SolAmount>;
-  // getLatestBlockhash(): Promise<{...}>;
-  // accountExists(address: PublicKey): Promise<boolean>;
-  // airdrop(address: PublicKey, amount: SolAmount): Promise<void>;
+  // type RpcBaseOptions = { id?, abortSignal?, commitment? };
+  // type RpcGetAccountOptions = RpcBaseOptions & { ... };
+
+  // getAccount(address: PublicKey, options?: RpcGetAccountOptions): Promise<MaybeRpcAccount>;
+  // getAccounts(addresses: PublicKey[], options?: RpcGetAccountsOptions): Promise<MaybeRpcAccount[]>;
+  // getBalance(address: PublicKey, options?: RpcGetBalanceOptions): Promise<SolAmount>;
+  // getRent(bytes: number, options?: RpcGetRentOptions): Promise<SolAmount>; // withHeaderBytes?: boolean
+  // getLatestBlockhash(options?: RpcGetLatestBlockhashOptions): Promise<BlockhashWithExpiryBlockHeight>;
+  // accountExists(address: PublicKey, options?: RpcAccountExistsOptions): Promise<boolean>;
+  // airdrop(address: PublicKey, amount: SolAmount, options?: RpcAirdropOptions): Promise<void>;
+
+  // call<R, P>(method: string, params?: [...P], options?: RpcCallOptions): Promise<R>;
+  // sendTransaction(tx: UInt8Array, options?: RpcSendTransactionOptions): Promise<UInt8Array>;
+  // confirmTransaction(tx: Transaction, signature: UInt8Array, options?: RpcConfirmTransactionOptions): Promise<RpcConfirmTransactionResult>;
+
+  // confirmTransaction(signature: UInt8Array, strategy: RpcConfirmTransactionStrategy, options?: RpcConfirmTransactionOptions): Promise<RpcConfirmTransactionResult>;
+  // type RpcConfirmTransactionStrategy =
+  //   | { strategy: 'blockhash'; blockhash: Blockhash; lastValidBlockHeight: number; }
+  //   | { strategy: 'durableNonce'; minContextSlot: number; nonceAccountPubkey: PublicKey; nonceValue: string; }
+
   call<Result, Params extends any[]>(
     method: string,
     params?: [...Params],
