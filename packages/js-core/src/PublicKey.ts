@@ -1,9 +1,11 @@
-export interface PublicKey {
-  equals(that: PublicKey): boolean;
-  toBytes(): Uint8Array;
-  toString(): string;
-}
+export type PublicKeyInput = PublicKeyBase58 | PublicKeyBytes | PublicKey;
+export type PublicKeyBase58 = string;
+export type PublicKeyBytes = Uint8Array;
 
-export interface Pda extends PublicKey {
+export type PublicKey = {
+  readonly bytes: PublicKeyBytes;
+};
+
+export type Pda = PublicKey & {
   readonly bump: number;
-}
+};

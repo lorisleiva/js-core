@@ -1,7 +1,6 @@
-import type { PublicKeyInput } from './EddsaInterface';
 import { DataEnum, ScalarEnum } from './Enums';
 import { InterfaceImplementationMissingError } from './errors';
-import type { PublicKey } from './PublicKey';
+import type { PublicKey, PublicKeyInput } from './PublicKey';
 import type { Serializer, WrapInSerializer } from './Serializer';
 import type { Nullable, Option } from './Option';
 

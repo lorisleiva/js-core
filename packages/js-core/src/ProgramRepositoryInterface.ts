@@ -1,8 +1,7 @@
 import type { Context } from './Context';
-import type { PublicKeyInput } from './EddsaInterface';
 import { InterfaceImplementationMissingError, ProgramError } from './errors';
 import type { ErrorWithLogs, Program } from './Program';
-import type { PublicKey } from './PublicKey';
+import type { PublicKey, PublicKeyInput } from './PublicKey';
 
 export interface ProgramRepositoryInterface {
   get<T extends Program = Program>(nameOrAddress: string | PublicKey): T;

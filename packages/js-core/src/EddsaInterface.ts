@@ -1,6 +1,6 @@
 import { InterfaceImplementationMissingError } from './errors';
 import type { Keypair } from './KeyPair';
-import type { Pda, PublicKey } from './PublicKey';
+import type { Pda, PublicKey, PublicKeyInput } from './PublicKey';
 
 export interface EddsaInterface {
   generateKeypair: () => Keypair;
@@ -9,7 +9,7 @@ export interface EddsaInterface {
   createPublicKey: (input: PublicKeyInput) => PublicKey;
   createDefaultPublicKey: () => PublicKey;
   isOnCurve: (input: PublicKeyInput) => boolean;
-  findPda: (programId: PublicKey, seeds: Uint8Array[]) => Pda;
+  findPda: (programId: PublicKeyInput, seeds: Uint8Array[]) => Pda;
   sign: (message: Uint8Array, keypair: Keypair) => Uint8Array;
   verify: (
     message: Uint8Array,
@@ -17,8 +17,6 @@ export interface EddsaInterface {
     publicKey: PublicKey
   ) => boolean;
 }
-
-export type PublicKeyInput = number | string | Uint8Array | number[] | object;
 
 export class NullEddsa implements EddsaInterface {
   generateKeypair(): Keypair {
