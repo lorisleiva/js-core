@@ -1,4 +1,5 @@
 import {
+  BlockhashWithExpiryBlockHeight,
   Cluster,
   Commitment,
   Context,
@@ -8,13 +9,20 @@ import {
   ProgramError,
   PublicKey,
   resolveClusterFromEndpoint,
+  RpcAccount,
+  RpcBaseOptions,
   RpcCallOptions,
   RpcConfirmTransactionOptions,
   RpcConfirmTransactionResult,
+  RpcDataFilter,
   RpcGetAccountOptions,
+  RpcGetAccountsOptions,
+  RpcGetProgramAccountsOptions,
+  RpcGetRentOptions,
   RpcInterface,
   RpcSendTransactionOptions,
   SerializedTransaction,
+  SolAmount,
   TransactionSignature,
 } from '@lorisleiva/js-core';
 import {
@@ -27,6 +35,7 @@ import {
   AccountInfo as Web3JSAccountInfo,
   Connection as Web3JsConnection,
   ConnectionConfig as Web3JsConnectionConfig,
+  GetProgramAccountsFilter as Web3JsGetProgramAccountsFilter,
   TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
 
@@ -67,6 +76,72 @@ export class Web3JsRpc implements RpcInterface {
     );
 
     return this.parseMaybeAccount(account, address);
+  }
+
+  async getAccounts(
+    addresses: PublicKey[],
+    options: RpcGetAccountsOptions = {}
+  ): Promise<MaybeRpcAccount[]> {
+    const accounts = await this.connection.getMultipleAccountsInfo(
+      addresses.map(toWeb3JsPublicKey),
+      options
+    );
+
+    return accounts.map((account, index) =>
+      this.parseMaybeAccount(account, addresses[index])
+    );
+  }
+
+  async getProgramAccounts(
+    programId: PublicKey,
+    options: RpcGetProgramAccountsOptions = {}
+  ): Promise<RpcAccount[]> {
+    const accounts = await this.connection.getProgramAccounts(
+      toWeb3JsPublicKey(programId),
+      {
+        ...options,
+        filters: options.filters?.map((filter) => this.parseDataFilter(filter)),
+      }
+    );
+
+    return accounts.map(({ pubkey, account }) =>
+      this.parseAccount(account, fromWeb3JsPublicKey(pubkey))
+    );
+  }
+
+  async getBalance(
+    address: PublicKey,
+    options: RpcBaseOptions = {}
+  ): Promise<SolAmount> {
+    throw new Error('Method not implemented.');
+  }
+
+  async getRent(
+    bytes: number,
+    options: RpcGetRentOptions = {}
+  ): Promise<SolAmount> {
+    throw new Error('Method not implemented.');
+  }
+
+  async getLatestBlockhash(
+    options: RpcBaseOptions = {}
+  ): Promise<BlockhashWithExpiryBlockHeight> {
+    throw new Error('Method not implemented.');
+  }
+
+  async accountExists(
+    address: PublicKey,
+    options: RpcBaseOptions = {}
+  ): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  async airdrop(
+    address: PublicKey,
+    amount: SolAmount,
+    options: RpcBaseOptions = {}
+  ): Promise<void> {
+    throw new Error('Method not implemented.');
   }
 
   async call<Result, Params extends any[]>(
@@ -113,6 +188,35 @@ export class Web3JsRpc implements RpcInterface {
     );
   }
 
+  protected parseAccount(
+    account: Web3JSAccountInfo<Uint8Array>,
+    address: PublicKey
+  ): RpcAccount {
+    return {
+      ...account,
+      owner: fromWeb3JsPublicKey(account.owner),
+      address,
+      lamports: lamports(account.lamports),
+    };
+  }
+
+  protected parseMaybeAccount(
+    account: Web3JSAccountInfo<Uint8Array> | null,
+    address: PublicKey
+  ): MaybeRpcAccount {
+    return account
+      ? { ...this.parseAccount(account, address), exists: true }
+      : { exists: false, address };
+  }
+
+  protected parseDataFilter(
+    filter: RpcDataFilter
+  ): Web3JsGetProgramAccountsFilter {
+    if (!('memcmp' in filter)) return filter;
+    const { bytes, ...rest } = filter.memcmp;
+    return { memcmp: { ...rest, bytes: toBase58(bytes) } };
+  }
+
   protected parseConfirmStrategy(
     signature: TransactionSignature,
     options: RpcConfirmTransactionOptions
@@ -131,20 +235,5 @@ export class Web3JsRpc implements RpcInterface {
         options.strategy.nonceAccountPubkey
       ),
     };
-  }
-
-  protected parseMaybeAccount(
-    account: Web3JSAccountInfo<Uint8Array> | null,
-    address: PublicKey
-  ): MaybeRpcAccount {
-    return account
-      ? {
-          ...account,
-          owner: fromWeb3JsPublicKey(account.owner),
-          exists: true,
-          address,
-          lamports: lamports(account.lamports),
-        }
-      : { exists: false, address };
   }
 }
