@@ -1,19 +1,15 @@
 import {
-  Instruction,
-  PublicKey,
   Transaction,
   TransactionFactoryInterface,
   TransactionInput,
-  TransactionMessage,
 } from '@lorisleiva/js-core';
 import {
-  AddressLookupTableAccount as Web3JsAddressLookupTableAccount,
-  Message as Web3JsMessageLegacy,
-  MessageV0 as Web3JsMessageV0,
-  PublicKey as Web3JsPublicKey,
-  TransactionInstruction as Web3JsTransactionInstruction,
-  VersionedTransaction as Web3JsTransaction,
-} from '@solana/web3.js';
+  fromWeb3JsMessage,
+  fromWeb3JsTransaction,
+  toWeb3JsMessageFromInput,
+  toWeb3JsTransaction,
+} from '@lorisleiva/js-web3js-adapters';
+import { VersionedTransaction as Web3JsTransaction } from '@solana/web3.js';
 
 export class Web3JsTransactionFactory implements TransactionFactoryInterface {
   create(input: TransactionInput): Transaction {
