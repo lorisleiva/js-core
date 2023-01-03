@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js",
-  "version": "0.0.6",
+  "version": "0.0.18",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
