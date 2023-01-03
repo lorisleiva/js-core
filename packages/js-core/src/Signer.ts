@@ -10,44 +10,49 @@ export type Signer = {
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
 };
 
-export const isSigner = (value: PublicKey | Signer): value is Signer => 'publicKey' in value;
+export const isSigner = (value: PublicKey | Signer): value is Signer =>
+  'publicKey' in value;
 
 export const createSignerFromKeypair = (
-  context: Pick<Context, 'eddsa'>,
+  context: Pick<Context, 'eddsa' | 'transactions'>,
   keypair: Keypair
 ): Signer => ({
-    publicKey: keypair.publicKey,
-    async signMessage(message: Uint8Array): Promise<Uint8Array> {
-      return context.eddsa.sign(message, keypair);
-    },
-    async signTransaction(transaction: Transaction): Promise<Transaction> {
-      transaction.sign([keypair]);
+  publicKey: keypair.publicKey,
+  async signMessage(message: Uint8Array): Promise<Uint8Array> {
+    return context.eddsa.sign(message, keypair);
+  },
+  async signTransaction(transaction: Transaction): Promise<Transaction> {
+    const message = transaction.serializedMessage;
+    const signature = context.eddsa.sign(message, keypair);
 
-      return transaction;
-    },
-    async signAllTransactions(
-      transactions: Transaction[]
-    ): Promise<Transaction[]> {
-      return Promise.all(
-        transactions.map((transaction) => this.signTransaction(transaction))
-      );
-    },
-  });
+    return {
+      ...transaction,
+      signatures: [...transaction.signatures, signature],
+    };
+  },
+  async signAllTransactions(
+    transactions: Transaction[]
+  ): Promise<Transaction[]> {
+    return Promise.all(
+      transactions.map((transaction) => this.signTransaction(transaction))
+    );
+  },
+});
 
 export const createNoopSigner = (publicKey: PublicKey): Signer => ({
-    publicKey,
-    async signMessage(message: Uint8Array): Promise<Uint8Array> {
-      return message;
-    },
-    async signTransaction(transaction: Transaction): Promise<Transaction> {
-      return transaction;
-    },
-    async signAllTransactions(
-      transactions: Transaction[]
-    ): Promise<Transaction[]> {
-      return transactions;
-    },
-  });
+  publicKey,
+  async signMessage(message: Uint8Array): Promise<Uint8Array> {
+    return message;
+  },
+  async signTransaction(transaction: Transaction): Promise<Transaction> {
+    return transaction;
+  },
+  async signAllTransactions(
+    transactions: Transaction[]
+  ): Promise<Transaction[]> {
+    return transactions;
+  },
+});
 
 export const createNullSigner = (): Signer => new NullSigner();
 

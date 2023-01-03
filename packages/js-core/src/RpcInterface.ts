@@ -86,7 +86,7 @@ export class NullRpc implements RpcInterface {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
-  sendTransaction(): Promise<string> {
+  sendTransaction(): Promise<TransactionSignature> {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
