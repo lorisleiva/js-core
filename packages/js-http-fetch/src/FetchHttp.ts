@@ -14,7 +14,15 @@ export class FetchHttp implements HttpInterface {
   ): Promise<HttpResponse<ResponseData>> {
     const requestInit: RequestInit = {
       method,
+      body: options?.params,
+      headers: options?.headers
+        ? Object.entries(options.headers).reduce(
+            (acc, [name, headers]) => ({ ...acc, [name]: headers.join(', ') }),
+            {} as Record<string, string>
+          )
+        : undefined,
       signal: options?.signal as any,
+      timeout: options?.timeout,
     };
 
     const response = await fetch(url, requestInit);
