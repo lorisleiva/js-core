@@ -1,5 +1,5 @@
 import type { Instruction } from './Instruction';
-import type { PublicKey } from './PublicKey';
+import { isEqualToPublicKey, PublicKey } from './PublicKey';
 
 export type TransactionVersion = 'legacy' | 0;
 export type SerializedTransaction = Uint8Array;
@@ -66,4 +66,26 @@ export type AddressLookupTableInput = {
   lastExtendedSlot: number;
   lastExtendedSlotStartIndex: number;
   authority?: PublicKey;
+};
+
+export const addTransactionSignature = (
+  transaction: Transaction,
+  signature: TransactionSignature,
+  signerPublicKey: PublicKey
+): Transaction => {
+  const maxSigners = transaction.message.header.numRequiredSignatures;
+  const signerPublicKeys = transaction.message.accounts.slice(0, maxSigners);
+  const signerIndex = signerPublicKeys.findIndex((key) =>
+    isEqualToPublicKey(key, signerPublicKey)
+  );
+
+  if (signerIndex < 0) {
+    throw new Error(
+      'The provided signer is not required to sign this transaction.'
+    );
+  }
+
+  const newSignatures = [...transaction.signatures];
+  newSignatures[signerIndex] = signature;
+  return { ...transaction, signatures: newSignatures };
 };

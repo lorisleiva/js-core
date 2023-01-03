@@ -1,4 +1,4 @@
-import { PublicKey, PublicKeyInput } from '@lorisleiva/js-core';
+import { isPublicKey, PublicKey, PublicKeyInput } from '@lorisleiva/js-core';
 import {
   PublicKey as Web3JsPublicKey,
   PublicKeyInitData as Web3JsPublicKeyInput,
@@ -15,7 +15,5 @@ export function toWeb3JsPublicKey(publicKey: PublicKey): Web3JsPublicKey {
 export function toWeb3JsPublicKeyInput(
   input: PublicKeyInput
 ): Web3JsPublicKeyInput {
-  return typeof input === 'object' && 'bytes' in input
-    ? toWeb3JsPublicKey(input)
-    : input;
+  return isPublicKey(input) ? toWeb3JsPublicKey(input) : input;
 }
