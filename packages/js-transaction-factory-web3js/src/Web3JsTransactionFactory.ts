@@ -1,12 +1,9 @@
 import {
   Instruction,
   PublicKey,
-  SerializedTransactionMessage,
   Transaction,
   TransactionFactoryInterface,
   TransactionInput,
-  TransactionInputLegacy,
-  TransactionInputV0,
   TransactionMessage,
 } from '@lorisleiva/js-core';
 import {
@@ -17,53 +14,17 @@ import {
   TransactionInstruction as Web3JsTransactionInstruction,
   VersionedTransaction as Web3JsTransaction,
 } from '@solana/web3.js';
-import { Buffer } from 'buffer';
 import bs58 from 'bs58';
+import { Buffer } from 'buffer';
 
 export class Web3JsTransactionFactory implements TransactionFactoryInterface {
   create(input: TransactionInput): Transaction {
-    const [message, serializedMessage] =
-      input.version === 'legacy'
-        ? this.createLegacyMessage(input)
-        : this.createMessageV0(input);
-    return { message, serializedMessage, signatures: input.signatures ?? [] };
-  }
-
-  createLegacyMessage(
-    input: TransactionInputLegacy
-  ): [TransactionMessage, SerializedTransactionMessage] {
-    const web3JsMessage = Web3JsMessageLegacy.compile({
-      payerKey: toWeb3JsPublicKey(input.payer),
-      instructions: input.instructions.map(toWeb3JsInstruction),
-      recentBlockhash: input.recentBlockhash,
-    });
-
-    return [fromWebJsMessage(web3JsMessage), web3JsMessage.serialize()];
-  }
-
-  createMessageV0(
-    input: TransactionInputV0
-  ): [TransactionMessage, SerializedTransactionMessage] {
-    const web3JsMessage = Web3JsMessageV0.compile({
-      payerKey: toWeb3JsPublicKey(input.payer),
-      instructions: input.instructions.map(toWeb3JsInstruction),
-      recentBlockhash: input.recentBlockhash,
-      addressLookupTableAccounts: input.addressLookupTables?.map(
-        (account) =>
-          new Web3JsAddressLookupTableAccount({
-            key: toWeb3JsPublicKey(account.address),
-            state: {
-              ...account,
-              authority: account.authority
-                ? toWeb3JsPublicKey(account.authority)
-                : undefined,
-              addresses: account.addresses.map(toWeb3JsPublicKey),
-            },
-          })
-      ),
-    });
-
-    return [fromWebJsMessage(web3JsMessage), web3JsMessage.serialize()];
+    const web3JsMessage = toWeb3JsMessageFromInput(input);
+    return {
+      message: fromWebJsMessage(web3JsMessage),
+      serializedMessage: web3JsMessage.serialize(),
+      signatures: input.signatures ?? [],
+    };
   }
 
   serialize(transaction: Transaction): Uint8Array {
@@ -117,6 +78,37 @@ function fromWebJsMessage(
       readonlyIndexes: lookup.readonlyIndexes,
     })),
   };
+}
+
+function toWeb3JsMessageFromInput(
+  input: TransactionInput
+): Web3JsMessageLegacy | Web3JsMessageV0 {
+  if (input.version === 'legacy') {
+    return Web3JsMessageLegacy.compile({
+      payerKey: toWeb3JsPublicKey(input.payer),
+      instructions: input.instructions.map(toWeb3JsInstruction),
+      recentBlockhash: input.recentBlockhash,
+    });
+  }
+
+  return Web3JsMessageV0.compile({
+    payerKey: toWeb3JsPublicKey(input.payer),
+    instructions: input.instructions.map(toWeb3JsInstruction),
+    recentBlockhash: input.recentBlockhash,
+    addressLookupTableAccounts: input.addressLookupTables?.map(
+      (account) =>
+        new Web3JsAddressLookupTableAccount({
+          key: toWeb3JsPublicKey(account.address),
+          state: {
+            ...account,
+            authority: account.authority
+              ? toWeb3JsPublicKey(account.authority)
+              : undefined,
+            addresses: account.addresses.map(toWeb3JsPublicKey),
+          },
+        })
+    ),
+  });
 }
 
 function toWeb3JsMessage(
