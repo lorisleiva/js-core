@@ -11,6 +11,7 @@ import {
   PublicKey as Web3PublicKey,
 } from '@solana/web3.js';
 import test from 'ava';
+import { fromWeb3JsPublicKey } from 'packages/js-web3js-adapters/dist/types';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
 test('it can serialize units', (t) => {
@@ -233,11 +234,11 @@ test('it can serialize bytes', (t) => {
 test('it can serialize public keys', (t) => {
   const { publicKey } = new BeetSerializer();
   t.is(publicKey.description, 'publicKey');
-  const generatedPubKey = Web3Keypair.generate().publicKey;
+  const generatedPubKey = fromWeb3JsPublicKey(Web3Keypair.generate().publicKey);
   const pubKeyString = '4HM9LW2rm3SR2ZdBiFK3D21ENmQWpqEJEhx1nfgcC3r9';
-  const pubKey = new Web3PublicKey(pubKeyString);
-  const pubKeyHex = bytesToHex(pubKey.toBytes());
-  t.is(s(publicKey, generatedPubKey), bytesToHex(generatedPubKey.toBytes()));
+  const pubKey = fromWeb3JsPublicKey(new Web3PublicKey(pubKeyString));
+  const pubKeyHex = bytesToHex(pubKey.bytes);
+  t.is(s(publicKey, generatedPubKey), bytesToHex(generatedPubKey.bytes));
   t.is(s(publicKey, pubKeyString), pubKeyHex);
   t.is(s(publicKey, pubKey), pubKeyHex);
   t.deepEqual(sd(publicKey, pubKeyString), pubKey);
