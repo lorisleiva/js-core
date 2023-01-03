@@ -1,4 +1,5 @@
-import type { MaybeRpcAccount } from './Account';
+import type { MaybeRpcAccount, RpcAccount } from './Account';
+import { SolAmount } from './Amount';
 import type { Cluster } from './Cluster';
 import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
@@ -13,39 +14,48 @@ import type {
 export interface RpcInterface {
   getEndpoint(): string;
   getCluster(): Cluster;
-  getAccount(address: PublicKey): Promise<MaybeRpcAccount>;
-  // type RpcBaseOptions = { id?, abortSignal?, commitment? };
-  // type RpcGetAccountOptions = RpcBaseOptions & { ... };
-
-  // getAccount(address: PublicKey, options?: RpcGetAccountOptions): Promise<MaybeRpcAccount>;
-  // getAccounts(addresses: PublicKey[], options?: RpcGetAccountsOptions): Promise<MaybeRpcAccount[]>;
-  // getBalance(address: PublicKey, options?: RpcGetBalanceOptions): Promise<SolAmount>;
-  // getRent(bytes: number, options?: RpcGetRentOptions): Promise<SolAmount>; // withHeaderBytes?: boolean
-  // getLatestBlockhash(options?: RpcGetLatestBlockhashOptions): Promise<BlockhashWithExpiryBlockHeight>;
-  // accountExists(address: PublicKey, options?: RpcAccountExistsOptions): Promise<boolean>;
-  // airdrop(address: PublicKey, amount: SolAmount, options?: RpcAirdropOptions): Promise<void>;
-
-  // call<R, P>(method: string, params?: [...P], options?: RpcCallOptions): Promise<R>;
-  // sendTransaction(tx: UInt8Array, options?: RpcSendTransactionOptions): Promise<UInt8Array>;
-  // confirmTransaction(signature: UInt8Array, strategy: RpcConfirmTransactionStrategy, options?: RpcConfirmTransactionOptions): Promise<RpcConfirmTransactionResult>;
-  // type RpcConfirmTransactionStrategy =
-  //   | { strategy: 'blockhash'; blockhash: Blockhash; lastValidBlockHeight: number; }
-  //   | { strategy: 'durableNonce'; minContextSlot: number; nonceAccountPubkey: PublicKey; nonceValue: string; }
-
-  call<Result, Params extends any[]>(
+  getAccount(
+    address: PublicKey,
+    options?: RpcGetAccountOptions
+  ): Promise<MaybeRpcAccount>;
+  getAccounts(
+    addresses: PublicKey[],
+    options?: RpcGetAccountsOptions
+  ): Promise<MaybeRpcAccount[]>;
+  getProgramAccounts(
+    programId: PublicKey,
+    options?: RpcGetProgramAccountsOptions
+  ): Promise<RpcAccount[]>;
+  getBalance(
+    address: PublicKey,
+    options?: RpcGetBalanceOptions
+  ): Promise<SolAmount>;
+  getRent(bytes: number, options?: RpcGetRentOptions): Promise<SolAmount>;
+  getLatestBlockhash(
+    options?: RpcGetLatestBlockhashOptions
+  ): Promise<BlockhashWithExpiryBlockHeight>;
+  accountExists(
+    address: PublicKey,
+    options?: RpcAccountExistsOptions
+  ): Promise<boolean>;
+  airdrop(
+    address: PublicKey,
+    amount: SolAmount,
+    options?: RpcAirdropOptions
+  ): Promise<void>;
+  call<R, P extends any[]>(
     method: string,
-    params?: [...Params],
-    options?: RpcOptions
-  ): Promise<Result>;
+    params?: [...P],
+    options?: RpcCallOptions
+  ): Promise<R>;
   sendTransaction(
     serializedTransaction: SerializedTransaction,
-    options?: RpcSendOptions
+    options?: RpcSendTransactionOptions
   ): Promise<TransactionSignature>;
   confirmTransaction(
     signature: TransactionSignature,
-    blockhashWithExpiryBlockHeight: BlockhashWithExpiryBlockHeight,
-    commitment?: Commitment
-  ): Promise<RpcConfirmResult>;
+    options: RpcConfirmTransactionOptions
+  ): Promise<RpcConfirmTransactionResult>;
 }
 
 export type Commitment = 'processed' | 'confirmed' | 'finalized';
@@ -54,30 +64,79 @@ export type BlockhashWithExpiryBlockHeight = {
   lastValidBlockHeight: number;
 };
 
+export type RpcDataSlice = { offset: number; length: number };
+export type RpcDataFilter = RpcDataFilterSize | RpcDataFilterMemcmp;
+export type RpcDataFilterSize = { dataSize: number };
+export type RpcDataFilterMemcmp = {
+  memcmp: { offset: number; bytes: Uint8Array };
+};
+
 export type RpcResultWithContext<Value> = {
   context: { slot: number };
   value: Value;
 };
 
-export type RpcOptions = {
+export type RpcBaseOptions = {
   id?: string;
   signal?: GenericAbortSignal;
-};
-
-export type RpcConfirmResult = RpcResultWithContext<{
-  err: TransactionError | null;
-}>;
-
-export type RpcSendOptions = {
-  /** disable transaction verification step */
-  skipPreflight?: boolean;
-  /** preflight commitment level */
-  preflightCommitment?: Commitment;
-  /** Maximum number of times for the RPC node to retry sending the transaction to the leader. */
-  maxRetries?: number;
-  /** The minimum slot that the request can be evaluated at */
+  commitment?: Commitment;
   minContextSlot?: number;
 };
+
+export type RpcGetAccountOptions = RpcBaseOptions & {
+  dataSlice?: RpcDataSlice;
+};
+
+export type RpcGetAccountsOptions = RpcBaseOptions & {
+  dataSlice?: RpcDataSlice;
+};
+
+export type RpcGetProgramAccountsOptions = RpcBaseOptions & {
+  dataSlice?: RpcDataSlice;
+  filters?: RpcDataFilter[];
+};
+
+export type RpcGetBalanceOptions = RpcBaseOptions;
+
+export type RpcGetRentOptions = RpcBaseOptions & {
+  /** @defaultValue `true` */
+  withHeaderBytes?: boolean;
+};
+
+export type RpcGetLatestBlockhashOptions = RpcBaseOptions;
+
+export type RpcAccountExistsOptions = RpcBaseOptions;
+
+export type RpcAirdropOptions = RpcBaseOptions;
+
+export type RpcCallOptions = RpcBaseOptions;
+
+export type RpcSendTransactionOptions = RpcBaseOptions & {
+  skipPreflight?: boolean;
+  preflightCommitment?: Commitment;
+  maxRetries?: number;
+};
+
+export type RpcConfirmTransactionOptions = RpcBaseOptions & {
+  strategy: RpcConfirmTransactionStrategy;
+};
+
+export type RpcConfirmTransactionStrategy =
+  | {
+      strategy: 'blockhash';
+      blockhash: Blockhash;
+      lastValidBlockHeight: number;
+    }
+  | {
+      strategy: 'durableNonce';
+      minContextSlot: number;
+      nonceAccountPubkey: PublicKey;
+      nonceValue: string;
+    };
+
+export type RpcConfirmTransactionResult = RpcResultWithContext<{
+  err: TransactionError | null;
+}>;
 
 export class NullRpc implements RpcInterface {
   getEndpoint(): string {
@@ -92,6 +151,34 @@ export class NullRpc implements RpcInterface {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
+  getAccounts(): Promise<MaybeRpcAccount[]> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  getProgramAccounts(): Promise<RpcAccount[]> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  getBalance(): Promise<SolAmount> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  getRent(): Promise<SolAmount> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  getLatestBlockhash(): Promise<BlockhashWithExpiryBlockHeight> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  accountExists(): Promise<boolean> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  airdrop(): Promise<void> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
   call<Result>(): Promise<Result> {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
@@ -100,7 +187,7 @@ export class NullRpc implements RpcInterface {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
-  confirmTransaction(): Promise<RpcConfirmResult> {
+  confirmTransaction(): Promise<RpcConfirmTransactionResult> {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 }
