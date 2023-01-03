@@ -39,6 +39,8 @@ import {
   TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
 
+export const ACCOUNT_HEADER_SIZE = 128n;
+
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
 export class Web3JsRpc implements RpcInterface {
@@ -74,7 +76,6 @@ export class Web3JsRpc implements RpcInterface {
       toWeb3JsPublicKey(address),
       options
     );
-
     return this.parseMaybeAccount(account, address);
   }
 
@@ -86,7 +87,6 @@ export class Web3JsRpc implements RpcInterface {
       addresses.map(toWeb3JsPublicKey),
       options
     );
-
     return accounts.map((account, index) =>
       this.parseMaybeAccount(account, addresses[index])
     );
@@ -103,7 +103,6 @@ export class Web3JsRpc implements RpcInterface {
         filters: options.filters?.map((filter) => this.parseDataFilter(filter)),
       }
     );
-
     return accounts.map(({ pubkey, account }) =>
       this.parseAccount(account, fromWeb3JsPublicKey(pubkey))
     );
@@ -113,14 +112,28 @@ export class Web3JsRpc implements RpcInterface {
     address: PublicKey,
     options: RpcBaseOptions = {}
   ): Promise<SolAmount> {
-    throw new Error('Method not implemented.');
+    const balanceInLamports = await this.connection.getBalance(
+      toWeb3JsPublicKey(address),
+      options
+    );
+    return lamports(balanceInLamports);
   }
 
   async getRent(
     bytes: number,
     options: RpcGetRentOptions = {}
   ): Promise<SolAmount> {
-    throw new Error('Method not implemented.');
+    const rentFor = (bytes: number) =>
+      this.connection.getMinimumBalanceForRentExemption(
+        bytes,
+        options.commitment
+      );
+    if (options.withHeaderBytes ?? true) {
+      return lamports(await rentFor(bytes));
+    }
+    const headerRent = await rentFor(0);
+    const rentPerByte = ACCOUNT_HEADER_SIZE / BigInt(headerRent);
+    return lamports(rentPerByte * BigInt(bytes));
   }
 
   async getLatestBlockhash(
