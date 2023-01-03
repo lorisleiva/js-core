@@ -19,6 +19,7 @@ import {
   VersionedTransaction as Web3JsTransaction,
 } from '@solana/web3.js';
 import { Buffer } from 'buffer';
+import bs58 from 'bs58';
 
 export class Web3JsTransactionFactory implements TransactionFactoryInterface {
   create(input: TransactionInput): Transaction {
@@ -67,15 +68,18 @@ export class Web3JsTransactionFactory implements TransactionFactoryInterface {
   }
 
   sign(transaction: Transaction, signer: Signer): Transaction {
+    const web3Transaction = toWeb3JsTransaction(transaction);
     throw new Error('Method not implemented.');
   }
 
   serialize(transaction: Transaction): Uint8Array {
-    throw new Error('Method not implemented.');
+    return toWeb3JsTransaction(transaction).serialize();
   }
 
   deserialize(serializedTransaction: Uint8Array): Transaction {
-    return Web3JsTransaction.deserialize(serializedTransaction);
+    return fromWeb3JsTransaction(
+      Web3JsTransaction.deserialize(serializedTransaction)
+    );
   }
 }
 
@@ -104,7 +108,7 @@ function fromWebJsMessage(
   message: Web3JsMessageLegacy | Web3JsMessageV0
 ): TransactionMessage {
   return {
-    version: 'legacy',
+    version: message.version,
     header: message.header,
     accounts: message.staticAccountKeys.map(fromWeb3JsPublicKey),
     recentBlockhash: message.recentBlockhash,
@@ -119,4 +123,52 @@ function fromWebJsMessage(
       readonlyIndexes: lookup.readonlyIndexes,
     })),
   };
+}
+
+function toWeb3JsMessage(
+  message: TransactionMessage
+): Web3JsMessageLegacy | Web3JsMessageV0 {
+  if (message.version === 'legacy') {
+    return new Web3JsMessageLegacy({
+      header: message.header,
+      accountKeys: message.accounts.map(toWeb3JsPublicKey),
+      recentBlockhash: message.recentBlockhash,
+      instructions: message.instructions.map((instruction) => ({
+        programIdIndex: instruction.programIndex,
+        accounts: instruction.accountIndexes,
+        data: bs58.encode(instruction.data),
+      })),
+    });
+  }
+
+  return new Web3JsMessageV0({
+    header: message.header,
+    staticAccountKeys: message.accounts.map(toWeb3JsPublicKey),
+    recentBlockhash: message.recentBlockhash,
+    compiledInstructions: message.instructions.map((instruction) => ({
+      programIdIndex: instruction.programIndex,
+      accountKeyIndexes: instruction.accountIndexes,
+      data: instruction.data,
+    })),
+    addressTableLookups: message.addressLookupTables.map((lookup) => ({
+      accountKey: toWeb3JsPublicKey(lookup.address),
+      writableIndexes: lookup.writableIndexes,
+      readonlyIndexes: lookup.readonlyIndexes,
+    })),
+  });
+}
+
+function fromWeb3JsTransaction(transaction: Web3JsTransaction): Transaction {
+  return {
+    message: fromWebJsMessage(transaction.message),
+    serializedMessage: transaction.message.serialize(),
+    signatures: transaction.signatures,
+  };
+}
+
+function toWeb3JsTransaction(transaction: Transaction): Web3JsTransaction {
+  return new Web3JsTransaction(
+    toWeb3JsMessage(transaction.message),
+    transaction.signatures
+  );
 }

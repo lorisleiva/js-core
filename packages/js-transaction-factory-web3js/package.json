@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@lorisleiva/js-core": "workspace:^",
+    "bs58": "^5.0.0",
     "buffer": "^6.0.3"
   },
   "peerDependencies": {
