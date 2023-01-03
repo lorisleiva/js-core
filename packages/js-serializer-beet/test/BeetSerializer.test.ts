@@ -6,12 +6,12 @@ import {
   Serializer,
   some,
 } from '@lorisleiva/js-core';
+import { fromWeb3JsPublicKey } from '@lorisleiva/js-web3js-adapters';
 import {
   Keypair as Web3Keypair,
   PublicKey as Web3PublicKey,
 } from '@solana/web3.js';
 import test from 'ava';
-import { fromWeb3JsPublicKey } from 'packages/js-web3js-adapters/dist/types';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
 test('it can serialize units', (t) => {
