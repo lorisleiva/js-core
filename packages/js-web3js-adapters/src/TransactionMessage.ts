@@ -4,7 +4,7 @@ import {
   Message as Web3JsMessageLegacy,
   MessageV0 as Web3JsMessageV0,
 } from '@solana/web3.js';
-import bs58 from 'bs58';
+import { toBase58 } from './Base58';
 import { toWeb3JsInstruction } from './Instruction';
 import { fromWeb3JsPublicKey, toWeb3JsPublicKey } from './PublicKey';
 
@@ -40,7 +40,7 @@ export function toWeb3JsMessage(
       instructions: message.instructions.map((instruction) => ({
         programIdIndex: instruction.programIndex,
         accounts: instruction.accountIndexes,
-        data: bs58.encode(instruction.data),
+        data: toBase58(instruction.data),
       })),
     });
   }

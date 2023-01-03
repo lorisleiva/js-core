@@ -17,7 +17,9 @@ import {
   TransactionSignature,
 } from '@lorisleiva/js-core';
 import {
+  fromBase58,
   fromWeb3JsPublicKey,
+  toBase58,
   toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
 import {
@@ -25,7 +27,6 @@ import {
   Connection as Web3JsConnection,
   ConnectionConfig as Web3JsConnectionConfig,
 } from '@solana/web3.js';
-import bs58 from 'bs58';
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
@@ -84,7 +85,7 @@ export class Web3JsRpc implements RpcInterface {
         serializedTransaction,
         options
       );
-      return bs58.decode(signature);
+      return fromBase58(signature);
     } catch (error: any) {
       let resolvedError: ProgramError | null = null;
       if (error instanceof Error && 'logs' in error) {
@@ -103,7 +104,7 @@ export class Web3JsRpc implements RpcInterface {
   ): Promise<RpcConfirmResult> {
     return this.connection.confirmTransaction(
       {
-        signature: bs58.encode(signature),
+        signature: toBase58(signature),
         ...blockhashWithExpiryBlockHeight,
       },
       commitment

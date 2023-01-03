@@ -130,11 +130,9 @@ importers:
       '@lorisleiva/js-web3js-adapters': workspace:^
       '@solana/web3.js': ^1.72.0
       ava: ^5.1.0
-      bs58: ^5.0.0
     dependencies:
       '@lorisleiva/js-core': link:../js-core
       '@lorisleiva/js-web3js-adapters': link:../js-web3js-adapters
-      bs58: 5.0.0
     devDependencies:
       '@ava/typescript': 3.0.1
       '@solana/web3.js': 1.72.0

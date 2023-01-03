@@ -26,7 +26,6 @@ export interface RpcInterface {
     params?: [...Params],
     options?: RpcOptions
   ): Promise<Result>;
-  // supports(method: string): boolean;
   sendTransaction(
     serializedTransaction: SerializedTransaction,
     options?: RpcSendOptions
