@@ -20,7 +20,7 @@ export function mapSerializer<
 >(
   serializer: Serializer<OldFrom, OldTo>,
   unmap: (value: NewFrom) => OldFrom,
-  map: (value: OldTo) => NewTo
+  map: (value: OldTo, buffer: Uint8Array, offset: number) => NewTo
 ): Serializer<NewFrom, NewTo>;
 export function mapSerializer<
   NewFrom,
@@ -30,14 +30,16 @@ export function mapSerializer<
 >(
   serializer: Serializer<OldFrom, OldTo>,
   unmap: (value: NewFrom) => OldFrom,
-  map?: (value: OldTo) => NewTo
+  map?: (value: OldTo, buffer: Uint8Array, offset: number) => NewTo
 ): Serializer<NewFrom, NewTo> {
   return {
     description: serializer.description,
     serialize: (value: NewFrom) => serializer.serialize(unmap(value)),
     deserialize: (buffer: Uint8Array, offset = 0) => {
       const [value, length] = serializer.deserialize(buffer, offset);
-      return map ? [map(value), length] : [value as any, length];
+      return map
+        ? [map(value, buffer, offset), length]
+        : [value as any, length];
     },
   };
 }
