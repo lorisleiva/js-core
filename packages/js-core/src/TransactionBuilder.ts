@@ -1,3 +1,4 @@
+import { SolAmount } from './Amount';
 import type { Context } from './Context';
 import type { Instruction, WrappedInstruction } from './Instruction';
 import type {
@@ -80,6 +81,16 @@ export class TransactionBuilder {
 
   getSigners(): Signer[] {
     return deduplicateSigners(this.items.flatMap((item) => item.signers));
+  }
+
+  getBytesCreatedOnChain(): number {
+    return this.items.reduce((sum, item) => sum + item.bytesCreatedOnChain, 0);
+  }
+
+  async getRentCreatedOnChain(): Promise<SolAmount> {
+    return this.context.rpc.getRent(this.getBytesCreatedOnChain(), {
+      includesHeaderBytes: true,
+    });
   }
 
   build(options: TransactionBuilderBuildOptions): Transaction {

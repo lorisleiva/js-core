@@ -18,7 +18,7 @@ export interface TransactionMessage {
   readonly version: TransactionVersion;
   readonly header: TransactionMessageHeader;
   readonly accounts: PublicKey[];
-  readonly recentBlockhash: Blockhash;
+  readonly blockhash: Blockhash;
   readonly instructions: CompiledInstruction[];
   readonly addressLookupTables: CompiledAddressLookupTable[];
 }

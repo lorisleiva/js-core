@@ -99,8 +99,8 @@ export type RpcGetProgramAccountsOptions = RpcBaseOptions & {
 export type RpcGetBalanceOptions = RpcBaseOptions;
 
 export type RpcGetRentOptions = RpcBaseOptions & {
-  /** @defaultValue `true` */
-  withHeaderBytes?: boolean;
+  /** @defaultValue `false` */
+  includesHeaderBytes?: boolean;
 };
 
 export type RpcGetLatestBlockhashOptions = RpcBaseOptions;

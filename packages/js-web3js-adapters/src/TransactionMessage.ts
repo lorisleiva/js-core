@@ -15,7 +15,7 @@ export function fromWeb3JsMessage(
     version: message.version,
     header: message.header,
     accounts: message.staticAccountKeys.map(fromWeb3JsPublicKey),
-    recentBlockhash: message.recentBlockhash,
+    blockhash: message.recentBlockhash,
     instructions: message.compiledInstructions.map((instruction) => ({
       programIndex: instruction.programIdIndex,
       accountIndexes: instruction.accountKeyIndexes,
@@ -36,7 +36,7 @@ export function toWeb3JsMessage(
     return new Web3JsMessageLegacy({
       header: message.header,
       accountKeys: message.accounts.map(toWeb3JsPublicKey),
-      recentBlockhash: message.recentBlockhash,
+      recentBlockhash: message.blockhash,
       instructions: message.instructions.map((instruction) => ({
         programIdIndex: instruction.programIndex,
         accounts: instruction.accountIndexes,
@@ -48,7 +48,7 @@ export function toWeb3JsMessage(
   return new Web3JsMessageV0({
     header: message.header,
     staticAccountKeys: message.accounts.map(toWeb3JsPublicKey),
-    recentBlockhash: message.recentBlockhash,
+    recentBlockhash: message.blockhash,
     compiledInstructions: message.instructions.map((instruction) => ({
       programIdIndex: instruction.programIndex,
       accountKeyIndexes: instruction.accountIndexes,
@@ -69,14 +69,14 @@ export function toWeb3JsMessageFromInput(
     return Web3JsMessageLegacy.compile({
       payerKey: toWeb3JsPublicKey(input.payer),
       instructions: input.instructions.map(toWeb3JsInstruction),
-      recentBlockhash: input.recentBlockhash,
+      recentBlockhash: input.blockhash,
     });
   }
 
   return Web3JsMessageV0.compile({
     payerKey: toWeb3JsPublicKey(input.payer),
     instructions: input.instructions.map(toWeb3JsInstruction),
-    recentBlockhash: input.recentBlockhash,
+    recentBlockhash: input.blockhash,
     addressLookupTableAccounts: input.addressLookupTables?.map(
       (account) =>
         new Web3JsAddressLookupTableAccount({

@@ -134,12 +134,12 @@ export class Web3JsRpc implements RpcInterface {
         bytes,
         options.commitment
       );
-    if (options.withHeaderBytes ?? true) {
-      return lamports(await rentFor(bytes));
+    if (options.includesHeaderBytes ?? false) {
+      const headerRent = await rentFor(0);
+      const rentPerByte = ACCOUNT_HEADER_SIZE / BigInt(headerRent);
+      return lamports(rentPerByte * BigInt(bytes));
     }
-    const headerRent = await rentFor(0);
-    const rentPerByte = ACCOUNT_HEADER_SIZE / BigInt(headerRent);
-    return lamports(rentPerByte * BigInt(bytes));
+    return lamports(await rentFor(bytes));
   }
 
   async getLatestBlockhash(
