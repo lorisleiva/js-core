@@ -14,6 +14,12 @@ import type {
   TransactionSignature,
 } from './Transaction';
 
+export type TransactionBuilderInput =
+  | WrappedInstruction
+  | WrappedInstruction[]
+  | TransactionBuilder
+  | TransactionBuilder[];
+
 export type TransactionBuilderBuildInput = Omit<
   TransactionInput,
   'payer' | 'instructions'
@@ -21,8 +27,8 @@ export type TransactionBuilderBuildInput = Omit<
 
 export class TransactionBuilder {
   constructor(
-    private readonly context: Pick<Context, 'rpc' | 'transactions' | 'payer'>,
-    private readonly items: WrappedInstruction[] = []
+    protected readonly context: Pick<Context, 'rpc' | 'transactions' | 'payer'>,
+    protected readonly items: WrappedInstruction[] = []
   ) {}
 
   static make(
@@ -32,28 +38,22 @@ export class TransactionBuilder {
     return new TransactionBuilder(context, items);
   }
 
-  prepend(
-    instructions: WrappedInstruction | WrappedInstruction[]
-  ): TransactionBuilder {
-    const newItems = Array.isArray(instructions)
-      ? instructions
-      : [instructions];
-    return new TransactionBuilder(this.context, [...newItems, ...this.items]);
+  prepend(input: TransactionBuilderInput): TransactionBuilder {
+    return new TransactionBuilder(this.context, [
+      ...this.parseItems(input),
+      ...this.items,
+    ]);
   }
 
-  append(
-    instructions: WrappedInstruction | WrappedInstruction[]
-  ): TransactionBuilder {
-    const newItems = Array.isArray(instructions)
-      ? instructions
-      : [instructions];
-    return new TransactionBuilder(this.context, [...this.items, ...newItems]);
+  append(input: TransactionBuilderInput): TransactionBuilder {
+    return new TransactionBuilder(this.context, [
+      ...this.items,
+      ...this.parseItems(input),
+    ]);
   }
 
-  add(
-    instructions: WrappedInstruction | WrappedInstruction[]
-  ): TransactionBuilder {
-    return this.append(instructions);
+  add(input: TransactionBuilderInput): TransactionBuilder {
+    return this.append(input);
   }
 
   getInstructions(): Instruction[] {
@@ -129,5 +129,11 @@ export class TransactionBuilder {
     });
 
     return { signature, result };
+  }
+
+  protected parseItems(input: TransactionBuilderInput): WrappedInstruction[] {
+    return (Array.isArray(input) ? input : [input]).flatMap((item) =>
+      'instruction' in item ? [item] : item.items
+    );
   }
 }
