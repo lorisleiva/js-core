@@ -19,6 +19,49 @@ export const signTransaction = async (
     return signer.signTransaction(unsigned);
   }, Promise.resolve(transaction));
 
+export const signAllTransactions = async (
+  transactionsWithSigners: {
+    transaction: Transaction;
+    signers: Signer[];
+  }[]
+): Promise<Transaction[]> => {
+  const transactions = transactionsWithSigners.map((item) => item.transaction);
+  const signersWithTransactions = transactionsWithSigners.reduce(
+    (all, { signers }, index) => {
+      signers.forEach((signer) => {
+        const item = all.find((item) =>
+          isEqualToPublicKey(item.signer.publicKey, signer.publicKey)
+        );
+        if (item) {
+          item.indices.push(index);
+        } else {
+          all.push({ signer, indices: [index] });
+        }
+      });
+      return all;
+    },
+    [] as { signer: Signer; indices: number[] }[]
+  );
+
+  return signersWithTransactions.reduce(
+    async (promise, { signer, indices }) => {
+      const transactions = await promise;
+      if (indices.length === 1) {
+        const unsigned = transactions[indices[0]];
+        transactions[indices[0]] = await signer.signTransaction(unsigned);
+        return transactions;
+      }
+      const unsigned = indices.map((index) => transactions[index]);
+      const signed = await signer.signAllTransactions(unsigned);
+      indices.forEach((index, position) => {
+        transactions[index] = signed[position];
+      });
+      return transactions;
+    },
+    Promise.resolve(transactions)
+  );
+};
+
 export const isSigner = (value: PublicKey | Signer): value is Signer =>
   'publicKey' in value;
 
