@@ -55,7 +55,7 @@ export type TransactionInputV0 = TransactionInputBase & {
 export type TransactionInputBase = {
   payer: PublicKey;
   instructions: Instruction[];
-  recentBlockhash: Blockhash;
+  blockhash: Blockhash;
   signatures?: TransactionSignature[];
 };
 

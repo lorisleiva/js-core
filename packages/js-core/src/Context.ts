@@ -19,6 +19,7 @@ export interface Context {
   eddsa: EddsaInterface;
   http: HttpInterface;
   identity: Signer;
+  payer: Signer;
   programs: ProgramRepositoryInterface;
   rpc: RpcInterface;
   serializer: SerializerInterface;
@@ -31,6 +32,7 @@ export const createNullContext = (): Context => ({
   eddsa: new NullEddsa(),
   http: new NullHttp(),
   identity: new NullSigner(),
+  payer: new NullSigner(),
   programs: new NullProgramRepository(),
   rpc: new NullRpc(),
   serializer: new NullSerializer(),

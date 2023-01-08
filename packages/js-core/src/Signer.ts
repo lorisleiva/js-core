@@ -1,6 +1,6 @@
 import type { Context } from './Context';
 import type { Keypair } from './KeyPair';
-import { PublicKey } from './PublicKey';
+import { isEqualToPublicKey, PublicKey } from './PublicKey';
 import { addTransactionSignature, Transaction } from './Transaction';
 
 export type Signer = {
@@ -12,6 +12,18 @@ export type Signer = {
 
 export const isSigner = (value: PublicKey | Signer): value is Signer =>
   'publicKey' in value;
+
+export const deduplicateSigners = (signers: Signer[]): Signer[] => {
+  const uniquePublicKeys: PublicKey[] = [];
+  return signers.reduce((all, one) => {
+    const isDuplicate = uniquePublicKeys.some((key) =>
+      isEqualToPublicKey(key, one.publicKey)
+    );
+    if (isDuplicate) return all;
+    uniquePublicKeys.push(one.publicKey);
+    return [...all, one];
+  }, [] as Signer[]);
+};
 
 export const createSignerFromKeypair = (
   context: Pick<Context, 'eddsa' | 'transactions'>,
