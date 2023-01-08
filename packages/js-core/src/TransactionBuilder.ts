@@ -14,16 +14,27 @@ import type {
   TransactionSignature,
 } from './Transaction';
 
-export type TransactionBuilderInput =
+export type TransactionBuilderItemsInput =
   | WrappedInstruction
   | WrappedInstruction[]
   | TransactionBuilder
   | TransactionBuilder[];
 
-export type TransactionBuilderBuildInput = Omit<
+export type TransactionBuilderBuildOptions = Omit<
   TransactionInput,
   'payer' | 'instructions'
 >;
+
+export type TransactionBuilderSendOptions = {
+  build?: Partial<TransactionBuilderBuildOptions>;
+  send?: RpcSendTransactionOptions;
+  confirm?: Partial<RpcConfirmTransactionOptions>;
+};
+
+export type TransactionBuilderSendAndConfirmOptions =
+  TransactionBuilderSendOptions & {
+    confirm?: Partial<RpcConfirmTransactionOptions>;
+  };
 
 export class TransactionBuilder {
   constructor(
@@ -38,21 +49,21 @@ export class TransactionBuilder {
     return new TransactionBuilder(context, items);
   }
 
-  prepend(input: TransactionBuilderInput): TransactionBuilder {
+  prepend(input: TransactionBuilderItemsInput): TransactionBuilder {
     return new TransactionBuilder(this.context, [
       ...this.parseItems(input),
       ...this.items,
     ]);
   }
 
-  append(input: TransactionBuilderInput): TransactionBuilder {
+  append(input: TransactionBuilderItemsInput): TransactionBuilder {
     return new TransactionBuilder(this.context, [
       ...this.items,
       ...this.parseItems(input),
     ]);
   }
 
-  add(input: TransactionBuilderInput): TransactionBuilder {
+  add(input: TransactionBuilderItemsInput): TransactionBuilder {
     return this.append(input);
   }
 
@@ -64,19 +75,19 @@ export class TransactionBuilder {
     return deduplicateSigners(this.items.flatMap((item) => item.signers));
   }
 
-  build(input: TransactionBuilderBuildInput): Transaction {
+  build(options: TransactionBuilderBuildOptions): Transaction {
     return this.context.transactions.create({
       payer: this.context.payer.publicKey,
       instructions: this.getInstructions(),
-      ...input,
+      ...options,
     });
   }
 
   async buildAndSign(
-    input: TransactionBuilderBuildInput
+    options: TransactionBuilderBuildOptions
   ): Promise<Transaction> {
     const signers = this.getSigners();
-    let transaction = this.build(input);
+    let transaction = this.build(options);
 
     for (let i = 0; i < signers.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
@@ -87,51 +98,56 @@ export class TransactionBuilder {
   }
 
   async send(
-    input: Partial<TransactionBuilderBuildInput> = {},
-    sendOptions: RpcSendTransactionOptions = {}
+    options: TransactionBuilderSendOptions = {}
   ): Promise<TransactionSignature> {
     const blockhash =
-      input.blockhash ??
+      options.build?.blockhash ??
       (await this.context.rpc.getLatestBlockhash()).blockhash;
-    const transaction = await this.buildAndSign({ blockhash, ...input });
+    const transaction = await this.buildAndSign({
+      blockhash,
+      ...options.build,
+    });
     return this.context.rpc.sendTransaction(
       this.context.transactions.serialize(transaction),
-      sendOptions
+      options.send
     );
   }
 
   async sendAndConfirm(
-    input: Partial<TransactionBuilderBuildInput> = {},
-    sendOptions: RpcSendTransactionOptions = {},
-    confirmOptions: Partial<RpcConfirmTransactionOptions> = {}
+    options: TransactionBuilderSendAndConfirmOptions
   ): Promise<{
     signature: TransactionSignature;
     result: RpcConfirmTransactionResult;
   }> {
     let blockhash: Blockhash;
     let strategy: RpcConfirmTransactionStrategy;
-    if (confirmOptions.strategy && input.blockhash) {
-      blockhash = input.blockhash;
-      strategy = confirmOptions.strategy;
+    if (options.confirm?.strategy && options.build?.blockhash) {
+      blockhash = options.build.blockhash;
+      strategy = options.confirm.strategy;
     } else {
       const latestBlockhash = await this.context.rpc.getLatestBlockhash();
       blockhash = latestBlockhash.blockhash;
-      strategy = confirmOptions.strategy ?? {
+      strategy = options.confirm?.strategy ?? {
         type: 'blockhash',
         ...latestBlockhash,
       };
     }
 
-    const signature = await this.send({ blockhash, ...input }, sendOptions);
+    const signature = await this.send({
+      ...options,
+      build: { blockhash, ...options.build },
+    });
     const result = await this.context.rpc.confirmTransaction(signature, {
       strategy,
-      ...confirmOptions,
+      ...options.confirm,
     });
 
     return { signature, result };
   }
 
-  protected parseItems(input: TransactionBuilderInput): WrappedInstruction[] {
+  protected parseItems(
+    input: TransactionBuilderItemsInput
+  ): WrappedInstruction[] {
     return (Array.isArray(input) ? input : [input]).flatMap((item) =>
       'instruction' in item ? [item] : item.items
     );
