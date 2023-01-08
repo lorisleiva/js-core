@@ -6,7 +6,7 @@ import type {
   RpcConfirmTransactionStrategy,
   RpcSendTransactionOptions,
 } from './RpcInterface';
-import { deduplicateSigners, Signer } from './Signer';
+import { deduplicateSigners, Signer, signTransaction } from './Signer';
 import type {
   Blockhash,
   Transaction,
@@ -67,6 +67,13 @@ export class TransactionBuilder {
     return this.append(input);
   }
 
+  splitAtIndex(index: number): [TransactionBuilder, TransactionBuilder] {
+    return [
+      new TransactionBuilder(this.context, this.items.slice(0, index)),
+      new TransactionBuilder(this.context, this.items.slice(index)),
+    ];
+  }
+
   getInstructions(): Instruction[] {
     return this.items.map((item) => item.instruction);
   }
@@ -86,15 +93,7 @@ export class TransactionBuilder {
   async buildAndSign(
     options: TransactionBuilderBuildOptions
   ): Promise<Transaction> {
-    const signers = this.getSigners();
-    let transaction = this.build(options);
-
-    for (let i = 0; i < signers.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      transaction = await signers[i].signTransaction(transaction);
-    }
-
-    return transaction;
+    return signTransaction(this.build(options), this.getSigners());
   }
 
   async send(
@@ -114,7 +113,7 @@ export class TransactionBuilder {
   }
 
   async sendAndConfirm(
-    options: TransactionBuilderSendAndConfirmOptions
+    options: TransactionBuilderSendAndConfirmOptions = {}
   ): Promise<{
     signature: TransactionSignature;
     result: RpcConfirmTransactionResult;

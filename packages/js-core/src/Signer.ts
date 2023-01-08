@@ -10,6 +10,15 @@ export type Signer = {
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
 };
 
+export const signTransaction = async (
+  transaction: Transaction,
+  signers: Signer[]
+): Promise<Transaction> =>
+  signers.reduce(async (promise, signer) => {
+    const unsigned = await promise;
+    return signer.signTransaction(unsigned);
+  }, Promise.resolve(transaction));
+
 export const isSigner = (value: PublicKey | Signer): value is Signer =>
   'publicKey' in value;
 
