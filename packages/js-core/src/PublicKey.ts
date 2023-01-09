@@ -23,7 +23,5 @@ export const isPda = (value: any): value is Pda =>
   typeof value.bump === 'number' &&
   isPublicKey(value);
 
-export const isEqualToPublicKey = (
-  left: PublicKey,
-  right: PublicKey
-): boolean => left.bytes.toString() === right.bytes.toString();
+export const samePublicKey = (left: PublicKey, right: PublicKey): boolean =>
+  left.bytes.toString() === right.bytes.toString();

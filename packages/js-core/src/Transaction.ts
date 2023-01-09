@@ -1,5 +1,5 @@
 import type { Instruction } from './Instruction';
-import { isEqualToPublicKey, PublicKey } from './PublicKey';
+import { samePublicKey, PublicKey } from './PublicKey';
 
 export type TransactionVersion = 'legacy' | 0;
 export type SerializedTransaction = Uint8Array;
@@ -76,7 +76,7 @@ export const addTransactionSignature = (
   const maxSigners = transaction.message.header.numRequiredSignatures;
   const signerPublicKeys = transaction.message.accounts.slice(0, maxSigners);
   const signerIndex = signerPublicKeys.findIndex((key) =>
-    isEqualToPublicKey(key, signerPublicKey)
+    samePublicKey(key, signerPublicKey)
   );
 
   if (signerIndex < 0) {

@@ -1,6 +1,6 @@
 import type { Context } from './Context';
 import type { Keypair } from './KeyPair';
-import { isEqualToPublicKey, PublicKey } from './PublicKey';
+import { samePublicKey, PublicKey } from './PublicKey';
 import { addTransactionSignature, Transaction } from './Transaction';
 
 export type Signer = {
@@ -30,7 +30,7 @@ export const signAllTransactions = async (
     (all, { signers }, index) => {
       signers.forEach((signer) => {
         const item = all.find((item) =>
-          isEqualToPublicKey(item.signer.publicKey, signer.publicKey)
+          samePublicKey(item.signer.publicKey, signer.publicKey)
         );
         if (item) {
           item.indices.push(index);
@@ -69,7 +69,7 @@ export const deduplicateSigners = (signers: Signer[]): Signer[] => {
   const uniquePublicKeys: PublicKey[] = [];
   return signers.reduce((all, one) => {
     const isDuplicate = uniquePublicKeys.some((key) =>
-      isEqualToPublicKey(key, one.publicKey)
+      samePublicKey(key, one.publicKey)
     );
     if (isDuplicate) return all;
     uniquePublicKeys.push(one.publicKey);
