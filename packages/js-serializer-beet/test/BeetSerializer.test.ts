@@ -415,7 +415,7 @@ test('it can serialize maps', (t) => {
 });
 
 test('it can serialize sets', (t) => {
-  const { set, u8, string } = new BeetSerializer();
+  const { set, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(set(u8).description, 'set(u8)');
@@ -446,10 +446,15 @@ test('it can serialize sets', (t) => {
   t.deepEqual(d(set(string), 'ff00000000', 1), new Set());
   t.deepEqual(sd(set(string), new Set()), new Set());
   t.deepEqual(sd(set(string), new Set(['語'])), new Set(['語']));
+
+  // Example with different From and To types.
+  const setU64 = set<number | bigint, bigint>(u64);
+  t.deepEqual(s(setU64, new Set([2])), '010000000200000000000000');
+  t.deepEqual(d(setU64, '010000000200000000000000'), new Set([2n]));
 });
 
 test('it can serialize options', (t) => {
-  const { option, u8, string } = new BeetSerializer();
+  const { option, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(option(u8).description, 'option(u8)');
@@ -477,10 +482,15 @@ test('it can serialize options', (t) => {
   // Example with strings.
   t.deepEqual(sd(option(string), some('Hello')), some('Hello'));
   t.deepEqual(sd(option(string), some('語')), some('語'));
+
+  // Example with different From and To types.
+  const optionU64 = option<number | bigint, bigint>(u64);
+  t.deepEqual(s(optionU64, some(2)), '010200000000000000');
+  t.deepEqual(d(optionU64, '010200000000000000'), some(2n));
 });
 
 test('it can serialize nullables', (t) => {
-  const { nullable, u8, string } = new BeetSerializer();
+  const { nullable, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(nullable(u8).description, 'nullable(u8)');
@@ -505,10 +515,15 @@ test('it can serialize nullables', (t) => {
   t.is(sd(nullable(string), null), null);
   t.is(sd(nullable(string), 'Hello'), 'Hello');
   t.is(sd(nullable(string), '語'), '語');
+
+  // Example with different From and To types.
+  const nullableU64 = nullable<number | bigint, bigint>(u64);
+  t.deepEqual(s(nullableU64, 2), '010200000000000000');
+  t.deepEqual(d(nullableU64, '010200000000000000'), 2n);
 });
 
 test('it can serialize structs', (t) => {
-  const { struct, u8, string } = new BeetSerializer();
+  const { struct, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   const person = struct([
@@ -533,6 +548,13 @@ test('it can serialize structs', (t) => {
     name: 'Bob',
     age: 1,
   });
+
+  // Example with different From and To types.
+  const structU64 = struct<{ value: number | bigint }, { value: bigint }>([
+    ['value', u64],
+  ]);
+  t.deepEqual(s(structU64, { value: 2 }), '0200000000000000');
+  t.deepEqual(d(structU64, '0200000000000000'), { value: 2n });
 });
 
 test('it can serialize enums', (t) => {
@@ -611,7 +633,8 @@ test('it can serialize enums', (t) => {
 });
 
 test('it can serialize data enums', (t) => {
-  const { dataEnum, struct, tuple, string, u8, unit } = new BeetSerializer();
+  const { dataEnum, struct, tuple, string, u8, u64, unit } =
+    new BeetSerializer();
   type WebEvent =
     | { __kind: 'PageLoad' } // Empty variant.
     | { __kind: 'Click'; x: number; y: number } // Struct variant.
@@ -689,6 +712,19 @@ test('it can serialize data enums', (t) => {
     message:
       'Data enum index "4" is out of range. Index should be between 0 and 3.',
   });
+
+  // Example with different From and To types.
+  type FromType = { __kind: 'A' } | { __kind: 'B'; value: number | bigint };
+  type ToType = { __kind: 'A' } | { __kind: 'B'; value: bigint };
+  const dataEnumU64 = dataEnum<FromType, ToType>([
+    ['A', unit],
+    [
+      'B',
+      struct<{ value: bigint | number }, { value: bigint }>([['value', u64]]),
+    ],
+  ]);
+  t.deepEqual(s(dataEnumU64, { __kind: 'B', value: 2 }), '010200000000000000');
+  t.deepEqual(d(dataEnumU64, '010200000000000000'), { __kind: 'B', value: 2n });
 });
 
 /** Serialize as a hex string. */
