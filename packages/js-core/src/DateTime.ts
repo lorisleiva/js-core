@@ -21,9 +21,7 @@ const isDateObject = (value: any): value is Date =>
 
 export const formatDateTime = (
   value: DateTime,
-  // @ts-ignore
   locales: Intl.LocalesArgument = 'en-US',
-  // @ts-ignore
   options: Intl.DateTimeFormatOptions = {
     month: 'short',
     day: 'numeric',
