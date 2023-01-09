@@ -368,7 +368,7 @@ test('it can serialize arrays', (t) => {
 });
 
 test('it can serialize maps', (t) => {
-  const { map, u8, string } = new BeetSerializer();
+  const { map, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(map(u8, u8).description, 'map(u8, u8)');
@@ -407,6 +407,11 @@ test('it can serialize maps', (t) => {
   t.deepEqual(sd(letterMap, new Map()), new Map());
   t.deepEqual(sd(letterMap, letters), letters);
   t.is(doffset(letterMap, '00000000'), 4);
+
+  // Example with different From and To types.
+  const mapU8U64 = map<number, number | bigint, number, bigint>(u8, u64);
+  t.deepEqual(s(mapU8U64, new Map().set(42, 2)), '010000002a0200000000000000');
+  t.deepEqual(d(mapU8U64, '010000002a0200000000000000'), new Map().set(42, 2n));
 });
 
 test('it can serialize sets', (t) => {
