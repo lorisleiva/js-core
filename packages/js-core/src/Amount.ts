@@ -1,5 +1,6 @@
 import { BigIntInput, toBigInt } from './BigInt';
 import { AmountMismatchError, UnexpectedAmountError } from './errors';
+import { mapSerializer, Serializer } from './Serializer';
 
 export type AmountIdentifier = 'SOL' | 'USD' | '%' | string;
 export type AmountDecimals = number;
@@ -291,3 +292,21 @@ export const formatAmount = (value: Amount, maxDecimals?: number): string => {
       return `${value.identifier} ${amountAsString}`;
   }
 };
+
+export const mapAmountSerializer = <
+  I extends AmountIdentifier = AmountIdentifier,
+  D extends AmountDecimals = AmountDecimals
+>(
+  serializer: Serializer<number> | Serializer<number | bigint, bigint>,
+  identifier: I,
+  decimals: D
+): Serializer<Amount<I, D>> =>
+  mapSerializer(
+    serializer as Serializer<number | bigint>,
+    (value: Amount<I, D>): number | bigint =>
+      value.basisPoints > Number.MAX_SAFE_INTEGER
+        ? value.basisPoints
+        : Number(value.basisPoints),
+    (value: number | bigint): Amount<I, D> =>
+      toAmount(value, identifier, decimals)
+  );

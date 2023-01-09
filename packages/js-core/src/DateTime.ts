@@ -1,4 +1,5 @@
 import { BigIntInput, toBigInt } from './BigInt';
+import { mapSerializer, Serializer } from './Serializer';
 
 export type DateTimeString = string;
 export type DateTimeInput = DateTimeString | BigIntInput | Date;
@@ -34,3 +35,15 @@ export const formatDateTime = (
 
   return date.toLocaleDateString(locales, options);
 };
+
+export const mapDateTimeSerializer = (
+  serializer: Serializer<number> | Serializer<number | bigint, bigint>
+): Serializer<DateTimeInput, DateTime> =>
+  mapSerializer(
+    serializer as Serializer<number | bigint>,
+    (value: DateTimeInput): number | bigint => {
+      const dateTime = toDateTime(value);
+      return dateTime > Number.MAX_SAFE_INTEGER ? dateTime : Number(dateTime);
+    },
+    (value: number | bigint): DateTime => toDateTime(value)
+  );
