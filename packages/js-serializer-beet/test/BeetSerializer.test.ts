@@ -252,7 +252,7 @@ test('it can serialize public keys', (t) => {
 });
 
 test('it can serialize tuples', (t) => {
-  const { tuple, u8, string, i16 } = new BeetSerializer();
+  const { tuple, u8, u64, string, i16 } = new BeetSerializer();
 
   // Description matches the tuple definition.
   t.is(tuple([u8]).description, 'tuple(u8)');
@@ -278,6 +278,15 @@ test('it can serialize tuples', (t) => {
   t.deepEqual(sd(tuple([string, u8]), ['Hello', 42]), ['Hello', 42]);
   t.deepEqual(sd(tuple([string, string]), ['a', 'b']), ['a', 'b']);
   t.deepEqual(sd(tuple([u8, string, u8]), [1, '語', 2]), [1, '語', 2]);
+
+  // Example with different From and To types.
+  const tU8U64 = tuple<[number, number | bigint], [number, bigint]>([u8, u64]);
+  t.deepEqual(s(tU8U64, [1, 2]), '010200000000000000');
+  t.deepEqual(s(tU8U64, [1, 2n]), '010200000000000000');
+  t.deepEqual(s(tU8U64, [1, 2n ** 63n]), '010000000000000080');
+  t.deepEqual(d(tU8U64, '010200000000000000'), [1, 2n]);
+  t.deepEqual(d(tU8U64, '010000000000000080'), [1, 2n ** 63n]);
+  t.notDeepEqual(d(tU8U64, '010200000000000000'), [1, 2]);
 
   // Invalid input.
   t.throws(() => s(tuple([u8]), [] as any), {

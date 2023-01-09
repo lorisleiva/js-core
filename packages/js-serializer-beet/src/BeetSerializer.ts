@@ -39,10 +39,10 @@ import {
 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
-  tuple<T extends any[]>(
-    items: [...WrapInSerializer<T>],
+  tuple<T extends any[], U extends T>(
+    items: WrapInSerializer<[...T], [...U]>,
     description?: string
-  ): Serializer<T> {
+  ): Serializer<T, U> {
     const itemDescriptions = items.map((item) => item.description).join(', ');
     return {
       description: description ?? `tuple(${itemDescriptions})`,
@@ -57,7 +57,7 @@ export class BeetSerializer implements SerializerInterface {
         );
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const values = [] as any as T;
+        const values = [] as any as U;
         items.forEach((serializer) => {
           const [newValue, newOffset] = serializer.deserialize(bytes, offset);
           values.push(newValue);
