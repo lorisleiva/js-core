@@ -39,7 +39,7 @@ import {
 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
-  tuple<T extends any[], U extends T>(
+  tuple<T extends any[], U extends T = T>(
     items: WrapInSerializer<[...T], [...U]>,
     description?: string
   ): Serializer<T, U> {
@@ -68,7 +68,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  vec<T>(itemSerializer: Serializer<T>, description?: string): Serializer<T[]> {
+  vec<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
+    description?: string
+  ): Serializer<T[], U[]> {
     return {
       description: description ?? `vec(${itemSerializer.description})`,
       serialize: (value: T[]) => {
@@ -77,7 +80,7 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const values: T[] = [];
+        const values: U[] = [];
         const [length, newOffset] = u32().deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
@@ -90,11 +93,11 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  array<T>(
-    itemSerializer: Serializer<T>,
+  array<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
     size: number,
     description?: string
-  ): Serializer<T[]> {
+  ): Serializer<T[], U[]> {
     return {
       description:
         description ?? `array(${itemSerializer.description}; ${size})`,
@@ -107,7 +110,7 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes(value.map((item) => itemSerializer.serialize(item)));
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const values: T[] = [];
+        const values: U[] = [];
         for (let i = 0; i < size; i += 1) {
           const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
           values.push(value);

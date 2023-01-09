@@ -298,7 +298,7 @@ test('it can serialize tuples', (t) => {
 });
 
 test('it can serialize vectors', (t) => {
-  const { vec, u8, string } = new BeetSerializer();
+  const { vec, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(vec(u8).description, 'vec(u8)');
@@ -321,10 +321,15 @@ test('it can serialize vectors', (t) => {
   // More examples.
   t.deepEqual(sd(vec(string), []), []);
   t.deepEqual(sd(vec(string), ['a', 'b', '語']), ['a', 'b', '語']);
+
+  // Example with different From and To types.
+  const vecU64 = vec<number | bigint, bigint>(u64);
+  t.deepEqual(s(vecU64, [2]), '010000000200000000000000');
+  t.deepEqual(d(vecU64, '010000000200000000000000'), [2n]);
 });
 
 test('it can serialize arrays', (t) => {
-  const { array, u8, string } = new BeetSerializer();
+  const { array, u8, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(array(u8, 5).description, 'array(u8; 5)');
@@ -347,6 +352,11 @@ test('it can serialize arrays', (t) => {
   t.deepEqual(sd(array(string, 1), ['Hello']), ['Hello']);
   t.deepEqual(sd(array(string, 3), ['a', 'b', '語']), ['a', 'b', '語']);
   t.deepEqual(sd(array(u8, 5), [1, 2, 3, 4, 5]), [1, 2, 3, 4, 5]);
+
+  // Example with different From and To types.
+  const arrayU64 = array<number | bigint, bigint>(u64, 1);
+  t.deepEqual(s(arrayU64, [2]), '0200000000000000');
+  t.deepEqual(d(arrayU64, '0200000000000000'), [2n]);
 
   // Invalid input.
   t.throws(() => s(array(u8, 1), []), {

@@ -23,16 +23,19 @@ export type DataEnumToSerializerTuple<T extends DataEnum> = Array<
 
 export interface SerializerInterface {
   // Lists.
-  tuple: <T extends any[], U extends T>(
+  tuple: <T extends any[], U extends T = T>(
     items: WrapInSerializer<[...T], [...U]>,
     description?: string
   ) => Serializer<T, U>;
-  vec: <T>(item: Serializer<T>, description?: string) => Serializer<T[]>;
-  array: <T>(
-    item: Serializer<T>,
+  vec: <T, U extends T = T>(
+    item: Serializer<T, U>,
+    description?: string
+  ) => Serializer<T[], U[]>;
+  array: <T, U extends T = T>(
+    item: Serializer<T, U>,
     size: number,
     description?: string
-  ) => Serializer<T[]>;
+  ) => Serializer<T[], U[]>;
 
   // Maps, sets and options.
   map: <K, V>(
@@ -89,15 +92,15 @@ export class NullSerializer implements SerializerInterface {
     'serializer'
   );
 
-  tuple<T extends any[], U extends T>(): Serializer<T, U> {
+  tuple<T extends any[], U extends T = T>(): Serializer<T, U> {
     throw this.error;
   }
 
-  vec<T>(): Serializer<T[]> {
+  vec<T, U extends T = T>(): Serializer<T[], U[]> {
     throw this.error;
   }
 
-  array<T>(): Serializer<T[]> {
+  array<T, U extends T = T>(): Serializer<T[], U[]> {
     throw this.error;
   }
 
