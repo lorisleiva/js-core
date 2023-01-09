@@ -4,19 +4,19 @@ import type { PublicKey, PublicKeyInput } from './PublicKey';
 import type { Serializer, WrapInSerializer } from './Serializer';
 import type { Nullable, Option } from './Option';
 
-export type StructToSerializerTuple<T extends object> = Array<
+export type StructToSerializerTuple<T extends object, U extends T> = Array<
   {
-    [K in keyof T]: [K, Serializer<T[K]>];
+    [K in keyof T]: [K, Serializer<T[K], U[K]>];
   }[keyof T]
 >;
 
-export type DataEnumToSerializerTuple<T extends DataEnum> = Array<
+export type DataEnumToSerializerTuple<T extends DataEnum, U extends T> = Array<
   T extends any
     ? [
         T['__kind'],
         keyof Omit<T, '__kind'> extends never
-          ? Serializer<Omit<T, '__kind'>> | Serializer<void>
-          : Serializer<Omit<T, '__kind'>>
+          ? Serializer<Omit<T, '__kind'>, Omit<U, '__kind'>> | Serializer<void>
+          : Serializer<Omit<T, '__kind'>, Omit<U, '__kind'>>
       ]
     : never
 >;
@@ -38,33 +38,36 @@ export interface SerializerInterface {
   ) => Serializer<T[], U[]>;
 
   // Maps, sets and options.
-  map: <K, V>(
-    key: Serializer<K>,
-    value: Serializer<V>,
+  map: <TK, TV, UK extends TK = TK, UV extends TV = TV>(
+    key: Serializer<TK, UK>,
+    value: Serializer<TV, UV>,
     description?: string
-  ) => Serializer<Map<K, V>>;
-  set: <T>(item: Serializer<T>, description?: string) => Serializer<Set<T>>;
-  option: <T>(
-    item: Serializer<T>,
+  ) => Serializer<Map<TK, TV>, Map<UK, UV>>;
+  set: <T, U extends T = T>(
+    item: Serializer<T, U>,
     description?: string
-  ) => Serializer<Option<T>>;
-  nullable: <T>(
-    item: Serializer<T>,
+  ) => Serializer<Set<T>, Set<U>>;
+  option: <T, U extends T = T>(
+    item: Serializer<T, U>,
     description?: string
-  ) => Serializer<Nullable<T>>;
+  ) => Serializer<Option<T>, Option<U>>;
+  nullable: <T, U extends T = T>(
+    item: Serializer<T, U>,
+    description?: string
+  ) => Serializer<Nullable<T>, Nullable<U>>;
 
   // Structs.
-  struct: <T extends object>(
-    fields: StructToSerializerTuple<T>,
+  struct: <T extends object, U extends T = T>(
+    fields: StructToSerializerTuple<T, U>,
     description?: string
-  ) => Serializer<T>;
+  ) => Serializer<T, U>;
 
   // Enums.
   enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T>;
-  dataEnum<T extends DataEnum>(
-    fields: DataEnumToSerializerTuple<T>,
+  dataEnum<T extends DataEnum, U extends T = T>(
+    fields: DataEnumToSerializerTuple<T, U>,
     description?: string
-  ): Serializer<T>;
+  ): Serializer<T, U>;
 
   // Leaves.
   unit: Serializer<void>;
@@ -104,23 +107,26 @@ export class NullSerializer implements SerializerInterface {
     throw this.error;
   }
 
-  map<K, V>(): Serializer<Map<K, V>> {
+  map<TK, TV, UK extends TK = TK, UV extends TV = TV>(): Serializer<
+    Map<TK, TV>,
+    Map<UK, UV>
+  > {
     throw this.error;
   }
 
-  set<T>(): Serializer<Set<T>> {
+  set<T, U extends T = T>(): Serializer<Set<T>, Set<U>> {
     throw this.error;
   }
 
-  option<T>(): Serializer<Option<T>> {
+  option<T, U extends T = T>(): Serializer<Option<T>, Option<U>> {
     throw this.error;
   }
 
-  nullable<T>(): Serializer<Nullable<T>> {
+  nullable<T, U extends T = T>(): Serializer<Nullable<T>, Nullable<U>> {
     throw this.error;
   }
 
-  struct<T extends object>(): Serializer<T> {
+  struct<T extends object, U extends T = T>(): Serializer<T, U> {
     throw this.error;
   }
 
@@ -128,7 +134,7 @@ export class NullSerializer implements SerializerInterface {
     throw this.error;
   }
 
-  dataEnum<T extends DataEnum>(): Serializer<T> {
+  dataEnum<T extends DataEnum, U extends T = T>(): Serializer<T, U> {
     throw this.error;
   }
 

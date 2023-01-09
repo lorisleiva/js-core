@@ -121,16 +121,16 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  map<K, V>(
-    keySerializer: Serializer<K>,
-    valueSerializer: Serializer<V>,
+  map<TK, TV, UK extends TK = TK, UV extends TV = TV>(
+    keySerializer: Serializer<TK, UK>,
+    valueSerializer: Serializer<TV, UV>,
     description?: string
-  ): Serializer<Map<K, V>> {
+  ): Serializer<Map<TK, TV>, Map<UK, UV>> {
     return {
       description:
         description ??
         `map(${keySerializer.description}, ${valueSerializer.description})`,
-      serialize: (map: Map<K, V>) => {
+      serialize: (map: Map<TK, TV>) => {
         const lengthBytes = u32().serialize(map.size);
         const itemBytes = Array.from(map, ([key, value]) =>
           mergeBytes([
@@ -141,7 +141,7 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const map: Map<K, V> = new Map();
+        const map: Map<UK, UV> = new Map();
         const [length, newOffset] = u32().deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
@@ -156,10 +156,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  set<T>(
-    itemSerializer: Serializer<T>,
+  set<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
     description?: string
-  ): Serializer<Set<T>> {
+  ): Serializer<Set<T>, Set<U>> {
     return {
       description: description ?? `set(${itemSerializer.description})`,
       serialize: (set: Set<T>) => {
@@ -170,7 +170,7 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const set: Set<T> = new Set();
+        const set: Set<U> = new Set();
         const [length, newOffset] = u32().deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
@@ -183,10 +183,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  option<T>(
-    itemSerializer: Serializer<T>,
+  option<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
     description?: string
-  ): Serializer<Option<T>> {
+  ): Serializer<Option<T>, Option<U>> {
     return {
       description: description ?? `option(${itemSerializer.description})`,
       serialize: (option: Option<T>) => {
@@ -209,10 +209,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  nullable<T>(
-    itemSerializer: Serializer<T>,
+  nullable<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
     description?: string
-  ): Serializer<Nullable<T>> {
+  ): Serializer<Nullable<T>, Nullable<U>> {
     return {
       description: description ?? `nullable(${itemSerializer.description})`,
       serialize: (option: Nullable<T>) => {
@@ -234,10 +234,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  struct<T extends object>(
-    fields: StructToSerializerTuple<T>,
+  struct<T extends object, U extends T = T>(
+    fields: StructToSerializerTuple<T, U>,
     description?: string
-  ): Serializer<T> {
+  ): Serializer<T, U> {
     const fieldDescriptions = fields
       .map(([name, serializer]) => `${String(name)}: ${serializer.description}`)
       .join(', ');
@@ -250,13 +250,13 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes(fieldBytes);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const struct: Partial<T> = {};
+        const struct: Partial<U> = {};
         fields.forEach(([key, serializer]) => {
           const [value, newOffset] = serializer.deserialize(bytes, offset);
           offset = newOffset;
           struct[key] = value;
         });
-        return [struct as T, offset];
+        return [struct as U, offset];
       },
     };
   }
@@ -309,10 +309,10 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  dataEnum<T extends DataEnum>(
-    fields: DataEnumToSerializerTuple<T>,
+  dataEnum<T extends DataEnum, U extends T = T>(
+    fields: DataEnumToSerializerTuple<T, U>,
     description?: string
-  ): Serializer<T> {
+  ): Serializer<T, U> {
     const fieldDescriptions = fields
       .map(
         ([name, serializer]) =>
@@ -348,7 +348,7 @@ export class BeetSerializer implements SerializerInterface {
         }
         const [variant, vOffset] = variantField[1].deserialize(bytes, offset);
         offset = vOffset;
-        return [{ __kind: variantField[0], ...(variant ?? {}) } as T, offset];
+        return [{ __kind: variantField[0], ...(variant ?? {}) } as U, offset];
       },
     };
   }

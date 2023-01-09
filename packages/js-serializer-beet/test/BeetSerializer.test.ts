@@ -612,7 +612,7 @@ test('it can serialize data enums', (t) => {
     | { __kind: 'Click'; x: number; y: number } // Struct variant.
     | { __kind: 'KeyPress'; fields: [string] } // Tuple variant.
     | { __kind: 'PageUnload' }; // Empty variant (using empty struct).
-  const webEvent: DataEnumToSerializerTuple<WebEvent> = [
+  const webEvent: DataEnumToSerializerTuple<WebEvent, WebEvent> = [
     ['PageLoad', unit],
     [
       'Click',
