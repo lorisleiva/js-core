@@ -77,8 +77,11 @@ export const deduplicateSigners = (signers: Signer[]): Signer[] => {
   }, [] as Signer[]);
 };
 
+export const generateSigner = (context: Pick<Context, 'eddsa'>): Signer =>
+  createSignerFromKeypair(context, context.eddsa.generateKeypair());
+
 export const createSignerFromKeypair = (
-  context: Pick<Context, 'eddsa' | 'transactions'>,
+  context: Pick<Context, 'eddsa'>,
   keypair: Keypair
 ): Signer => ({
   publicKey: keypair.publicKey,
