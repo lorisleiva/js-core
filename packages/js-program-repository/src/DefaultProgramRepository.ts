@@ -46,12 +46,48 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
     this.programs.unshift(program);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   resolveError(
     error: ErrorWithLogs,
     transaction: Transaction
   ): ProgramError | null {
-    throw new Error('Method not implemented.');
+    // Ensure the error as logs.
+    if (!Array.isArray(error.logs) || error.logs.length === 0) return null;
+    const logs = error.logs.join('\n');
+
+    // Parse the instruction number.
+    const instructionRegex = /Error processing Instruction (\d+):/;
+    const instruction = logs.match(instructionRegex)?.[1] ?? null;
+
+    // Parse the error code.
+    const errorCodeRegex = /Custom program error: (0x[a-f0-9]+)/i;
+    const errorCodeString = logs.match(errorCodeRegex)?.[1] ?? null;
+    const errorCode = errorCodeString ? parseInt(errorCodeString, 16) : null;
+
+    // Ensure we could find an instruction number and an error code.
+    if (!instruction || !errorCode) return null;
+
+    // Get the program ID from the instruction in the transaction.
+    const instructionNumber: number = parseInt(instruction, 10);
+    const programIndex: number | null =
+      transaction.message.instructions?.[instructionNumber]?.programIndex ??
+      null;
+    const programId = programIndex
+      ? transaction.message.accounts[programIndex]
+      : null;
+
+    // Ensure we were able to find a program ID for the instruction.
+    if (!programId) return null;
+
+    // Find a registered program if any.
+    let program: Program;
+    try {
+      program = this.get(programId);
+    } catch (_programNotFoundError) {
+      return null;
+    }
+
+    // Finally, resolve the error.
+    return program.getErrorFromCode(errorCode);
   }
 
   protected parseClusterFilter(clusterFilter: ClusterFilter): Cluster | '*' {

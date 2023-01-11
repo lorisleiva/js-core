@@ -4,6 +4,7 @@ import { fetchHttp } from '@lorisleiva/js-http-fetch';
 import { web3JsRpc, Web3JsRpcOptions } from '@lorisleiva/js-rpc-web3js';
 import { beetSerializer } from '@lorisleiva/js-serializer-beet';
 import { mockStorage } from '@lorisleiva/js-storage-mock';
+import { defaultProgramRepository } from '@lorisleiva/js-program-repository';
 import { web3JsTransactionFactory } from '@lorisleiva/js-transaction-factory-web3js';
 
 export const testPlugins = (
@@ -12,6 +13,7 @@ export const testPlugins = (
 ): MetaplexPlugin => ({
   install(metaplex) {
     metaplex.use(beetSerializer());
+    metaplex.use(defaultProgramRepository());
     metaplex.use(fetchHttp());
     metaplex.use(web3JsEddsa());
     metaplex.use(web3JsRpc(endpoint, rpcOptions));

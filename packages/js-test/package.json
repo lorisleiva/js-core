@@ -29,9 +29,10 @@
     "@lorisleiva/js-core": "workspace:^",
     "@lorisleiva/js-eddsa-web3js": "workspace:^",
     "@lorisleiva/js-http-fetch": "workspace:^",
-    "@lorisleiva/js-storage-mock": "workspace:^",
+    "@lorisleiva/js-program-repository": "workspace:^",
     "@lorisleiva/js-rpc-web3js": "workspace:^",
     "@lorisleiva/js-serializer-beet": "workspace:^",
+    "@lorisleiva/js-storage-mock": "workspace:^",
     "@lorisleiva/js-transaction-factory-web3js": "workspace:^"
   },
   "peerDependencies": {
