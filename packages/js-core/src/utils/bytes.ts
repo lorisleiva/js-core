@@ -70,11 +70,10 @@ export const base58: Serializer<string> = {
       const characters: string[] = [];
       if (base10 === '') return '';
       let integer = BigInt(base10);
-      if (integer === 0n) return '1';
-      while (integer > 0) {
+      do {
         characters.unshift(BASE_58_ALPHABET[Number(integer % 58n)]);
         integer /= 58n;
-      }
+      } while (integer > 0);
       return characters.join('');
     }
   ),
