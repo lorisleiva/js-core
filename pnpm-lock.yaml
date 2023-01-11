@@ -176,6 +176,29 @@ importers:
       '@ava/typescript': 3.0.1
       ava: 5.1.0_@ava+typescript@3.0.1
 
+  packages/js-test:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      '@lorisleiva/js-core': workspace:^
+      '@lorisleiva/js-eddsa-web3js': workspace:^
+      '@lorisleiva/js-http-fetch': workspace:^
+      '@lorisleiva/js-rpc-web3js': workspace:^
+      '@lorisleiva/js-serializer-beet': workspace:^
+      '@lorisleiva/js-storage-mock': workspace:^
+      '@lorisleiva/js-transaction-factory-web3js': workspace:^
+      ava: ^5.1.0
+    dependencies:
+      '@lorisleiva/js-core': link:../js-core
+      '@lorisleiva/js-eddsa-web3js': link:../js-eddsa-web3js
+      '@lorisleiva/js-http-fetch': link:../js-http-fetch
+      '@lorisleiva/js-rpc-web3js': link:../js-rpc-web3js
+      '@lorisleiva/js-serializer-beet': link:../js-serializer-beet
+      '@lorisleiva/js-storage-mock': link:../js-storage-mock
+      '@lorisleiva/js-transaction-factory-web3js': link:../js-transaction-factory-web3js
+    devDependencies:
+      '@ava/typescript': 3.0.1
+      ava: 5.1.0_@ava+typescript@3.0.1
+
   packages/js-transaction-factory-web3js:
     specifiers:
       '@ava/typescript': ^3.0.1
