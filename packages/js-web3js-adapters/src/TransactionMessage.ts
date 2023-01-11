@@ -1,10 +1,13 @@
-import { TransactionInput, TransactionMessage } from '@lorisleiva/js-core';
+import {
+  base58,
+  TransactionInput,
+  TransactionMessage,
+} from '@lorisleiva/js-core';
 import {
   AddressLookupTableAccount as Web3JsAddressLookupTableAccount,
   Message as Web3JsMessageLegacy,
   MessageV0 as Web3JsMessageV0,
 } from '@solana/web3.js';
-import { toBase58 } from './Base58';
 import { toWeb3JsInstruction } from './Instruction';
 import { fromWeb3JsPublicKey, toWeb3JsPublicKey } from './PublicKey';
 
@@ -40,7 +43,7 @@ export function toWeb3JsMessage(
       instructions: message.instructions.map((instruction) => ({
         programIdIndex: instruction.programIndex,
         accounts: instruction.accountIndexes,
-        data: toBase58(instruction.data),
+        data: base58.deserialize(instruction.data)[0],
       })),
     });
   }

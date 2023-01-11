@@ -1,3 +1,5 @@
+import { base58 } from './utils';
+
 export type PublicKeyInput = PublicKeyBase58 | PublicKeyBytes | PublicKey;
 export type PublicKeyBase58 = string;
 export type PublicKeyBytes = Uint8Array;
@@ -25,3 +27,6 @@ export const isPda = (value: any): value is Pda =>
 
 export const samePublicKey = (left: PublicKey, right: PublicKey): boolean =>
   left.bytes.toString() === right.bytes.toString();
+
+export const formatPublicKey = (publicKey: PublicKey): string =>
+  base58.deserialize(publicKey.bytes)[0];

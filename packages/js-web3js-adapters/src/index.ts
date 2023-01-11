@@ -1,4 +1,3 @@
-export * from './Base58';
 export * from './Instruction';
 export * from './Keypair';
 export * from './PublicKey';

@@ -1,6 +1,6 @@
 {
-  "name": "@lorisleiva/js-web3js-adapters",
-  "version": "0.0.23",
+  "name": "@lorisleiva/js-program-repository",
+  "version": "0.0.1",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
@@ -26,15 +26,10 @@
     "test": "ava"
   },
   "dependencies": {
-    "@lorisleiva/js-core": "workspace:^",
-    "buffer": "^6.0.3"
-  },
-  "peerDependencies": {
-    "@solana/web3.js": "^1.72.0"
+    "@lorisleiva/js-core": "workspace:^"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
-    "@solana/web3.js": "^1.72.0",
     "ava": "^5.1.0"
   },
   "publishConfig": {
@@ -48,7 +43,7 @@
   "typedoc": {
     "entryPoint": "./src/index.ts",
     "readmeFile": "./README.md",
-    "displayName": "js-web3js-adapters"
+    "displayName": "js-program-repository"
   },
   "ava": {
     "typescript": {

@@ -1,4 +1,5 @@
 import {
+  base58,
   BlockhashWithExpiryBlockHeight,
   Cluster,
   Commitment,
@@ -30,9 +31,7 @@ import {
   TransactionSignature,
 } from '@lorisleiva/js-core';
 import {
-  fromBase58,
   fromWeb3JsPublicKey,
-  toBase58,
   toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
 import {
@@ -166,12 +165,12 @@ export class Web3JsRpc implements RpcInterface {
     );
     if (options.strategy) {
       this.confirmTransaction(
-        fromBase58(signature),
+        base58.serialize(signature),
         options as RpcConfirmTransactionOptions
       );
       return;
     }
-    this.confirmTransaction(fromBase58(signature), {
+    this.confirmTransaction(base58.serialize(signature), {
       ...options,
       strategy: { type: 'blockhash', ...(await this.getLatestBlockhash()) },
     });
@@ -199,7 +198,7 @@ export class Web3JsRpc implements RpcInterface {
         serializedTransaction,
         options
       );
-      return fromBase58(signature);
+      return base58.serialize(signature);
     } catch (error: any) {
       let resolvedError: ProgramError | null = null;
       if (error instanceof Error && 'logs' in error) {
@@ -247,7 +246,7 @@ export class Web3JsRpc implements RpcInterface {
   ): Web3JsGetProgramAccountsFilter {
     if (!('memcmp' in filter)) return filter;
     const { bytes, ...rest } = filter.memcmp;
-    return { memcmp: { ...rest, bytes: toBase58(bytes) } };
+    return { memcmp: { ...rest, bytes: base58.deserialize(bytes)[0] } };
   }
 
   protected parseConfirmStrategy(
@@ -257,12 +256,12 @@ export class Web3JsRpc implements RpcInterface {
     if (options.strategy.type === 'blockhash') {
       return {
         ...options.strategy,
-        signature: toBase58(signature),
+        signature: base58.deserialize(signature)[0],
       };
     }
     return {
       ...options.strategy,
-      signature: toBase58(signature),
+      signature: base58.deserialize(signature)[0],
       nonceAccountPubkey: toWeb3JsPublicKey(
         options.strategy.nonceAccountPubkey
       ),

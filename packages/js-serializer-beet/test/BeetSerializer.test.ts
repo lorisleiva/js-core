@@ -1,7 +1,6 @@
 import {
-  bytesToHex,
+  base16,
   DataEnumToSerializerTuple,
-  hexToBytes,
   none,
   Serializer,
   some,
@@ -237,8 +236,11 @@ test('it can serialize public keys', (t) => {
   const generatedPubKey = fromWeb3JsPublicKey(Web3Keypair.generate().publicKey);
   const pubKeyString = '4HM9LW2rm3SR2ZdBiFK3D21ENmQWpqEJEhx1nfgcC3r9';
   const pubKey = fromWeb3JsPublicKey(new Web3PublicKey(pubKeyString));
-  const pubKeyHex = bytesToHex(pubKey.bytes);
-  t.is(s(publicKey, generatedPubKey), bytesToHex(generatedPubKey.bytes));
+  const pubKeyHex = base16.deserialize(pubKey.bytes)[0];
+  t.is(
+    s(publicKey, generatedPubKey),
+    base16.deserialize(generatedPubKey.bytes)[0]
+  );
   t.is(s(publicKey, pubKeyString), pubKeyHex);
   t.is(s(publicKey, pubKey), pubKeyHex);
   t.deepEqual(sd(publicKey, pubKeyString), pubKey);
@@ -732,7 +734,7 @@ function s<T, U extends T = T>(
   serializer: Serializer<T, U>,
   value: T extends T ? T : never
 ): string {
-  return bytesToHex(serializer.serialize(value));
+  return base16.deserialize(serializer.serialize(value))[0];
 }
 
 /** Deserialize from a hex string. */
@@ -741,7 +743,7 @@ function d<T, U extends T = T>(
   value: string,
   offset = 0
 ): T {
-  const bytes = hexToBytes(value);
+  const bytes = base16.serialize(value);
   return serializer.deserialize(bytes, offset)[0];
 }
 
@@ -751,7 +753,7 @@ function doffset<T, U extends T = T>(
   value: string,
   offset = 0
 ): number {
-  const bytes = hexToBytes(value);
+  const bytes = base16.serialize(value);
   return serializer.deserialize(bytes, offset)[1];
 }
 
