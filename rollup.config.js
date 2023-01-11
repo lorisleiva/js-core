@@ -32,7 +32,7 @@ const createConfig = (build, options) => {
   } = options;
 
   const allDependencies = [
-    ...Object.keys(pkg.dependencies),
+    ...Object.keys(pkg.dependencies ?? {}),
     ...Object.keys(pkg.peerDependencies ?? {}),
     ...additionalExternals,
   ];

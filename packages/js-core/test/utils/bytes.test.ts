@@ -47,24 +47,28 @@ test('it can serialize base 16 strings', (t) => {
 });
 
 test('it can serialize base 58 strings', (t) => {
+  // t.deepEqual(base58.serialize(''), new Uint8Array([]));
+  // t.deepEqual(base58.deserialize(new Uint8Array([])), ['', 0]);
+
+  // t.deepEqual(base58.serialize('1'), new Uint8Array([1]));
+  // t.deepEqual(base58.deserialize(new Uint8Array([1])), ['1', 1]);
+
+  // t.deepEqual(base58.serialize('2a'), new Uint8Array([42]));
+  // t.deepEqual(base58.deserialize(new Uint8Array([42])), ['2a', 1]);
+
+  // t.deepEqual(base58.serialize('0400'), new Uint8Array([4, 0]));
+  // t.deepEqual(base58.deserialize(new Uint8Array([4, 0])), ['0400', 2]);
+
+  // t.deepEqual(base58.serialize('ffff'), new Uint8Array([255, 255]));
+  // t.deepEqual(base58.deserialize(new Uint8Array([255, 255])), ['ffff', 2]);
+
   const pubkey = 'LorisCg1FTs89a32VSrFskYDgiRbNQzct1WxyZb7nuA';
-  t.deepEqual(base58.serialize(pubkey), new Uint8Array([]));
-  t.deepEqual(base58.deserialize(new Uint8Array([])), [pubkey, 0]);
-
-  t.deepEqual(base58.serialize(''), new Uint8Array([]));
-  t.deepEqual(base58.deserialize(new Uint8Array([])), ['', 0]);
-
-  t.deepEqual(base58.serialize('1'), new Uint8Array([1]));
-  t.deepEqual(base58.deserialize(new Uint8Array([1])), ['1', 1]);
-
-  t.deepEqual(base58.serialize('2a'), new Uint8Array([42]));
-  t.deepEqual(base58.deserialize(new Uint8Array([42])), ['2a', 1]);
-
-  t.deepEqual(base58.serialize('0400'), new Uint8Array([4, 0]));
-  t.deepEqual(base58.deserialize(new Uint8Array([4, 0])), ['0400', 2]);
-
-  t.deepEqual(base58.serialize('ffff'), new Uint8Array([255, 255]));
-  t.deepEqual(base58.deserialize(new Uint8Array([255, 255])), ['ffff', 2]);
+  const bytes = new Uint8Array([
+    5, 19, 4, 94, 5, 47, 73, 25, 182, 8, 150, 61, 231, 60, 102, 110, 6, 114,
+    224, 110, 40, 20, 10, 184, 65, 191, 241, 204, 131, 161, 120, 181,
+  ]);
+  t.deepEqual(base58.serialize(pubkey), bytes);
+  t.deepEqual(base58.deserialize(bytes), [pubkey, 32]);
 
   t.throws(() => base58.serialize('INVALID_INPUT'), {
     message: (m) =>
