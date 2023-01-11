@@ -6,7 +6,7 @@ import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { PublicKey } from './PublicKey';
 import type {
   Blockhash,
-  SerializedTransaction,
+  Transaction,
   TransactionError,
   TransactionSignature,
 } from './Transaction';
@@ -49,7 +49,7 @@ export interface RpcInterface {
     options?: RpcCallOptions
   ): Promise<R>;
   sendTransaction(
-    serializedTransaction: SerializedTransaction,
+    transaction: Transaction,
     options?: RpcSendTransactionOptions
   ): Promise<TransactionSignature>;
   confirmTransaction(

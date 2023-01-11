@@ -8,6 +8,7 @@ import {
   ProgramRepositoryInterface,
   PublicKey,
   samePublicKey,
+  Transaction,
 } from '@lorisleiva/js-core';
 import { ProgramNotRecognizedError } from './errors';
 
@@ -46,7 +47,10 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  resolveError(error: ErrorWithLogs): ProgramError | null {
+  resolveError(
+    error: ErrorWithLogs,
+    transaction: Transaction
+  ): ProgramError | null {
     throw new Error('Method not implemented.');
   }
 

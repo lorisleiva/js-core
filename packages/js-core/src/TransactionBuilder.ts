@@ -117,10 +117,7 @@ export class TransactionBuilder {
       blockhash,
       ...options.build,
     });
-    return this.context.rpc.sendTransaction(
-      this.context.transactions.serialize(transaction),
-      options.send
-    );
+    return this.context.rpc.sendTransaction(transaction, options.send);
   }
 
   async sendAndConfirm(

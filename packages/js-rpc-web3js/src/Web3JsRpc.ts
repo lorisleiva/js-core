@@ -26,8 +26,8 @@ import {
   RpcGetRentOptions,
   RpcInterface,
   RpcSendTransactionOptions,
-  SerializedTransaction,
   SolAmount,
+  Transaction,
   TransactionSignature,
 } from '@lorisleiva/js-core';
 import {
@@ -49,14 +49,14 @@ export const ACCOUNT_HEADER_SIZE = 128n;
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
 export class Web3JsRpc implements RpcInterface {
-  protected readonly context: Pick<Context, 'programs'>;
+  protected readonly context: Pick<Context, 'programs' | 'transactions'>;
 
   public readonly connection: Web3JsConnection;
 
   public readonly cluster: Cluster;
 
   constructor(
-    context: Pick<Context, 'programs'>,
+    context: Pick<Context, 'programs' | 'transactions'>,
     endpoint: string,
     rpcOptions?: Web3JsRpcOptions
   ) {
@@ -190,12 +190,12 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async sendTransaction(
-    serializedTransaction: SerializedTransaction,
+    transaction: Transaction,
     options: RpcSendTransactionOptions = {}
   ): Promise<TransactionSignature> {
     try {
       const signature = await this.connection.sendRawTransaction(
-        serializedTransaction,
+        this.context.transactions.serialize(transaction),
         options
       );
       return base58.serialize(signature);
@@ -203,7 +203,8 @@ export class Web3JsRpc implements RpcInterface {
       let resolvedError: ProgramError | null = null;
       if (error instanceof Error && 'logs' in error) {
         resolvedError = this.context.programs.resolveError(
-          error as ErrorWithLogs
+          error as ErrorWithLogs,
+          transaction
         );
       }
       throw resolvedError || error;
