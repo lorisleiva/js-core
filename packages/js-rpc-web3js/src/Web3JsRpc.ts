@@ -164,13 +164,13 @@ export class Web3JsRpc implements RpcInterface {
       Number(amount.basisPoints)
     );
     if (options.strategy) {
-      this.confirmTransaction(
+      await this.confirmTransaction(
         base58.serialize(signature),
         options as RpcConfirmTransactionOptions
       );
       return;
     }
-    this.confirmTransaction(base58.serialize(signature), {
+    await this.confirmTransaction(base58.serialize(signature), {
       ...options,
       strategy: { type: 'blockhash', ...(await this.getLatestBlockhash()) },
     });
