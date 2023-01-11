@@ -1,11 +1,15 @@
+import type { ClusterFilter } from './Cluster';
 import type { Context } from './Context';
 import { InterfaceImplementationMissingError, ProgramError } from './errors';
 import type { ErrorWithLogs, Program } from './Program';
 import type { PublicKey, PublicKeyInput } from './PublicKey';
 
 export interface ProgramRepositoryInterface {
-  get<T extends Program = Program>(nameOrAddress: string | PublicKey): T;
-  all(): Program[];
+  get<T extends Program = Program>(
+    nameOrAddress: string | PublicKey,
+    clusterFilter?: ClusterFilter
+  ): T;
+  all(clusterFilter?: ClusterFilter): Program[];
   add(program: Program): void;
   resolveError(error: ErrorWithLogs): ProgramError | null;
 }

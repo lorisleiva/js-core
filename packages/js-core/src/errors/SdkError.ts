@@ -1,5 +1,4 @@
 import { Amount, AmountDecimals, AmountIdentifier } from '../Amount';
-import { Cluster } from '../Cluster';
 import { PublicKey } from '../PublicKey';
 import { MetaplexError } from './MetaplexError';
 
@@ -148,28 +147,6 @@ export class UnexpectedAccountError extends SdkError {
       `The account at the provided address [${address.toString()}] ` +
       `is not of the expected type [${expectedType}].`;
     super(message, cause);
-  }
-}
-
-/** @group Errors */
-export class ProgramNotRecognizedError extends SdkError {
-  readonly name: string = 'ProgramNotRecognizedError';
-
-  readonly nameOrAddress: string | PublicKey;
-
-  readonly cluster: Cluster;
-
-  constructor(nameOrAddress: string | PublicKey, cluster: Cluster) {
-    const isName = typeof nameOrAddress === 'string';
-    const toString = isName ? nameOrAddress : nameOrAddress.toString();
-    const message =
-      `The provided program ${isName ? 'name' : 'address'} [${toString}] ` +
-      `is not recognized in the [${cluster}] cluster.` +
-      'Did you forget to register this program? ' +
-      'If so, you may use "metaplex.programs().register(myProgram)" to fix this.';
-    super(message);
-    this.nameOrAddress = nameOrAddress;
-    this.cluster = cluster;
   }
 }
 

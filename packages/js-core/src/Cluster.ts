@@ -5,6 +5,8 @@ export type Cluster =
   | 'localnet'
   | 'custom';
 
+export type ClusterFilter = Cluster | 'current' | '*';
+
 const MAINNET_BETA_DOMAINS = [
   'api.mainnet-beta.solana.com',
   'ssc-dao.genesysgo.net',
