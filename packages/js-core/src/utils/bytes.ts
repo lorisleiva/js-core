@@ -1,9 +1,13 @@
 /* eslint-disable no-bitwise */
+import { InvalidBaseStringError } from '../errors';
 import { mapSerializer, Serializer } from '../Serializer';
 
 export const base10: Serializer<string> = {
   description: 'base10',
   serialize(value: string) {
+    if (!value.match(/^\d*$/)) {
+      throw new InvalidBaseStringError(value, 10);
+    }
     const bytes = [];
     let integer = BigInt(value);
     while (integer > 0) {
@@ -13,6 +17,7 @@ export const base10: Serializer<string> = {
     return new Uint8Array(bytes);
   },
   deserialize(buffer, offset = 0) {
+    if (buffer.length === 0) return ['', 0];
     const value = buffer
       .slice(offset)
       .reduce((acc, byte) => BigInt(acc) * 256n + BigInt(byte), 0n)
@@ -21,10 +26,15 @@ export const base10: Serializer<string> = {
   },
 };
 
+const BASE_16_ALPHABET = '0123456789abcdef';
 export const base16: Serializer<string> = {
   description: 'base16',
   serialize(value: string) {
-    const matches = value.match(/.{1,2}/g);
+    const lowercaseValue = value.toLowerCase();
+    if (!lowercaseValue.match(new RegExp(`^[${BASE_16_ALPHABET}]*$`))) {
+      throw new InvalidBaseStringError(value, 16);
+    }
+    const matches = lowercaseValue.match(/.{1,2}/g);
     return Uint8Array.from(
       matches ? matches.map((byte: string) => parseInt(byte, 16)) : []
     );
@@ -42,16 +52,18 @@ const BASE_58_ALPHABET =
 export const base58: Serializer<string> = {
   ...mapSerializer(
     base10,
-    (base58) =>
-      base58
-        .split('')
-        .reverse()
-        .reduce(
-          (acc, char, i) =>
-            acc + BigInt(BASE_58_ALPHABET.indexOf(char)) * 58n ** BigInt(i),
-          0n
-        )
-        .toString(),
+    (base58) => {
+      if (!base58.match(new RegExp(`^[${BASE_58_ALPHABET}]*$`))) {
+        throw new InvalidBaseStringError(base58, 58);
+      }
+      const chars = base58.split('').reverse();
+      const base10 = chars.reduce(
+        (acc, char, i) =>
+          acc + BigInt(BASE_58_ALPHABET.indexOf(char)) * 58n ** BigInt(i),
+        0n
+      );
+      return base10.toString();
+    },
     (base10) => {
       const characters: string[] = [];
       let integer = BigInt(base10);

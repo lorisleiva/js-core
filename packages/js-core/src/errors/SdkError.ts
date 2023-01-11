@@ -115,43 +115,6 @@ export class OperationUnauthorizedForGuestsError extends SdkError {
 }
 
 /** @group Errors */
-export class UninitializedWalletAdapterError extends SdkError {
-  readonly name: string = 'UninitializedWalletAdapterError';
-
-  constructor() {
-    const message =
-      `The current wallet adapter is not initialized. ` +
-      'You likely have selected a wallet adapter but forgot to initialize it. ' +
-      'You may do this by running the following asynchronous method: "wallet.connect();".';
-    super(message);
-  }
-}
-
-/** @group Errors */
-export class OperationNotSupportedByWalletAdapterError extends SdkError {
-  readonly name: string = 'OperationNotSupportedByWalletAdapterError';
-
-  constructor(operation: string) {
-    const message =
-      `The current wallet adapter does not support the following operation: [${operation}]. ` +
-      'Ensure your wallet is connected using a compatible wallet adapter.';
-    super(message);
-  }
-}
-
-/** @group Errors */
-export class TaskIsAlreadyRunningError extends SdkError {
-  readonly name: string = 'TaskIsAlreadyRunningError';
-
-  constructor() {
-    const message =
-      `Trying to re-run a task that hasn't completed yet. ` +
-      `Ensure the task has completed using "await" before trying to run it again.`;
-    super(message);
-  }
-}
-
-/** @group Errors */
 export class AssetNotFoundError extends SdkError {
   readonly name: string = 'AssetNotFoundError';
 
@@ -189,32 +152,6 @@ export class UnexpectedAccountError extends SdkError {
 }
 
 /** @group Errors */
-export class UnexpectedTypeError extends SdkError {
-  readonly name: string = 'UnexpectedTypeError';
-
-  constructor(variable: string, actualType: string, expectedType: string) {
-    const message =
-      `Expected variable [${variable}] to be ` +
-      `of type [${expectedType}] but got [${actualType}].`;
-    super(message);
-  }
-}
-
-/** @group Errors */
-export class ExpectedSignerError extends SdkError {
-  readonly name: string = 'ExpectedSignerError';
-
-  constructor(variable: string, actualType: string, solution?: string) {
-    const message = `Expected variable [${variable}] to be of type [Signer] but got [${actualType}]. ${
-      solution ??
-      'Please check that you are providing the variable as a signer. ' +
-        'Note that, it may be allowed to provide a non-signer variable for certain use cases but not this one.'
-    }`;
-    super(message);
-  }
-}
-
-/** @group Errors */
 export class ProgramNotRecognizedError extends SdkError {
   readonly name: string = 'ProgramNotRecognizedError';
 
@@ -237,51 +174,11 @@ export class ProgramNotRecognizedError extends SdkError {
 }
 
 /** @group Errors */
-export class NoInstructionsToSendError extends SdkError {
-  readonly name: string = 'NoInstructionsToSendError';
+export class InvalidBaseStringError extends SdkError {
+  readonly name: string = 'InvalidBaseStringError';
 
-  constructor(operation: string, solution?: string) {
-    const message =
-      `The input provided to the [${operation}] resulted ` +
-      `in a Transaction containing no Instructions. ${
-        solution ??
-        `Ensure that the provided input has an effect on the operation. ` +
-          `This typically happens when trying to update an account with ` +
-          `the same data it already contains.`
-      }`;
-    super(message);
-  }
-}
-
-/** @group Errors */
-export class FailedToSerializeDataError extends SdkError {
-  readonly name: string = 'FailedToSerializeDataError';
-
-  constructor(dataDescription: string, cause?: Error) {
-    const message = `The received data could not be serialized as a [${dataDescription}].`;
-    super(message, cause);
-  }
-}
-
-/** @group Errors */
-export class FailedToDeserializeDataError extends SdkError {
-  readonly name: string = 'FailedToDeserializeDataError';
-
-  constructor(dataDescription: string, cause?: Error) {
-    const message = `The received serialized data could not be deserialized to a [${dataDescription}].`;
-    super(message, cause);
-  }
-}
-
-/** @group Errors */
-export class MissingInputDataError extends SdkError {
-  readonly name: string = 'MissingInputDataError';
-
-  constructor(missingParameters: string[], solution?: string) {
-    const message =
-      `Some parameters are missing from the provided input object. ` +
-      `Please provide the following missing parameters ` +
-      `[${missingParameters.join(', ')}].${solution ? ` ${solution}` : ''}`;
+  constructor(value: string, base: number) {
+    const message = `Expected a string of base ${base}, got [${value}].`;
     super(message);
   }
 }
