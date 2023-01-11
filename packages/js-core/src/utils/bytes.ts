@@ -11,11 +11,10 @@ export const base10: Serializer<string> = {
     if (value === '') return new Uint8Array();
     const bytes = [];
     let integer = BigInt(value);
-    if (integer === 0n) return new Uint8Array([0]);
-    while (integer > 0) {
+    do {
       bytes.unshift(Number(integer & 255n));
       integer >>= 8n;
-    }
+    } while (integer > 0);
     return new Uint8Array(bytes);
   },
   deserialize(buffer, offset = 0) {
