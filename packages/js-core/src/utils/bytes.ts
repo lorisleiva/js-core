@@ -8,8 +8,10 @@ export const base10: Serializer<string> = {
     if (!value.match(/^\d*$/)) {
       throw new InvalidBaseStringError(value, 10);
     }
+    if (value === '') return new Uint8Array();
     const bytes = [];
     let integer = BigInt(value);
+    if (integer === 0n) return new Uint8Array([0]);
     while (integer > 0) {
       bytes.unshift(Number(integer & 255n));
       integer >>= 8n;
@@ -56,6 +58,7 @@ export const base58: Serializer<string> = {
       if (!base58.match(new RegExp(`^[${BASE_58_ALPHABET}]*$`))) {
         throw new InvalidBaseStringError(base58, 58);
       }
+      if (base58 === '') return '';
       const chars = base58.split('').reverse();
       const base10 = chars.reduce(
         (acc, char, i) =>
@@ -66,7 +69,9 @@ export const base58: Serializer<string> = {
     },
     (base10) => {
       const characters: string[] = [];
+      if (base10 === '') return '';
       let integer = BigInt(base10);
+      if (integer === 0n) return '1';
       while (integer > 0) {
         characters.unshift(BASE_58_ALPHABET[Number(integer % 58n)]);
         integer /= 58n;

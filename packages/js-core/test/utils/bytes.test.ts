@@ -5,6 +5,9 @@ test('it can serialize base 10 strings', (t) => {
   t.deepEqual(base10.serialize(''), new Uint8Array([]));
   t.deepEqual(base10.deserialize(new Uint8Array([])), ['', 0]);
 
+  t.deepEqual(base10.serialize('0'), new Uint8Array([0]));
+  t.deepEqual(base10.deserialize(new Uint8Array([0])), ['0', 1]);
+
   t.deepEqual(base10.serialize('1'), new Uint8Array([1]));
   t.deepEqual(base10.deserialize(new Uint8Array([1])), ['1', 1]);
 
@@ -27,6 +30,10 @@ test('it can serialize base 16 strings', (t) => {
   t.deepEqual(base16.serialize(''), new Uint8Array([]));
   t.deepEqual(base16.deserialize(new Uint8Array([])), ['', 0]);
 
+  t.deepEqual(base16.serialize('0'), new Uint8Array([0]));
+  t.deepEqual(base16.serialize('00'), new Uint8Array([0]));
+  t.deepEqual(base16.deserialize(new Uint8Array([0])), ['00', 1]);
+
   t.deepEqual(base16.serialize('1'), new Uint8Array([1]));
   t.deepEqual(base16.serialize('01'), new Uint8Array([1]));
   t.deepEqual(base16.deserialize(new Uint8Array([1])), ['01', 1]);
@@ -47,20 +54,23 @@ test('it can serialize base 16 strings', (t) => {
 });
 
 test('it can serialize base 58 strings', (t) => {
-  // t.deepEqual(base58.serialize(''), new Uint8Array([]));
-  // t.deepEqual(base58.deserialize(new Uint8Array([])), ['', 0]);
+  t.deepEqual(base58.serialize(''), new Uint8Array([]));
+  t.deepEqual(base58.deserialize(new Uint8Array([])), ['', 0]);
 
-  // t.deepEqual(base58.serialize('1'), new Uint8Array([1]));
-  // t.deepEqual(base58.deserialize(new Uint8Array([1])), ['1', 1]);
+  t.deepEqual(base58.serialize('1'), new Uint8Array([0]));
+  t.deepEqual(base58.deserialize(new Uint8Array([0])), ['1', 1]);
 
-  // t.deepEqual(base58.serialize('2a'), new Uint8Array([42]));
-  // t.deepEqual(base58.deserialize(new Uint8Array([42])), ['2a', 1]);
+  t.deepEqual(base58.serialize('2'), new Uint8Array([1]));
+  t.deepEqual(base58.deserialize(new Uint8Array([1])), ['2', 1]);
 
-  // t.deepEqual(base58.serialize('0400'), new Uint8Array([4, 0]));
-  // t.deepEqual(base58.deserialize(new Uint8Array([4, 0])), ['0400', 2]);
+  t.deepEqual(base58.serialize('j'), new Uint8Array([42]));
+  t.deepEqual(base58.deserialize(new Uint8Array([42])), ['j', 1]);
 
-  // t.deepEqual(base58.serialize('ffff'), new Uint8Array([255, 255]));
-  // t.deepEqual(base58.deserialize(new Uint8Array([255, 255])), ['ffff', 2]);
+  t.deepEqual(base58.serialize('Jf'), new Uint8Array([4, 0]));
+  t.deepEqual(base58.deserialize(new Uint8Array([4, 0])), ['Jf', 2]);
+
+  t.deepEqual(base58.serialize('LUv'), new Uint8Array([255, 255]));
+  t.deepEqual(base58.deserialize(new Uint8Array([255, 255])), ['LUv', 2]);
 
   const pubkey = 'LorisCg1FTs89a32VSrFskYDgiRbNQzct1WxyZb7nuA';
   const bytes = new Uint8Array([
