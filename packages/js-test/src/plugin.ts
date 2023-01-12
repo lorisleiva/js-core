@@ -9,7 +9,7 @@ import { web3JsTransactionFactory } from '@lorisleiva/js-transaction-factory-web
 
 export const testPlugins = (
   endpoint: string = 'http://localhost:8899',
-  rpcOptions?: Web3JsRpcOptions
+  rpcOptions: Web3JsRpcOptions = 'confirmed'
 ): MetaplexPlugin => ({
   install(metaplex) {
     metaplex.use(beetSerializer());
