@@ -43,13 +43,6 @@ export class TransactionBuilder {
     protected readonly items: WrappedInstruction[] = []
   ) {}
 
-  static make(
-    context: Pick<Context, 'rpc' | 'transactions' | 'payer'>,
-    items: WrappedInstruction[] = []
-  ): TransactionBuilder {
-    return new TransactionBuilder(context, items);
-  }
-
   prepend(input: TransactionBuilderItemsInput): TransactionBuilder {
     return new TransactionBuilder(this.context, [
       ...this.parseItems(input),
@@ -163,3 +156,8 @@ export class TransactionBuilder {
     );
   }
 }
+
+export const transactionBuilder = (
+  context: Pick<Context, 'rpc' | 'transactions' | 'payer'>,
+  items: WrappedInstruction[] = []
+) => new TransactionBuilder(context, items);
