@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-program-repository",
-  "version": "0.0.26",
+  "version": "0.0.28",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
