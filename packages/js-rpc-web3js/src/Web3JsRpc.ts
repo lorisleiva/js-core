@@ -226,10 +226,12 @@ export class Web3JsRpc implements RpcInterface {
     address: PublicKey
   ): RpcAccount {
     return {
-      ...account,
+      executable: account.executable,
       owner: fromWeb3JsPublicKey(account.owner),
-      address,
       lamports: lamports(account.lamports),
+      rentEpoch: account.rentEpoch,
+      address,
+      data: new Uint8Array(account.data),
     };
   }
 
