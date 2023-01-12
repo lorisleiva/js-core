@@ -29,7 +29,7 @@ export const getProgramAddressWithFallback = (
   const publicKey = context.eddsa.createPublicKey(address);
   if (!context.programs) return publicKey;
   try {
-    return context.programs?.get(name).address;
+    return context.programs.get(name).address;
   } catch (error) {
     return publicKey;
   }
