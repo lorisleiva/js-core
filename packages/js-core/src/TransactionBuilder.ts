@@ -80,7 +80,10 @@ export class TransactionBuilder {
   }
 
   getSigners(): Signer[] {
-    return deduplicateSigners(this.items.flatMap((item) => item.signers));
+    return deduplicateSigners([
+      this.context.payer,
+      ...this.items.flatMap((item) => item.signers),
+    ]);
   }
 
   getBytesCreatedOnChain(): number {
