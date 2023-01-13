@@ -9,6 +9,7 @@ import type {
   Transaction,
   TransactionError,
   TransactionSignature,
+  TransactionWithMeta,
 } from './Transaction';
 
 export interface RpcInterface {
@@ -34,6 +35,10 @@ export interface RpcInterface {
   getLatestBlockhash(
     options?: RpcGetLatestBlockhashOptions
   ): Promise<BlockhashWithExpiryBlockHeight>;
+  getTransaction(
+    signature: TransactionSignature,
+    options?: RpcGetTransactionOptions
+  ): Promise<TransactionWithMeta>;
   accountExists(
     address: PublicKey,
     options?: RpcAccountExistsOptions
@@ -105,6 +110,8 @@ export type RpcGetRentOptions = RpcBaseOptions & {
 
 export type RpcGetLatestBlockhashOptions = RpcBaseOptions;
 
+export type RpcGetTransactionOptions = RpcBaseOptions;
+
 export type RpcAccountExistsOptions = RpcBaseOptions;
 
 export type RpcAirdropOptions = Partial<RpcConfirmTransactionOptions>;
@@ -168,6 +175,10 @@ export class NullRpc implements RpcInterface {
   }
 
   getLatestBlockhash(): Promise<BlockhashWithExpiryBlockHeight> {
+    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+  }
+
+  getTransaction(): Promise<TransactionWithMeta> {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 

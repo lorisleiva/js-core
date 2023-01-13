@@ -1,3 +1,4 @@
+import { Amount, SolAmount } from './Amount';
 import type { Instruction } from './Instruction';
 import { samePublicKey, PublicKey } from './PublicKey';
 
@@ -24,9 +25,9 @@ export interface TransactionMessage {
 }
 
 export type TransactionMessageHeader = {
-  numRequiredSignatures: number;
-  numReadonlySignedAccounts: number;
-  numReadonlyUnsignedAccounts: number;
+  readonly numRequiredSignatures: number;
+  readonly numReadonlySignedAccounts: number;
+  readonly numReadonlyUnsignedAccounts: number;
 };
 
 export type CompiledInstruction = {
@@ -39,6 +40,41 @@ export type CompiledAddressLookupTable = {
   readonly address: PublicKey;
   readonly writableIndexes: number[];
   readonly readonlyIndexes: number[];
+};
+
+export type TransactionWithMeta = Transaction & {
+  meta: TransactionMeta;
+};
+
+export type TransactionMeta = {
+  readonly fee: number;
+  readonly logMessages: string[] | null;
+  readonly preBalances: SolAmount[];
+  readonly postBalances: SolAmount[];
+  readonly preTokenBalances: TransactionMetaTokenBalance[];
+  readonly postTokenBalances: TransactionMetaTokenBalance[];
+  readonly innerInstructions: TransactionMetaInnerInstruction[] | null;
+  readonly loadedAddresses: TransactionMetaLoadedAddresses;
+  readonly computeUnitsConsumed: bigint | null;
+  readonly err: TransactionError | null;
+};
+
+export type TransactionMetaTokenBalance = {
+  accountIndex: number;
+  amount: Amount;
+  mint: PublicKey;
+  owner: PublicKey | null;
+  programId: PublicKey | null;
+};
+
+export type TransactionMetaInnerInstruction = {
+  index: number;
+  instructions: CompiledInstruction[];
+};
+
+export type TransactionMetaLoadedAddresses = {
+  writableIndexes: number[];
+  readonlyIndexes: number[];
 };
 
 export type TransactionInput = TransactionInputLegacy | TransactionInputV0;

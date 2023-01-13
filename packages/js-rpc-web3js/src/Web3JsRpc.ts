@@ -147,6 +147,13 @@ export class Web3JsRpc implements RpcInterface {
     return this.connection.getLatestBlockhash(options);
   }
 
+  async getTransaction(
+    signature: TransactionSignature,
+    options: RpcGetTransactionOptions = {}
+  ): Promise<TransactionWithMeta> {
+    return this.connection.getTransaction(options);
+  }
+
   async accountExists(
     address: PublicKey,
     options: RpcAccountExistsOptions = {}
@@ -185,7 +192,11 @@ export class Web3JsRpc implements RpcInterface {
     return new Promise((resolve, reject) => {
       const callback: JSONRPCCallbackTypePlain = (error, result) =>
         error ? reject(error) : resolve(result);
-      client.request(method, params, options.id ?? null, callback);
+      if (options.id) {
+        client.request(method, params, options.id, callback);
+      } else {
+        client.request(method, params, callback);
+      }
     });
   }
 
