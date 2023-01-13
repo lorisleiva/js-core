@@ -1,14 +1,20 @@
 import { InterfaceImplementationMissingError } from './errors';
 import type {
   SerializedTransaction,
+  SerializedTransactionMessage,
   Transaction,
   TransactionInput,
+  TransactionMessage,
 } from './Transaction';
 
 export interface TransactionFactoryInterface {
   create(input: TransactionInput): Transaction;
   serialize(transaction: Transaction): SerializedTransaction;
   deserialize(serializedTransaction: SerializedTransaction): Transaction;
+  serializeMessage(message: TransactionMessage): SerializedTransactionMessage;
+  deserializeMessage(
+    serializedMessage: SerializedTransactionMessage
+  ): TransactionMessage;
 }
 
 export class NullTransactionFactory implements TransactionFactoryInterface {
@@ -26,6 +32,14 @@ export class NullTransactionFactory implements TransactionFactoryInterface {
   }
 
   deserialize(): Transaction {
+    throw this.error;
+  }
+
+  serializeMessage(): SerializedTransactionMessage {
+    throw this.error;
+  }
+
+  deserializeMessage(): TransactionMessage {
     throw this.error;
   }
 }

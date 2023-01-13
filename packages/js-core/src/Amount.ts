@@ -2,7 +2,7 @@ import { BigIntInput, toBigInt } from './BigInt';
 import { AmountMismatchError, UnexpectedAmountError } from './errors';
 import { mapSerializer, Serializer } from './Serializer';
 
-export type AmountIdentifier = 'SOL' | 'USD' | '%' | string;
+export type AmountIdentifier = 'SOL' | 'USD' | '%' | 'splToken' | string;
 export type AmountDecimals = number;
 export type Amount<
   I extends AmountIdentifier = AmountIdentifier,

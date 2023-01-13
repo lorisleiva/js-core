@@ -38,7 +38,7 @@ export interface RpcInterface {
   getTransaction(
     signature: TransactionSignature,
     options?: RpcGetTransactionOptions
-  ): Promise<TransactionWithMeta>;
+  ): Promise<TransactionWithMeta | null>;
   accountExists(
     address: PublicKey,
     options?: RpcAccountExistsOptions
@@ -178,7 +178,7 @@ export class NullRpc implements RpcInterface {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 
-  getTransaction(): Promise<TransactionWithMeta> {
+  getTransaction(): Promise<TransactionWithMeta | null> {
     throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
   }
 

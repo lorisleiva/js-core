@@ -3,6 +3,7 @@ import {
   BlockhashWithExpiryBlockHeight,
   Cluster,
   Commitment,
+  CompiledInstruction,
   Context,
   ErrorWithLogs,
   isZeroAmount,
@@ -24,21 +25,29 @@ import {
   RpcGetLatestBlockhashOptions,
   RpcGetProgramAccountsOptions,
   RpcGetRentOptions,
+  RpcGetTransactionOptions,
   RpcInterface,
   RpcSendTransactionOptions,
   SolAmount,
+  toAmount,
   Transaction,
+  TransactionMetaInnerInstruction,
+  TransactionMetaTokenBalance,
   TransactionSignature,
+  TransactionWithMeta,
 } from '@lorisleiva/js-core';
 import {
+  fromWeb3JsMessage,
   fromWeb3JsPublicKey,
   toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
 import {
-  AccountInfo as Web3JSAccountInfo,
+  AccountInfo as Web3JsAccountInfo,
   Connection as Web3JsConnection,
   ConnectionConfig as Web3JsConnectionConfig,
   GetProgramAccountsFilter as Web3JsGetProgramAccountsFilter,
+  PublicKey as Web3JsPublicKey,
+  TokenBalance as Web3JsTokenBalance,
   TransactionConfirmationStrategy as Web3JsTransactionConfirmationStrategy,
 } from '@solana/web3.js';
 import type { JSONRPCCallbackTypePlain } from 'jayson';
@@ -150,8 +159,79 @@ export class Web3JsRpc implements RpcInterface {
   async getTransaction(
     signature: TransactionSignature,
     options: RpcGetTransactionOptions = {}
-  ): Promise<TransactionWithMeta> {
-    return this.connection.getTransaction(options);
+  ): Promise<TransactionWithMeta | null> {
+    const response = await this.connection.getTransaction(
+      base58.deserialize(signature)[0],
+      {
+        commitment: options.commitment as 'confirmed' | 'finalized' | undefined,
+        maxSupportedTransactionVersion: 0,
+      }
+    );
+
+    if (!response) {
+      return null;
+    }
+
+    if (!response.meta) {
+      // TODO: Custom error.
+      throw new Error('Transaction meta is missing.');
+    }
+
+    const { transaction, meta } = response;
+    const message = fromWeb3JsMessage(transaction.message);
+    const mapPublicKey = (key: string) =>
+      fromWeb3JsPublicKey(new Web3JsPublicKey(key));
+    const mapTokenBalance = (
+      tokenBalance: Web3JsTokenBalance
+    ): TransactionMetaTokenBalance => ({
+      accountIndex: tokenBalance.accountIndex,
+      amount: toAmount(
+        tokenBalance.uiTokenAmount.amount,
+        'splToken',
+        tokenBalance.uiTokenAmount.decimals
+      ),
+      mint: mapPublicKey(tokenBalance.mint),
+      owner: tokenBalance.owner ? mapPublicKey(tokenBalance.owner) : null,
+    });
+
+    return {
+      message,
+      serializedMessage: this.context.transactions.serializeMessage(message),
+      signatures: transaction.signatures.map(base58.serialize),
+      meta: {
+        fee: lamports(meta.fee),
+        logs: meta.logMessages ?? [],
+        preBalances: meta.preBalances.map(lamports),
+        postBalances: meta.postBalances.map(lamports),
+        preTokenBalances: (meta.preTokenBalances ?? []).map(mapTokenBalance),
+        postTokenBalances: (meta.postTokenBalances ?? []).map(mapTokenBalance),
+        innerInstructions:
+          meta.innerInstructions?.map(
+            (inner): TransactionMetaInnerInstruction => ({
+              index: inner.index,
+              instructions: inner.instructions.map(
+                (instruction): CompiledInstruction => ({
+                  programIndex: instruction.programIdIndex,
+                  accountIndexes: instruction.accounts,
+                  data: base58.serialize(instruction.data),
+                })
+              ),
+            })
+          ) ?? null,
+        loadedAddresses: {
+          writable: (meta.loadedAddresses?.writable ?? []).map(
+            fromWeb3JsPublicKey
+          ),
+          readonly: (meta.loadedAddresses?.readonly ?? []).map(
+            fromWeb3JsPublicKey
+          ),
+        },
+        computeUnitsConsumed: meta.computeUnitsConsumed
+          ? BigInt(meta.computeUnitsConsumed)
+          : null,
+        err: meta.err,
+      },
+    };
   }
 
   async accountExists(
@@ -233,7 +313,7 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   protected parseAccount(
-    account: Web3JSAccountInfo<Uint8Array>,
+    account: Web3JsAccountInfo<Uint8Array>,
     address: PublicKey
   ): RpcAccount {
     return {
@@ -247,7 +327,7 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   protected parseMaybeAccount(
-    account: Web3JSAccountInfo<Uint8Array> | null,
+    account: Web3JsAccountInfo<Uint8Array> | null,
     address: PublicKey
   ): MaybeRpcAccount {
     return account

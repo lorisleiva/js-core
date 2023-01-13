@@ -43,12 +43,12 @@ export type CompiledAddressLookupTable = {
 };
 
 export type TransactionWithMeta = Transaction & {
-  meta: TransactionMeta;
+  readonly meta: TransactionMeta;
 };
 
 export type TransactionMeta = {
-  readonly fee: number;
-  readonly logMessages: string[] | null;
+  readonly fee: SolAmount;
+  readonly logs: string[];
   readonly preBalances: SolAmount[];
   readonly postBalances: SolAmount[];
   readonly preTokenBalances: TransactionMetaTokenBalance[];
@@ -64,7 +64,6 @@ export type TransactionMetaTokenBalance = {
   amount: Amount;
   mint: PublicKey;
   owner: PublicKey | null;
-  programId: PublicKey | null;
 };
 
 export type TransactionMetaInnerInstruction = {
@@ -73,8 +72,8 @@ export type TransactionMetaInnerInstruction = {
 };
 
 export type TransactionMetaLoadedAddresses = {
-  writableIndexes: number[];
-  readonlyIndexes: number[];
+  writable: PublicKey[];
+  readonly: PublicKey[];
 };
 
 export type TransactionInput = TransactionInputLegacy | TransactionInputV0;
