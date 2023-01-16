@@ -2,6 +2,17 @@
 import { InvalidBaseStringError } from '../errors';
 import { mapSerializer, Serializer } from '../Serializer';
 
+export const utf8: Serializer<string> = {
+  description: 'utf8',
+  serialize(value: string) {
+    return new TextEncoder().encode(value);
+  },
+  deserialize(buffer, offset = 0) {
+    const value = new TextDecoder().decode(buffer.slice(offset));
+    return [value, buffer.length];
+  },
+};
+
 export const base10: Serializer<string> = {
   description: 'base10',
   serialize(value: string) {
