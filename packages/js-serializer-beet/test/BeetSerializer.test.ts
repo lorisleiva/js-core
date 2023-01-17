@@ -328,7 +328,7 @@ test('it can serialize vectors', (t) => {
   t.is(vec(string).description, 'vec(string)');
 
   // Description can be overridden.
-  t.is(vec(u8, 'my vec').description, 'my vec');
+  t.is(vec(u8, undefined, 'my vec').description, 'my vec');
 
   // Example with numbers.
   const number = vec(u8);
@@ -406,7 +406,7 @@ test('it can serialize maps', (t) => {
   t.is(map(string, u8).description, 'map(string, u8)');
 
   // Description can be overridden.
-  t.is(map(string, string, 'my map').description, 'my map');
+  t.is(map(string, string, undefined, 'my map').description, 'my map');
 
   // Examples with numbers.
   const numberMap = map(u8, u8);
@@ -454,7 +454,7 @@ test('it can serialize sets', (t) => {
   t.is(set(string).description, 'set(string)');
 
   // Description can be overridden.
-  t.is(set(string, 'my set').description, 'my set');
+  t.is(set(string, undefined, 'my set').description, 'my set');
 
   // Examples with numbers.
   t.is(set(u8).fixedSize, null);
@@ -494,7 +494,7 @@ test('it can serialize options', (t) => {
   t.is(option(string).description, 'option(string)');
 
   // Description can be overridden.
-  t.is(option(string, 'my option').description, 'my option');
+  t.is(option(string, undefined, 'my option').description, 'my option');
 
   // Fixed size.
   t.is(option(u8).fixedSize, 1 + 1);
@@ -535,7 +535,7 @@ test('it can serialize nullables', (t) => {
   t.is(nullable(string).description, 'nullable(string)');
 
   // Description can be overridden.
-  t.is(nullable(string, 'my nullable').description, 'my nullable');
+  t.is(nullable(string, undefined, 'my nullable').description, 'my nullable');
 
   // Fixed size.
   t.is(nullable(u8).fixedSize, 1 + 1);
@@ -722,7 +722,10 @@ test('it can serialize data enums', (t) => {
   );
 
   // Description can be overridden.
-  t.is(dataEnum(webEvent, 'my data enum').description, 'my data enum');
+  t.is(
+    dataEnum(webEvent, undefined, 'my data enum').description,
+    'my data enum'
+  );
 
   // Empty variants.
   const pageLoad: WebEvent = { __kind: 'PageLoad' };

@@ -1,7 +1,11 @@
 import { DataEnum, ScalarEnum } from './Enums';
 import { InterfaceImplementationMissingError } from './errors';
 import type { PublicKey, PublicKeyInput } from './PublicKey';
-import type { Serializer, WrapInSerializer } from './Serializer';
+import type {
+  NumberSerializer,
+  Serializer,
+  WrapInSerializer,
+} from './Serializer';
 import type { Nullable, Option } from './Option';
 
 export type StructToSerializerTuple<T extends object, U extends T> = Array<
@@ -29,6 +33,7 @@ export interface SerializerInterface {
   ) => Serializer<T, U>;
   vec: <T, U extends T = T>(
     item: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ) => Serializer<T[], U[]>;
   array: <T, U extends T = T>(
@@ -41,18 +46,22 @@ export interface SerializerInterface {
   map: <TK, TV, UK extends TK = TK, UV extends TV = TV>(
     key: Serializer<TK, UK>,
     value: Serializer<TV, UV>,
+    prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Map<TK, TV>, Map<UK, UV>>;
   set: <T, U extends T = T>(
     item: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Set<T>, Set<U>>;
   option: <T, U extends T = T>(
     item: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Option<T>, Option<U>>;
   nullable: <T, U extends T = T>(
     item: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Nullable<T>, Nullable<U>>;
 
@@ -66,6 +75,7 @@ export interface SerializerInterface {
   enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T>;
   dataEnum<T extends DataEnum, U extends T = T>(
     fields: DataEnumToSerializerTuple<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<T, U>;
 

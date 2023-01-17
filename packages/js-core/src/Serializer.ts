@@ -5,6 +5,10 @@ export type Serializer<From, To extends From = From> = {
   deserialize: (buffer: Uint8Array, offset?: number) => [To, number];
 };
 
+export type NumberSerializer =
+  | Serializer<number>
+  | Serializer<number | bigint, bigint>;
+
 export type WrapInSerializer<T, U extends T = T> = {
   [P in keyof T]: Serializer<T[P], U[P]>;
 };

@@ -5,6 +5,7 @@ import {
   mergeBytes,
   none,
   Nullable,
+  NumberSerializer,
   Option,
   PublicKey,
   PublicKeyInput,
@@ -72,19 +73,21 @@ export class BeetSerializer implements SerializerInterface {
 
   vec<T, U extends T = T>(
     itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<T[], U[]> {
+    const prefixSeralizer = prefix ?? u32();
     return {
       description: description ?? `vec(${itemSerializer.description})`,
       fixedSize: null,
       serialize: (value: T[]) => {
-        const lengthBytes = u32().serialize(value.length);
+        const lengthBytes = prefixSeralizer.serialize(value.length);
         const itemBytes = value.map((item) => itemSerializer.serialize(item));
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const values: U[] = [];
-        const [length, newOffset] = u32().deserialize(bytes, offset);
+        const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
           const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
@@ -130,15 +133,17 @@ export class BeetSerializer implements SerializerInterface {
   map<TK, TV, UK extends TK = TK, UV extends TV = TV>(
     keySerializer: Serializer<TK, UK>,
     valueSerializer: Serializer<TV, UV>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<Map<TK, TV>, Map<UK, UV>> {
+    const prefixSeralizer = prefix ?? u32();
     return {
       description:
         description ??
         `map(${keySerializer.description}, ${valueSerializer.description})`,
       fixedSize: null,
       serialize: (map: Map<TK, TV>) => {
-        const lengthBytes = u32().serialize(map.size);
+        const lengthBytes = prefixSeralizer.serialize(map.size);
         const itemBytes = Array.from(map, ([key, value]) =>
           mergeBytes([
             keySerializer.serialize(key),
@@ -149,7 +154,7 @@ export class BeetSerializer implements SerializerInterface {
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const map: Map<UK, UV> = new Map();
-        const [length, newOffset] = u32().deserialize(bytes, offset);
+        const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
           const [key, kOffset] = keySerializer.deserialize(bytes, offset);
@@ -165,13 +170,15 @@ export class BeetSerializer implements SerializerInterface {
 
   set<T, U extends T = T>(
     itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<Set<T>, Set<U>> {
+    const prefixSeralizer = prefix ?? u32();
     return {
       description: description ?? `set(${itemSerializer.description})`,
       fixedSize: null,
       serialize: (set: Set<T>) => {
-        const lengthBytes = u32().serialize(set.size);
+        const lengthBytes = prefixSeralizer.serialize(set.size);
         const itemBytes = Array.from(set, (value) =>
           itemSerializer.serialize(value)
         );
@@ -179,7 +186,7 @@ export class BeetSerializer implements SerializerInterface {
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const set: Set<U> = new Set();
-        const [length, newOffset] = u32().deserialize(bytes, offset);
+        const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
           const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
@@ -193,23 +200,28 @@ export class BeetSerializer implements SerializerInterface {
 
   option<T, U extends T = T>(
     itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<Option<T>, Option<U>> {
+    const prefixSeralizer = prefix ?? u8();
     return {
       description: description ?? `option(${itemSerializer.description})`,
       fixedSize:
         itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
       serialize: (option: Option<T>) => {
-        const prefixByte = bool().serialize(isSome(option));
+        const prefixByte = prefixSeralizer.serialize(Number(isSome(option)));
         const itemBytes = isSome(option)
           ? itemSerializer.serialize(option.value)
           : new Uint8Array();
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const [isSome, prefixOffset] = bool().deserialize(bytes, offset);
+        const [isSome, prefixOffset] = prefixSeralizer.deserialize(
+          bytes,
+          offset
+        );
         offset = prefixOffset;
-        if (!isSome) {
+        if (isSome === 0) {
           return [none(), offset];
         }
         const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
@@ -221,22 +233,27 @@ export class BeetSerializer implements SerializerInterface {
 
   nullable<T, U extends T = T>(
     itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<Nullable<T>, Nullable<U>> {
+    const prefixSeralizer = prefix ?? u8();
     return {
       description: description ?? `nullable(${itemSerializer.description})`,
       fixedSize:
         itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
       serialize: (option: Nullable<T>) => {
-        const prefixByte = bool().serialize(option !== null);
+        const prefixByte = prefixSeralizer.serialize(Number(option !== null));
         const itemBytes =
           option !== null ? itemSerializer.serialize(option) : new Uint8Array();
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const [isSome, prefixOffset] = bool().deserialize(bytes, offset);
+        const [isSome, prefixOffset] = prefixSeralizer.deserialize(
+          bytes,
+          offset
+        );
         offset = prefixOffset;
-        if (!isSome) {
+        if (isSome === 0) {
           return [null, offset];
         }
         const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
@@ -325,8 +342,10 @@ export class BeetSerializer implements SerializerInterface {
 
   dataEnum<T extends DataEnum, U extends T = T>(
     fields: DataEnumToSerializerTuple<T, U>,
+    prefix?: NumberSerializer,
     description?: string
   ): Serializer<T, U> {
+    const prefixSeralizer = prefix ?? u8();
     const fieldDescriptions = fields
       .map(
         ([name, serializer]) =>
@@ -354,15 +373,18 @@ export class BeetSerializer implements SerializerInterface {
               `[${fields.map(([key]) => key).join(', ')}]`
           );
         }
-        const variantPrefix = u8().serialize(discriminator);
+        const variantPrefix = prefixSeralizer.serialize(discriminator);
         const variantSerializer = fields[discriminator][1];
         const variantBytes = variantSerializer.serialize(variant as any);
         return mergeBytes([variantPrefix, variantBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
-        const [discriminator, dOffset] = u8().deserialize(bytes, offset);
+        const [discriminator, dOffset] = prefixSeralizer.deserialize(
+          bytes,
+          offset
+        );
         offset = dOffset;
-        const variantField = fields[discriminator] ?? null;
+        const variantField = fields[Number(discriminator)] ?? null;
         if (!variantField) {
           throw new Error(
             `Data enum index "${discriminator}" is out of range. ` +
