@@ -487,7 +487,7 @@ test('it can serialize sets', (t) => {
 });
 
 test('it can serialize options', (t) => {
-  const { option, u8, u64, string } = new BeetSerializer();
+  const { option, u8, u32, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(option(u8).description, 'option(u8)');
@@ -525,10 +525,15 @@ test('it can serialize options', (t) => {
   const optionU64 = option<number | bigint, bigint>(u64);
   t.deepEqual(s(optionU64, some(2)), '010200000000000000');
   t.deepEqual(d(optionU64, '010200000000000000'), some(2n));
+
+  // Custom prefix serializer
+  t.is(option(u8, u32).fixedSize, 4 + 1);
+  t.is(s(option(u8, u32), some(42)), '010000002a');
+  t.deepEqual(d(option(u8, u32), '010000002a'), some(42));
 });
 
 test('it can serialize nullables', (t) => {
-  const { nullable, u8, u64, string } = new BeetSerializer();
+  const { nullable, u8, u32, u64, string } = new BeetSerializer();
 
   // Description matches the vec definition.
   t.is(nullable(u8).description, 'nullable(u8)');
@@ -563,6 +568,11 @@ test('it can serialize nullables', (t) => {
   const nullableU64 = nullable<number | bigint, bigint>(u64);
   t.deepEqual(s(nullableU64, 2), '010200000000000000');
   t.deepEqual(d(nullableU64, '010200000000000000'), 2n);
+
+  // Custom prefix serializer
+  t.is(nullable(u8, u32).fixedSize, 4 + 1);
+  t.is(s(nullable(u8, u32), 42), '010000002a');
+  t.is(d(nullable(u8, u32), '010000002a'), 42);
 });
 
 test('it can serialize structs', (t) => {
@@ -690,8 +700,9 @@ test('it can serialize enums', (t) => {
 });
 
 test('it can serialize data enums', (t) => {
-  const { dataEnum, struct, tuple, array, string, u8, u16, u64, unit, bool } =
-    new BeetSerializer();
+  const serializer = new BeetSerializer();
+  const { dataEnum, struct, tuple, array } = serializer;
+  const { string, u8, u32, u16, u64, unit, bool } = serializer;
   type WebEvent =
     | { __kind: 'PageLoad' } // Empty variant.
     | { __kind: 'Click'; x: number; y: number } // Struct variant.
@@ -795,7 +806,10 @@ test('it can serialize data enums', (t) => {
     | { __kind: 'A'; value: number }
     | { __kind: 'B'; x: number; y: number }
     | { __kind: 'C'; items: Array<boolean> };
-  const dataEnumSameSizeVariants = dataEnum<SameSizeVariants>([
+  const dataEnumSameSizeVariants: DataEnumToSerializerTuple<
+    SameSizeVariants,
+    SameSizeVariants
+  > = [
     ['A', struct<any>([['value', u16]])],
     [
       'B',
@@ -805,8 +819,19 @@ test('it can serialize data enums', (t) => {
       ]),
     ],
     ['C', struct<any>([['items', array(bool, 2)]])],
-  ]);
-  t.is(dataEnumSameSizeVariants.fixedSize, 1 + 2);
+  ];
+  t.is(dataEnum(dataEnumSameSizeVariants).fixedSize, 1 + 2);
+
+  // Custom prefix serializer with fixed size.
+  t.is(dataEnum(dataEnumSameSizeVariants, u32).fixedSize, 4 + 2);
+  t.is(
+    s(dataEnum(dataEnumSameSizeVariants, u32), { __kind: 'A', value: 42 }),
+    '000000002a00'
+  );
+  t.deepEqual(d(dataEnum(dataEnumSameSizeVariants, u32), '000000002a00'), {
+    __kind: 'A',
+    value: 42,
+  });
 });
 
 /** Serialize as a hex string. */

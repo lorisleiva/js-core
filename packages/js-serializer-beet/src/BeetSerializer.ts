@@ -207,7 +207,9 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `option(${itemSerializer.description})`,
       fixedSize:
-        itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
+        itemSerializer.fixedSize !== null && prefixSeralizer.fixedSize !== null
+          ? itemSerializer.fixedSize + prefixSeralizer.fixedSize
+          : null,
       serialize: (option: Option<T>) => {
         const prefixByte = prefixSeralizer.serialize(Number(isSome(option)));
         const itemBytes = isSome(option)
@@ -240,7 +242,9 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `nullable(${itemSerializer.description})`,
       fixedSize:
-        itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
+        itemSerializer.fixedSize !== null && prefixSeralizer.fixedSize !== null
+          ? itemSerializer.fixedSize + prefixSeralizer.fixedSize
+          : null,
       serialize: (option: Nullable<T>) => {
         const prefixByte = prefixSeralizer.serialize(Number(option !== null));
         const itemBytes =
@@ -360,8 +364,9 @@ export class BeetSerializer implements SerializerInterface {
       fixedSize:
         allVariantHaveTheSameFixedSize &&
         fields.length > 0 &&
-        fields[0][1].fixedSize !== null
-          ? fields[0][1].fixedSize + 1
+        fields[0][1].fixedSize !== null &&
+        prefixSeralizer.fixedSize !== null
+          ? fields[0][1].fixedSize + prefixSeralizer.fixedSize
           : null,
       serialize: (variant: T) => {
         const discriminator = fields.findIndex(
