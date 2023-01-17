@@ -3,6 +3,7 @@ import { mapSerializer, Serializer } from '../src';
 
 const numberSerializer: Serializer<number> = {
   description: 'number',
+  fixedSize: 1,
   serialize: (value: number) => new Uint8Array([value]),
   deserialize: (buffer: Uint8Array): [number, number] => [buffer[0], 1],
 };
@@ -71,6 +72,7 @@ test('it map a serializer to loosen its input by providing default values', (t) 
   type Strict = { discriminator: number; label: string };
   const strictSerializer: Serializer<Strict> = {
     description: 'Strict',
+    fixedSize: 2,
     serialize: (value: Strict) =>
       new Uint8Array([value.discriminator, value.label.length]),
     deserialize: (buffer: Uint8Array): [Strict, number] => [
@@ -121,6 +123,7 @@ test('it map a serializer to loosen its input by providing default values', (t) 
 test('it can loosen a tuple serializer', (t) => {
   const serializer = {
     description: 'Tuple',
+    fixedSize: 2,
     serialize: (value: [number, string]) =>
       new Uint8Array([value[0], value[1].length]),
     deserialize: (buffer: Uint8Array): [[number, string], number] => [

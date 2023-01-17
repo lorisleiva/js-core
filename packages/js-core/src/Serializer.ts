@@ -1,5 +1,6 @@
 export type Serializer<From, To extends From = From> = {
   description: string;
+  fixedSize: number | null;
   serialize: (value: From) => Uint8Array;
   deserialize: (buffer: Uint8Array, offset?: number) => [To, number];
 };
@@ -34,6 +35,7 @@ export function mapSerializer<
 ): Serializer<NewFrom, NewTo> {
   return {
     description: serializer.description,
+    fixedSize: serializer.fixedSize,
     serialize: (value: NewFrom) => serializer.serialize(unmap(value)),
     deserialize: (buffer: Uint8Array, offset = 0) => {
       const [value, length] = serializer.deserialize(buffer, offset);
@@ -55,3 +57,12 @@ export const swapEndianness = (buffer: Uint8Array, bytes = 8): Uint8Array => {
 
   return newBuffer;
 };
+
+export const sumSerializerFixedSizes = (
+  serializers: { fixedSize: number | null }[]
+): number | null =>
+  serializers.reduce(
+    (all, { fixedSize }) =>
+      all === null || fixedSize === null ? null : all + fixedSize,
+    0 as number | null
+  );

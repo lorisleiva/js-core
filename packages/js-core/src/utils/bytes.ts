@@ -4,6 +4,7 @@ import { mapSerializer, Serializer } from '../Serializer';
 
 export const utf8: Serializer<string> = {
   description: 'utf8',
+  fixedSize: null,
   serialize(value: string) {
     return new TextEncoder().encode(value);
   },
@@ -15,6 +16,7 @@ export const utf8: Serializer<string> = {
 
 export const base10: Serializer<string> = {
   description: 'base10',
+  fixedSize: null,
   serialize(value: string) {
     if (!value.match(/^\d*$/)) {
       throw new InvalidBaseStringError(value, 10);
@@ -41,6 +43,7 @@ export const base10: Serializer<string> = {
 const BASE_16_ALPHABET = '0123456789abcdef';
 export const base16: Serializer<string> = {
   description: 'base16',
+  fixedSize: null,
   serialize(value: string) {
     const lowercaseValue = value.toLowerCase();
     if (!lowercaseValue.match(new RegExp(`^[${BASE_16_ALPHABET}]*$`))) {

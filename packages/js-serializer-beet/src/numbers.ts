@@ -67,6 +67,7 @@ export const i128 = () => {
 function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
   return {
     description: fixedBeet.description,
+    fixedSize: fixedBeet.byteSize,
     serialize: (value: T) => {
       const buffer = Buffer.alloc(fixedBeet.byteSize);
       fixedBeet.write(buffer, 0, value);
@@ -85,6 +86,7 @@ function wrapBigintBeet(
 ): Serializer<number | bigint, bigint> {
   return {
     description: fixedBeet.description,
+    fixedSize: fixedBeet.byteSize,
     serialize: (value: number | bigint) => {
       const buffer = Buffer.alloc(fixedBeet.byteSize);
       fixedBeet.write(buffer, 0, value);

@@ -13,6 +13,7 @@ import {
   SerializerInterface,
   some,
   StructToSerializerTuple,
+  sumSerializerFixedSizes,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import {
@@ -46,6 +47,7 @@ export class BeetSerializer implements SerializerInterface {
     const itemDescriptions = items.map((item) => item.description).join(', ');
     return {
       description: description ?? `tuple(${itemDescriptions})`,
+      fixedSize: sumSerializerFixedSizes(items),
       serialize: (value: T) => {
         if (value.length !== items.length) {
           throw new Error(
@@ -74,6 +76,7 @@ export class BeetSerializer implements SerializerInterface {
   ): Serializer<T[], U[]> {
     return {
       description: description ?? `vec(${itemSerializer.description})`,
+      fixedSize: null,
       serialize: (value: T[]) => {
         const lengthBytes = u32().serialize(value.length);
         const itemBytes = value.map((item) => itemSerializer.serialize(item));
@@ -101,6 +104,10 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description:
         description ?? `array(${itemSerializer.description}; ${size})`,
+      fixedSize:
+        itemSerializer.fixedSize === null
+          ? null
+          : itemSerializer.fixedSize * size,
       serialize: (value: T[]) => {
         if (value.length !== size) {
           throw new Error(
@@ -130,6 +137,7 @@ export class BeetSerializer implements SerializerInterface {
       description:
         description ??
         `map(${keySerializer.description}, ${valueSerializer.description})`,
+      fixedSize: null,
       serialize: (map: Map<TK, TV>) => {
         const lengthBytes = u32().serialize(map.size);
         const itemBytes = Array.from(map, ([key, value]) =>
@@ -162,6 +170,7 @@ export class BeetSerializer implements SerializerInterface {
   ): Serializer<Set<T>, Set<U>> {
     return {
       description: description ?? `set(${itemSerializer.description})`,
+      fixedSize: null,
       serialize: (set: Set<T>) => {
         const lengthBytes = u32().serialize(set.size);
         const itemBytes = Array.from(set, (value) =>
@@ -189,6 +198,8 @@ export class BeetSerializer implements SerializerInterface {
   ): Serializer<Option<T>, Option<U>> {
     return {
       description: description ?? `option(${itemSerializer.description})`,
+      fixedSize:
+        itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
       serialize: (option: Option<T>) => {
         const prefixByte = bool().serialize(isSome(option));
         const itemBytes = isSome(option)
@@ -215,6 +226,8 @@ export class BeetSerializer implements SerializerInterface {
   ): Serializer<Nullable<T>, Nullable<U>> {
     return {
       description: description ?? `nullable(${itemSerializer.description})`,
+      fixedSize:
+        itemSerializer.fixedSize === null ? null : itemSerializer.fixedSize + 1,
       serialize: (option: Nullable<T>) => {
         const prefixByte = bool().serialize(option !== null);
         const itemBytes =
@@ -243,6 +256,7 @@ export class BeetSerializer implements SerializerInterface {
       .join(', ');
     return {
       description: description ?? `struct(${fieldDescriptions})`,
+      fixedSize: sumSerializerFixedSizes(fields.map(([, s]) => s)),
       serialize: (struct: T) => {
         const fieldBytes = fields.map(([key, serializer]) =>
           serializer.serialize(struct[key])
@@ -294,6 +308,7 @@ export class BeetSerializer implements SerializerInterface {
     }
     return {
       description: description ?? `enum(${valueDescriptions})`,
+      fixedSize: 1,
       serialize: (value: T) => {
         const [variantKey, variantValue] = getVariantKeyValue(value);
         checkVariantExists(variantKey);
@@ -319,8 +334,17 @@ export class BeetSerializer implements SerializerInterface {
           `${String(name)}${serializer ? `: ${serializer.description}` : ''}`
       )
       .join(', ');
+    const allVariantHaveTheSameFixedSize = fields.every(
+      (one, i, all) => one[1].fixedSize === all[0][1].fixedSize
+    );
     return {
       description: description ?? `dataEnum(${fieldDescriptions})`,
+      fixedSize:
+        allVariantHaveTheSameFixedSize &&
+        fields.length > 0 &&
+        fields[0][1].fixedSize !== null
+          ? fields[0][1].fixedSize + 1
+          : null,
       serialize: (variant: T) => {
         const discriminator = fields.findIndex(
           ([key]) => variant.__kind === key
@@ -356,6 +380,7 @@ export class BeetSerializer implements SerializerInterface {
   get unit(): Serializer<void> {
     return {
       description: 'unit',
+      fixedSize: 0,
       serialize: () => new Uint8Array(),
       deserialize: (_bytes: Uint8Array, offset = 0) => [undefined, offset],
     };
@@ -408,6 +433,7 @@ export class BeetSerializer implements SerializerInterface {
   get f32(): Serializer<number> {
     return {
       description: 'f32 [not supported]',
+      fixedSize: 4,
       serialize: () => {
         throw new OperationNotSupportedError('f32');
       },
@@ -420,6 +446,7 @@ export class BeetSerializer implements SerializerInterface {
   get f64(): Serializer<number> {
     return {
       description: 'f64 [not supported]',
+      fixedSize: 8,
       serialize: () => {
         throw new OperationNotSupportedError('f64');
       },
@@ -432,6 +459,7 @@ export class BeetSerializer implements SerializerInterface {
   get string(): Serializer<string> {
     return {
       description: 'string',
+      fixedSize: null,
       serialize: (value: string) => {
         const stringBeet = beet.utf8String.toFixedFromValue(value);
         const buffer = Buffer.alloc(stringBeet.byteSize);
@@ -450,6 +478,7 @@ export class BeetSerializer implements SerializerInterface {
   get bytes(): Serializer<Uint8Array> {
     return {
       description: 'bytes',
+      fixedSize: null,
       serialize: (value: Uint8Array) => new Uint8Array(value),
       deserialize: (bytes: Uint8Array, offset = 0) => [
         new Uint8Array(bytes),
@@ -461,6 +490,7 @@ export class BeetSerializer implements SerializerInterface {
   get publicKey(): Serializer<PublicKeyInput, PublicKey> {
     return {
       description: 'publicKey',
+      fixedSize: 32,
       serialize: (value: PublicKeyInput) => {
         const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
         const publicKey = new Web3PublicKey(toWeb3JsPublicKeyInput(value));
