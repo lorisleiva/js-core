@@ -3,6 +3,8 @@ import { AccountNotFoundError } from './errors';
 import type { PublicKey } from './PublicKey';
 import type { Serializer } from './Serializer';
 
+export const ACCOUNT_HEADER_SIZE = 128;
+
 export type AccountHeader = {
   executable: boolean;
   owner: PublicKey;
