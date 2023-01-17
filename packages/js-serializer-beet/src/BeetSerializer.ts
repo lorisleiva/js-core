@@ -101,13 +101,12 @@ export class BeetSerializer implements SerializerInterface {
     size: number,
     description?: string
   ): Serializer<T[], U[]> {
+    const childSize = itemSerializer.fixedSize;
+    const fixedSize = childSize === null ? null : childSize * size;
     return {
       description:
         description ?? `array(${itemSerializer.description}; ${size})`,
-      fixedSize:
-        itemSerializer.fixedSize === null
-          ? null
-          : itemSerializer.fixedSize * size,
+      fixedSize: size === 0 ? 0 : fixedSize,
       serialize: (value: T[]) => {
         if (value.length !== size) {
           throw new Error(

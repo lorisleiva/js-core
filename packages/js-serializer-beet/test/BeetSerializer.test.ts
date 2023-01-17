@@ -16,6 +16,7 @@ import { BeetSerializer, OperationNotSupportedError } from '../src';
 test('it can serialize units', (t) => {
   const { unit } = new BeetSerializer();
   t.is(unit.description, 'unit');
+  t.is(unit.fixedSize, 0);
   t.is(s(unit, undefined), '');
   t.is(sd(unit, undefined), undefined);
   // eslint-disable-next-line no-void
@@ -31,6 +32,7 @@ test('it can serialize units', (t) => {
 test('it can serialize booleans', (t) => {
   const { bool } = new BeetSerializer();
   t.is(bool.description, 'bool');
+  t.is(bool.fixedSize, 1);
   t.is(s(bool, false), '00');
   t.is(s(bool, true), '01');
   t.is(d(bool, '00'), false);
@@ -47,6 +49,7 @@ test('it can serialize booleans', (t) => {
 test('it can serialize u8 numbers', (t) => {
   const { u8 } = new BeetSerializer();
   t.is(u8.description, 'u8');
+  t.is(u8.fixedSize, 1);
   t.is(s(u8, 0), '00');
   t.is(s(u8, 42), '2a');
   t.is(s(u8, 255), 'ff');
@@ -64,6 +67,7 @@ test('it can serialize u8 numbers', (t) => {
 test('it can serialize u16 numbers', (t) => {
   const { u16 } = new BeetSerializer();
   t.is(u16.description, 'u16');
+  t.is(u16.fixedSize, 2);
   t.is(s(u16, 0), '0000');
   t.is(s(u16, 42), '2a00');
   t.is(s(u16, 255), 'ff00');
@@ -80,6 +84,7 @@ test('it can serialize u32 numbers', (t) => {
   const { u32 } = new BeetSerializer();
   const max = Number('0xffffffff');
   t.is(u32.description, 'u32');
+  t.is(u32.fixedSize, 4);
   t.is(s(u32, 0), '00000000');
   t.is(s(u32, 42), '2a000000');
   t.is(s(u32, 65536), '00000100');
@@ -95,6 +100,7 @@ test('it can serialize u64 numbers', (t) => {
   const { u64 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffff');
   t.is(u64.description, 'u64');
+  t.is(u64.fixedSize, 8);
   t.is(s(u64, 0), '0000000000000000');
   t.is(s(u64, 42), '2a00000000000000');
   t.is(s(u64, 4_294_967_295), 'ffffffff00000000');
@@ -110,6 +116,7 @@ test('it can serialize u128 numbers', (t) => {
   const { u128 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffffffffffffffffffff');
   t.is(u128.description, 'u128');
+  t.is(u128.fixedSize, 16);
   t.is(s(u128, 0), '00000000000000000000000000000000');
   t.is(s(u128, 42), '2a000000000000000000000000000000');
   t.is(s(u128, max), 'ffffffffffffffffffffffffffffffff');
@@ -123,6 +130,7 @@ test('it can serialize u128 numbers', (t) => {
 test('it can serialize i8 numbers', (t) => {
   const { i8 } = new BeetSerializer();
   t.is(i8.description, 'i8');
+  t.is(i8.fixedSize, 1);
   t.is(s(i8, 0), '00');
   t.is(s(i8, -0), '00');
   t.is(s(i8, -42), 'd6');
@@ -138,6 +146,7 @@ test('it can serialize i8 numbers', (t) => {
 test('it can serialize i16 numbers', (t) => {
   const { i16 } = new BeetSerializer();
   t.is(i16.description, 'i16');
+  t.is(i16.fixedSize, 2);
   t.is(s(i16, 0), '0000');
   t.is(s(i16, -42), 'd6ff');
   t.is(s(i16, 42), '2a00');
@@ -153,6 +162,7 @@ test('it can serialize i32 numbers', (t) => {
   const { i32 } = new BeetSerializer();
   const max = Math.floor(Number('0xffffffff') / 2);
   t.is(i32.description, 'i32');
+  t.is(i32.fixedSize, 4);
   t.is(s(i32, 0), '00000000');
   t.is(s(i32, -42), 'd6ffffff');
   t.is(s(i32, 42), '2a000000');
@@ -168,6 +178,7 @@ test('it can serialize i64 numbers', (t) => {
   const { i64 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffff') / 2n;
   t.is(i64.description, 'i64');
+  t.is(i64.fixedSize, 8);
   t.is(s(i64, 0), '0000000000000000');
   t.is(s(i64, -42), 'd6ffffffffffffff');
   t.is(s(i64, 42), '2a00000000000000');
@@ -184,6 +195,7 @@ test('it can serialize i128 numbers', (t) => {
   const { i128 } = new BeetSerializer();
   const max = BigInt('0xffffffffffffffffffffffffffffffff') / 2n;
   t.is(i128.description, 'i128');
+  t.is(i128.fixedSize, 16);
   t.is(s(i128, 0), '00000000000000000000000000000000');
   t.is(s(i128, -42), 'd6ffffffffffffffffffffffffffffff');
   t.is(s(i128, 42), '2a000000000000000000000000000000');
@@ -203,12 +215,15 @@ test('it cannot serialize float numbers', (t) => {
   t.throws<OperationNotSupportedError>(() => d(f32, '00'), throwExpectation);
   t.throws<OperationNotSupportedError>(() => s(f64, 42.6), throwExpectation);
   t.throws<OperationNotSupportedError>(() => d(f64, '00'), throwExpectation);
+  t.is(f32.fixedSize, 4);
+  t.is(f64.fixedSize, 8);
 });
 
 test('it can serialize strings', (t) => {
   const { string, u32 } = new BeetSerializer();
   const getPrefix = (text: string) => d(u32, s(string, text).slice(0, 8));
   t.is(string.description, 'string');
+  t.is(string.fixedSize, null);
   t.is(s(string, ''), '00000000'); // 4-bytes prefix.
   t.is(s(string, 'Hello World!'), '0c00000048656c6c6f20576f726c6421');
   t.is(getPrefix('Hello World!'), 12); // 12 bytes for 12 characters.
@@ -224,6 +239,7 @@ test('it can serialize strings', (t) => {
 test('it can serialize bytes', (t) => {
   const { bytes } = new BeetSerializer();
   t.is(bytes.description, 'bytes');
+  t.is(bytes.fixedSize, null);
   t.is(s(bytes, new Uint8Array([0])), '00');
   t.is(s(bytes, new Uint8Array([42, 255])), '2aff');
   t.deepEqual(sd(bytes, new Uint8Array([42, 255])), new Uint8Array([42, 255]));
@@ -233,6 +249,7 @@ test('it can serialize bytes', (t) => {
 test('it can serialize public keys', (t) => {
   const { publicKey } = new BeetSerializer();
   t.is(publicKey.description, 'publicKey');
+  t.is(publicKey.fixedSize, 32);
   const generatedPubKey = fromWeb3JsPublicKey(Web3Keypair.generate().publicKey);
   const pubKeyString = '4HM9LW2rm3SR2ZdBiFK3D21ENmQWpqEJEhx1nfgcC3r9';
   const pubKey = fromWeb3JsPublicKey(new Web3PublicKey(pubKeyString));
@@ -265,12 +282,14 @@ test('it can serialize tuples', (t) => {
 
   // Example with a single element.
   const single = tuple([u8]);
+  t.is(single.fixedSize, 1);
   t.is(s(single, [42]), '2a');
   t.deepEqual(sd(single, [1]), [1]);
   t.is(doffset(single, '2a'), 1);
 
   // Example with two numbers.
   const twoNumbers = tuple([u8, i16]);
+  t.is(twoNumbers.fixedSize, 1 + 2);
   t.is(s(twoNumbers, [0, -42]), '00d6ff');
   t.deepEqual(sd(twoNumbers, [1, -2]), [1, -2]);
   t.is(doffset(twoNumbers, '00d6ff'), 3);
@@ -280,6 +299,8 @@ test('it can serialize tuples', (t) => {
   t.deepEqual(sd(tuple([string, u8]), ['Hello', 42]), ['Hello', 42]);
   t.deepEqual(sd(tuple([string, string]), ['a', 'b']), ['a', 'b']);
   t.deepEqual(sd(tuple([u8, string, u8]), [1, '語', 2]), [1, '語', 2]);
+  t.is(tuple([]).fixedSize, 0);
+  t.is(tuple([string, u8]).fixedSize, null);
 
   // Example with different From and To types.
   const tU8U64 = tuple<[number, number | bigint], [number, bigint]>([u8, u64]);
@@ -311,6 +332,7 @@ test('it can serialize vectors', (t) => {
 
   // Example with numbers.
   const number = vec(u8);
+  t.is(number.fixedSize, null);
   t.is(s(number, []), '00000000');
   t.is(s(number, [42]), '010000002a');
   t.is(s(number, [1, 2, 3]), '03000000010203');
@@ -342,6 +364,7 @@ test('it can serialize arrays', (t) => {
 
   // Example with a single item.
   const single = array(u8, 1);
+  t.is(single.fixedSize, 1);
   t.is(s(single, [1]), '01');
   t.is(s(single, [42]), '2a');
   t.deepEqual(d(single, 'ff2a', 1), [42]);
@@ -354,6 +377,12 @@ test('it can serialize arrays', (t) => {
   t.deepEqual(sd(array(string, 1), ['Hello']), ['Hello']);
   t.deepEqual(sd(array(string, 3), ['a', 'b', '語']), ['a', 'b', '語']);
   t.deepEqual(sd(array(u8, 5), [1, 2, 3, 4, 5]), [1, 2, 3, 4, 5]);
+  t.is(array(u8, 0).fixedSize, 0);
+  t.is(array(u8, 5).fixedSize, 5);
+  t.is(array(u64, 3).fixedSize, 24);
+  t.is(array(string, 0).fixedSize, 0);
+  t.is(array(string, 1).fixedSize, null);
+  t.is(array(string, 5).fixedSize, null);
 
   // Example with different From and To types.
   const arrayU64 = array<number | bigint, bigint>(u64, 1);
@@ -381,6 +410,7 @@ test('it can serialize maps', (t) => {
 
   // Examples with numbers.
   const numberMap = map(u8, u8);
+  t.is(numberMap.fixedSize, null);
   t.is(s(numberMap, new Map()), '00000000');
   t.is(s(numberMap, new Map([[1, 2]])), '010000000102');
   t.deepEqual(d(numberMap, '010000000102'), new Map([[1, 2]]));
@@ -427,6 +457,7 @@ test('it can serialize sets', (t) => {
   t.is(set(string, 'my set').description, 'my set');
 
   // Examples with numbers.
+  t.is(set(u8).fixedSize, null);
   t.is(s(set(u8), new Set()), '00000000');
   t.is(s(set(u8), new Set([1, 2, 3])), '03000000010203');
   t.deepEqual(d(set(u8), '03000000010203'), new Set([1, 2, 3]));
@@ -465,6 +496,11 @@ test('it can serialize options', (t) => {
   // Description can be overridden.
   t.is(option(string, 'my option').description, 'my option');
 
+  // Fixed size.
+  t.is(option(u8).fixedSize, 1 + 1);
+  t.is(option(u64).fixedSize, 1 + 8);
+  t.is(option(string).fixedSize, null);
+
   // Examples with none.
   t.is(s(option(u8), none()), '00');
   t.is(s(option(string), none<string>()), '00');
@@ -500,6 +536,11 @@ test('it can serialize nullables', (t) => {
 
   // Description can be overridden.
   t.is(nullable(string, 'my nullable').description, 'my nullable');
+
+  // Fixed size.
+  t.is(nullable(u8).fixedSize, 1 + 1);
+  t.is(nullable(u64).fixedSize, 1 + 8);
+  t.is(nullable(string).fixedSize, null);
 
   // Examples with numbers.
   t.is(s(nullable(u8), null), '00');
@@ -537,6 +578,18 @@ test('it can serialize structs', (t) => {
 
   // Description can be overridden.
   t.is(struct([['age', u8]], 'my struct').description, 'my struct');
+
+  // Fixed size.
+  t.is(person.fixedSize, null);
+  t.is(struct([]).fixedSize, 0);
+  t.is(struct([['age', u8]]).fixedSize, 1);
+  t.is(
+    struct([
+      ['age', u8],
+      ['balance', u64],
+    ]).fixedSize,
+    9
+  );
 
   // More examples.
   t.is(s(struct([]), {}), '');
@@ -582,6 +635,7 @@ test('it can serialize enums', (t) => {
   t.is(scalarEnum(Direction, 'my enum').description, 'my enum');
 
   // Simple scalar enums.
+  t.is(scalarEnum(Feedback).fixedSize, 1);
   t.is(s(scalarEnum(Feedback), 'BAD'), '00');
   t.is(s(scalarEnum(Feedback), '0'), '00');
   t.is(s(scalarEnum(Feedback), 0), '00');
@@ -602,6 +656,7 @@ test('it can serialize enums', (t) => {
   t.is(doffset(scalarEnum(Feedback), 'ff01', 1), 2);
 
   // Scalar enums with string values.
+  t.is(scalarEnum(Direction).fixedSize, 1);
   t.is(s(scalarEnum(Direction), Direction.UP), '00');
   t.is(s(scalarEnum(Direction), Direction.DOWN), '01');
   t.is(s(scalarEnum(Direction), Direction.LEFT), '02');
@@ -635,7 +690,7 @@ test('it can serialize enums', (t) => {
 });
 
 test('it can serialize data enums', (t) => {
-  const { dataEnum, struct, tuple, string, u8, u64, unit } =
+  const { dataEnum, struct, tuple, array, string, u8, u16, u64, unit, bool } =
     new BeetSerializer();
   type WebEvent =
     | { __kind: 'PageLoad' } // Empty variant.
@@ -727,6 +782,28 @@ test('it can serialize data enums', (t) => {
   ]);
   t.deepEqual(s(dataEnumU64, { __kind: 'B', value: 2 }), '010200000000000000');
   t.deepEqual(d(dataEnumU64, '010200000000000000'), { __kind: 'B', value: 2n });
+
+  // Fixed Sizes are null if the variants are not all the same size.
+  t.is(dataEnum(webEvent).fixedSize, null);
+  t.is(dataEnumU64.fixedSize, null);
+
+  // Sizes are fixed if all variants are the same size.
+  type SameSizeVariants =
+    | { __kind: 'A'; value: number }
+    | { __kind: 'B'; x: number; y: number }
+    | { __kind: 'C'; items: Array<boolean> };
+  const dataEnumSameSizeVariants = dataEnum<SameSizeVariants>([
+    ['A', struct<any>([['value', u16]])],
+    [
+      'B',
+      struct<any>([
+        ['x', u8],
+        ['y', u8],
+      ]),
+    ],
+    ['C', struct<any>([['items', array(bool, 2)]])],
+  ]);
+  t.is(dataEnumSameSizeVariants.fixedSize, 1 + 2);
 });
 
 /** Serialize as a hex string. */
