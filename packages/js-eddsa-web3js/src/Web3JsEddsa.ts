@@ -29,16 +29,6 @@ export class Web3JsEddsa implements EddsaInterface {
     return fromWeb3JsKeypair(Web3JsKeypair.fromSeed(seed));
   }
 
-  createPublicKey(input: PublicKeyInput): PublicKey {
-    return fromWeb3JsPublicKey(
-      new Web3JsPublicKey(toWeb3JsPublicKeyInput(input))
-    );
-  }
-
-  createDefaultPublicKey(): PublicKey {
-    return fromWeb3JsPublicKey(Web3JsPublicKey.default);
-  }
-
   isOnCurve(input: PublicKeyInput): boolean {
     return Web3JsPublicKey.isOnCurve(toWeb3JsPublicKeyInput(input));
   }

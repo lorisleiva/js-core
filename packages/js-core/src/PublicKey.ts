@@ -12,6 +12,15 @@ export type Pda = PublicKey & {
   readonly bump: number;
 };
 
+export const publicKey = (input: PublicKeyInput): PublicKey => {
+  if (isPublicKey(input)) return { bytes: new Uint8Array(input.bytes) };
+  if (typeof input === 'string') return { bytes: base58.serialize(input) };
+  return { bytes: input };
+};
+
+export const defaultPublicKey = (): PublicKey =>
+  publicKey('11111111111111111111111111111111');
+
 export const isPublicKey = (value: any): value is PublicKey =>
   typeof value === 'object' &&
   typeof value.bytes === 'object' &&
