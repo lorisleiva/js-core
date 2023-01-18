@@ -1,3 +1,4 @@
+import type { Signer } from './Signer';
 import { base58 } from './utils';
 
 export type PublicKeyBase58 = string;
@@ -54,3 +55,11 @@ export const samePublicKey = (left: PublicKey, right: PublicKey): boolean =>
 
 export const formatPublicKey = (publicKey: PublicKey): string =>
   base58.deserialize(publicKey.bytes)[0];
+
+export const checkForIsWritableOverride = (
+  account: (PublicKey | Signer) & { isWritable?: boolean },
+  value: boolean
+) =>
+  'isWritable' in account && typeof account.isWritable === 'boolean'
+    ? account.isWritable
+    : value;
