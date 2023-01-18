@@ -1,8 +1,12 @@
 import { base58 } from './utils';
 
-export type PublicKeyInput = PublicKeyBase58 | PublicKeyBytes | PublicKey;
 export type PublicKeyBase58 = string;
 export type PublicKeyBytes = Uint8Array;
+export type PublicKeyInput =
+  | PublicKeyBase58
+  | PublicKeyBytes
+  | PublicKey
+  | { publicKey: PublicKey };
 
 export type PublicKey = {
   readonly bytes: PublicKeyBytes;
@@ -13,8 +17,19 @@ export type Pda = PublicKey & {
 };
 
 export const publicKey = (input: PublicKeyInput): PublicKey => {
-  if (isPublicKey(input)) return { bytes: new Uint8Array(input.bytes) };
-  if (typeof input === 'string') return { bytes: base58.serialize(input) };
+  // PublicKeyBase58.
+  if (typeof input === 'string') {
+    return { bytes: base58.serialize(input) };
+  }
+  // { publicKey: PublicKey }.
+  if (typeof input === 'object' && 'publicKey' in input) {
+    return { bytes: new Uint8Array(input.publicKey.bytes) };
+  }
+  // PublicKey.
+  if (isPublicKey(input)) {
+    return { bytes: new Uint8Array(input.bytes) };
+  }
+  // PublicKeyBytes.
   return { bytes: input };
 };
 
