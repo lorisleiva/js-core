@@ -35,7 +35,7 @@ export const publicKey = (input: PublicKeyInput): PublicKey => {
   }
   // PublicKeyBytes.
   else {
-    key = { bytes: input };
+    key = { bytes: new Uint8Array(input) };
   }
 
   assertPublicKey(key);
