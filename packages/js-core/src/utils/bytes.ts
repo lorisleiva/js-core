@@ -77,7 +77,8 @@ export const baseX = (alphabet: string): Serializer<string> => {
 
       // Handle leading zeroes.
       const chars = [...value];
-      const trailIndex = chars.findIndex((c) => c !== alphabet[0]);
+      let trailIndex = chars.findIndex((c) => c !== alphabet[0]);
+      trailIndex = trailIndex === -1 ? chars.length : trailIndex;
       const leadingZeroes = Array(trailIndex).fill(0);
       if (trailIndex === chars.length) return Uint8Array.from(leadingZeroes);
 
@@ -86,8 +87,7 @@ export const baseX = (alphabet: string): Serializer<string> => {
       let base10Number = 0n;
       let baseXPower = 1n;
       for (let i = tailChars.length - 1; i >= 0; i -= 1) {
-        const n = alphabet.indexOf(tailChars[i]);
-        base10Number += baseXPower * BigInt(n);
+        base10Number += baseXPower * BigInt(alphabet.indexOf(tailChars[i]));
         baseXPower *= baseBigInt;
       }
 
@@ -104,7 +104,8 @@ export const baseX = (alphabet: string): Serializer<string> => {
 
       // Handle leading zeroes.
       const bytes = buffer.slice(offset);
-      const trailIndex = bytes.findIndex((n) => n !== 0);
+      let trailIndex = bytes.findIndex((n) => n !== 0);
+      trailIndex = trailIndex === -1 ? bytes.length : trailIndex;
       const leadingZeroes = alphabet[0].repeat(trailIndex);
       if (trailIndex === bytes.length) return [leadingZeroes, buffer.length];
 

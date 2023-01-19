@@ -83,6 +83,13 @@ test('it can serialize base 58 strings', (t) => {
   t.deepEqual(base58.serialize('2'), new Uint8Array([1]));
   t.deepEqual(base58.deserialize(new Uint8Array([1])), ['2', 1]);
 
+  t.deepEqual(base58.serialize('11'), new Uint8Array([0, 0]));
+  t.deepEqual(base58.deserialize(new Uint8Array([0, 0])), ['11', 2]);
+
+  const zeroes32 = new Uint8Array(Array(32).fill(0));
+  t.deepEqual(base58.serialize('1'.repeat(32)), zeroes32);
+  t.deepEqual(base58.deserialize(zeroes32), ['1'.repeat(32), 32]);
+
   t.deepEqual(base58.serialize('j'), new Uint8Array([42]));
   t.deepEqual(base58.deserialize(new Uint8Array([42])), ['j', 1]);
 
