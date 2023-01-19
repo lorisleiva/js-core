@@ -1,4 +1,5 @@
 import {
+  ACCOUNT_HEADER_SIZE,
   base58,
   BlockhashWithExpiryBlockHeight,
   Cluster,
@@ -52,8 +53,6 @@ import {
 } from '@solana/web3.js';
 import type { JSONRPCCallbackTypePlain } from 'jayson';
 import type RpcClient from 'jayson/lib/client/browser';
-
-export const ACCOUNT_HEADER_SIZE = 128n;
 
 export type Web3JsRpcOptions = Commitment | Web3JsConnectionConfig;
 
@@ -144,7 +143,7 @@ export class Web3JsRpc implements RpcInterface {
       );
     if (options.includesHeaderBytes ?? false) {
       const headerRent = await rentFor(0);
-      const rentPerByte = ACCOUNT_HEADER_SIZE / BigInt(headerRent);
+      const rentPerByte = BigInt(headerRent) / BigInt(ACCOUNT_HEADER_SIZE);
       return lamports(rentPerByte * BigInt(bytes));
     }
     return lamports(await rentFor(bytes));
