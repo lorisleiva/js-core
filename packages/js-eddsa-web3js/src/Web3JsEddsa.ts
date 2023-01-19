@@ -2,13 +2,14 @@ import {
   EddsaInterface,
   Keypair,
   Pda,
+  publicKey,
   PublicKey,
   PublicKeyInput,
 } from '@lorisleiva/js-core';
 import {
   fromWeb3JsKeypair,
   fromWeb3JsPublicKey,
-  toWeb3JsPublicKeyInput,
+  toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
 import * as ed25519 from '@noble/ed25519';
 import {
@@ -30,13 +31,13 @@ export class Web3JsEddsa implements EddsaInterface {
   }
 
   isOnCurve(input: PublicKeyInput): boolean {
-    return Web3JsPublicKey.isOnCurve(toWeb3JsPublicKeyInput(input));
+    return Web3JsPublicKey.isOnCurve(toWeb3JsPublicKey(publicKey(input)));
   }
 
   findPda(programId: PublicKeyInput, seeds: Uint8Array[]): Pda {
     const [key, bump] = Web3JsPublicKey.findProgramAddressSync(
       seeds,
-      new Web3JsPublicKey(toWeb3JsPublicKeyInput(programId))
+      toWeb3JsPublicKey(publicKey(programId))
     );
     return { ...fromWeb3JsPublicKey(key), bump };
   }

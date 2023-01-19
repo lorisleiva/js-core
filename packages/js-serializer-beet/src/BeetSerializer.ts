@@ -7,6 +7,7 @@ import {
   Nullable,
   NumberSerializer,
   Option,
+  publicKey,
   PublicKey,
   PublicKeyInput,
   ScalarEnum,
@@ -19,7 +20,7 @@ import {
 } from '@lorisleiva/js-core';
 import {
   fromWeb3JsPublicKey,
-  toWeb3JsPublicKeyInput,
+  toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
 import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
@@ -519,8 +520,8 @@ export class BeetSerializer implements SerializerInterface {
       fixedSize: 32,
       serialize: (value: PublicKeyInput) => {
         const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
-        const publicKey = new Web3PublicKey(toWeb3JsPublicKeyInput(value));
-        beetSolana.publicKey.write(buffer, 0, publicKey);
+        const key = new Web3PublicKey(toWeb3JsPublicKey(publicKey(value)));
+        beetSolana.publicKey.write(buffer, 0, key);
         return new Uint8Array(buffer);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
