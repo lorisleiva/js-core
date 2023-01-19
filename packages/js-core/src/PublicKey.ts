@@ -1,6 +1,8 @@
 import type { Signer } from './Signer';
 import { base58 } from './utils';
 
+export const PUBLIC_KEY_LENGTH = 32;
+
 export type PublicKeyBase58 = string;
 export type PublicKeyBytes = Uint8Array;
 export type PublicKeyInput =
@@ -18,20 +20,26 @@ export type Pda = PublicKey & {
 };
 
 export const publicKey = (input: PublicKeyInput): PublicKey => {
+  let key: PublicKey;
   // PublicKeyBase58.
   if (typeof input === 'string') {
-    return { bytes: base58.serialize(input) };
+    key = { bytes: base58.serialize(input) };
   }
   // { publicKey: PublicKey }.
-  if (typeof input === 'object' && 'publicKey' in input) {
-    return { bytes: new Uint8Array(input.publicKey.bytes) };
+  else if (typeof input === 'object' && 'publicKey' in input) {
+    key = { bytes: new Uint8Array(input.publicKey.bytes) };
   }
   // PublicKey.
-  if (isPublicKey(input)) {
-    return { bytes: new Uint8Array(input.bytes) };
+  else if (isPublicKey(input)) {
+    key = { bytes: new Uint8Array(input.bytes) };
   }
   // PublicKeyBytes.
-  return { bytes: input };
+  else {
+    key = { bytes: input };
+  }
+
+  assertPublicKey(key);
+  return key;
 };
 
 export const defaultPublicKey = (): PublicKey =>
@@ -43,12 +51,18 @@ export const isPublicKey = (value: any): value is PublicKey =>
   typeof value.bytes.BYTES_PER_ELEMENT === 'number' &&
   typeof value.bytes.length === 'number' &&
   value.bytes.BYTES_PER_ELEMENT === 1 &&
-  value.bytes.length === 32;
+  value.bytes.length === PUBLIC_KEY_LENGTH;
 
 export const isPda = (value: any): value is Pda =>
   typeof value === 'object' &&
   typeof value.bump === 'number' &&
   isPublicKey(value);
+
+export function assertPublicKey(value: any): asserts value is PublicKey {
+  if (!isPublicKey(value)) {
+    throw new Error('Invalid public key');
+  }
+}
 
 export const samePublicKey = (left: PublicKey, right: PublicKey): boolean =>
   left.bytes.toString() === right.bytes.toString();

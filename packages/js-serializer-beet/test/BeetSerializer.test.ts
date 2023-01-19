@@ -2,14 +2,11 @@ import {
   base16,
   DataEnumToSerializerTuple,
   none,
+  publicKey as toPublicKey,
   Serializer,
   some,
 } from '@lorisleiva/js-core';
-import { fromWeb3JsPublicKey } from '@lorisleiva/js-web3js-adapters';
-import {
-  Keypair as Web3Keypair,
-  PublicKey as Web3PublicKey,
-} from '@solana/web3.js';
+import { Keypair as Web3Keypair } from '@solana/web3.js';
 import test from 'ava';
 import { BeetSerializer, OperationNotSupportedError } from '../src';
 
@@ -250,9 +247,11 @@ test('it can serialize public keys', (t) => {
   const { publicKey } = new BeetSerializer();
   t.is(publicKey.description, 'publicKey');
   t.is(publicKey.fixedSize, 32);
-  const generatedPubKey = fromWeb3JsPublicKey(Web3Keypair.generate().publicKey);
+  const generatedPubKey = toPublicKey(
+    Web3Keypair.generate().publicKey.toBytes()
+  );
   const pubKeyString = '4HM9LW2rm3SR2ZdBiFK3D21ENmQWpqEJEhx1nfgcC3r9';
-  const pubKey = fromWeb3JsPublicKey(new Web3PublicKey(pubKeyString));
+  const pubKey = toPublicKey(pubKeyString);
   const pubKeyHex = base16.deserialize(pubKey.bytes)[0];
   t.is(
     s(publicKey, generatedPubKey),
@@ -263,7 +262,7 @@ test('it can serialize public keys', (t) => {
   t.deepEqual(sd(publicKey, pubKeyString), pubKey);
   t.deepEqual(sd(publicKey, pubKey), pubKey);
   t.deepEqual(sd(publicKey, generatedPubKey), generatedPubKey);
-  const throwExpectation = { message: 'Invalid public key input' };
+  const throwExpectation = { message: 'Invalid public key' };
   t.throws(() => s(publicKey, ''), throwExpectation);
   t.throws(() => s(publicKey, 'x'), throwExpectation);
   t.throws(() => s(publicKey, 'x'.repeat(32)), throwExpectation);
