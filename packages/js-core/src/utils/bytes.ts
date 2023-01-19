@@ -14,54 +14,6 @@ export const utf8: Serializer<string> = {
   },
 };
 
-export const base10: Serializer<string> = {
-  description: 'base10',
-  fixedSize: null,
-  serialize(value: string) {
-    if (!value.match(/^\d*$/)) {
-      throw new InvalidBaseStringError(value, 10);
-    }
-    if (value === '') return new Uint8Array();
-    const bytes = [];
-    let integer = BigInt(value);
-    do {
-      bytes.unshift(Number(integer & 255n));
-      integer >>= 8n;
-    } while (integer > 0);
-    return new Uint8Array(bytes);
-  },
-  deserialize(buffer, offset = 0) {
-    if (buffer.length === 0) return ['', 0];
-    const value = buffer
-      .slice(offset)
-      .reduce((acc, byte) => BigInt(acc) * 256n + BigInt(byte), 0n)
-      .toString();
-    return [value, buffer.length];
-  },
-};
-
-const BASE_16_ALPHABET = '0123456789abcdef';
-export const base16: Serializer<string> = {
-  description: 'base16',
-  fixedSize: null,
-  serialize(value: string) {
-    const lowercaseValue = value.toLowerCase();
-    if (!lowercaseValue.match(new RegExp(`^[${BASE_16_ALPHABET}]*$`))) {
-      throw new InvalidBaseStringError(value, 16);
-    }
-    const matches = lowercaseValue.match(/.{1,2}/g);
-    return Uint8Array.from(
-      matches ? matches.map((byte: string) => parseInt(byte, 16)) : []
-    );
-  },
-  deserialize(buffer, offset = 0) {
-    const value = buffer
-      .slice(offset)
-      .reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
-    return [value, buffer.length];
-  },
-};
-
 export const baseX = (alphabet: string): Serializer<string> => {
   const base = alphabet.length;
   const baseBigInt = BigInt(base);
@@ -126,9 +78,31 @@ export const baseX = (alphabet: string): Serializer<string> => {
   };
 };
 
-const BASE_58_ALPHABET =
-  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-export const base58: Serializer<string> = baseX(BASE_58_ALPHABET);
+export const base10: Serializer<string> = baseX('0123456789');
+export const base58: Serializer<string> = baseX(
+  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+);
+
+export const base16: Serializer<string> = {
+  description: 'base16',
+  fixedSize: null,
+  serialize(value: string) {
+    const lowercaseValue = value.toLowerCase();
+    if (!lowercaseValue.match(/^[0123456789abcdef]*$/)) {
+      throw new InvalidBaseStringError(value, 16);
+    }
+    const matches = lowercaseValue.match(/.{1,2}/g);
+    return Uint8Array.from(
+      matches ? matches.map((byte: string) => parseInt(byte, 16)) : []
+    );
+  },
+  deserialize(buffer, offset = 0) {
+    const value = buffer
+      .slice(offset)
+      .reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    return [value, buffer.length];
+  },
+};
 
 export const mergeBytes = (bytesArr: Uint8Array[]): Uint8Array => {
   const totalLength = bytesArr.reduce((total, arr) => total + arr.length, 0);

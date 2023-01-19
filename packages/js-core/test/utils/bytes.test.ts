@@ -28,6 +28,9 @@ test('it can serialize base 10 strings', (t) => {
   t.deepEqual(base10.serialize('0'), new Uint8Array([0]));
   t.deepEqual(base10.deserialize(new Uint8Array([0])), ['0', 1]);
 
+  t.deepEqual(base10.serialize('000'), new Uint8Array([0, 0, 0]));
+  t.deepEqual(base10.deserialize(new Uint8Array([0, 0, 0])), ['000', 3]);
+
   t.deepEqual(base10.serialize('1'), new Uint8Array([1]));
   t.deepEqual(base10.deserialize(new Uint8Array([1])), ['1', 1]);
 
