@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 import { InvalidBaseStringError } from '../errors';
-import { mapSerializer, Serializer } from '../Serializer';
+import { Serializer } from '../Serializer';
 
 export const utf8: Serializer<string> = {
   description: 'utf8',
@@ -62,37 +62,72 @@ export const base16: Serializer<string> = {
   },
 };
 
+export const baseX = (alphabet: string): Serializer<string> => {
+  const base = alphabet.length;
+  const baseBigInt = BigInt(base);
+  return {
+    description: `base${base}`,
+    fixedSize: null,
+    serialize(value: string): Uint8Array {
+      // Check if the value is valid.
+      if (!value.match(new RegExp(`^[${alphabet}]*$`))) {
+        throw new InvalidBaseStringError(value, base);
+      }
+      if (value === '') return new Uint8Array();
+
+      // Handle leading zeroes.
+      const chars = [...value];
+      const trailIndex = chars.findIndex((c) => c !== alphabet[0]);
+      const leadingZeroes = Array(trailIndex).fill(0);
+      if (trailIndex === chars.length) return Uint8Array.from(leadingZeroes);
+
+      // From baseX to base10.
+      const tailChars = chars.slice(trailIndex);
+      let base10Number = 0n;
+      let baseXPower = 1n;
+      for (let i = tailChars.length - 1; i >= 0; i -= 1) {
+        const n = alphabet.indexOf(tailChars[i]);
+        base10Number += baseXPower * BigInt(n);
+        baseXPower *= baseBigInt;
+      }
+
+      // From base10 to bytes.
+      const tailBytes = [];
+      while (base10Number > 0n) {
+        tailBytes.unshift(Number(base10Number % 256n));
+        base10Number /= 256n;
+      }
+      return Uint8Array.from(leadingZeroes.concat(tailBytes));
+    },
+    deserialize(buffer, offset = 0): [string, number] {
+      if (buffer.length === 0) return ['', 0];
+
+      // Handle leading zeroes.
+      const bytes = buffer.slice(offset);
+      const trailIndex = bytes.findIndex((n) => n !== 0);
+      const leadingZeroes = alphabet[0].repeat(trailIndex);
+      if (trailIndex === bytes.length) return [leadingZeroes, buffer.length];
+
+      // From bytes to base10.
+      let base10Number = bytes
+        .slice(trailIndex)
+        .reduce((sum, byte) => sum * 256n + BigInt(byte), 0n);
+
+      // From base10 to baseX.
+      const tailChars = [];
+      while (base10Number > 0n) {
+        tailChars.unshift(alphabet[Number(base10Number % baseBigInt)]);
+        base10Number /= baseBigInt;
+      }
+
+      return [leadingZeroes + tailChars.join(''), buffer.length];
+    },
+  };
+};
+
 const BASE_58_ALPHABET =
   '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-export const base58: Serializer<string> = {
-  ...mapSerializer(
-    base10,
-    (base58) => {
-      if (!base58.match(new RegExp(`^[${BASE_58_ALPHABET}]*$`))) {
-        throw new InvalidBaseStringError(base58, 58);
-      }
-      if (base58 === '') return '';
-      const chars = base58.split('').reverse();
-      const base10 = chars.reduce(
-        (acc, char, i) =>
-          acc + BigInt(BASE_58_ALPHABET.indexOf(char)) * 58n ** BigInt(i),
-        0n
-      );
-      return base10.toString();
-    },
-    (base10) => {
-      const characters: string[] = [];
-      if (base10 === '') return '';
-      let integer = BigInt(base10);
-      do {
-        characters.unshift(BASE_58_ALPHABET[Number(integer % 58n)]);
-        integer /= 58n;
-      } while (integer > 0);
-      return characters.join('');
-    }
-  ),
-  description: 'base58',
-};
+export const base58: Serializer<string> = baseX(BASE_58_ALPHABET);
 
 export const mergeBytes = (bytesArr: Uint8Array[]): Uint8Array => {
   const totalLength = bytesArr.reduce((total, arr) => total + arr.length, 0);
