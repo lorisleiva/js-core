@@ -26,51 +26,117 @@ export type DataEnumToSerializerTuple<T extends DataEnum, U extends T> = Array<
 >;
 
 export interface SerializerInterface {
-  // Lists.
+  /**
+   * Creates a serializer for a tuple-like array.
+   *
+   * @param items - The serializer to use for each item in the tuple.
+   * @param description - A custom description for the serializer.
+   */
   tuple: <T extends any[], U extends T = T>(
     items: WrapInSerializer<[...T], [...U]>,
     description?: string
   ) => Serializer<T, U>;
-  vec: <T, U extends T = T>( // Fixable.
+
+  /**
+   * Creates a serializer for an array of variable length.
+   *
+   * @param item - The serializer to use for the array's items.
+   * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param description - A custom description for the serializer.
+   */
+  vec: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<T[], U[]>;
+
+  /**
+   * Creates a serializer for an array of fixed length.
+   *
+   * @param item - The serializer to use for the array's items.
+   * @param size - The fixed size of the array.
+   * @param description - A custom description for the serializer.
+   */
   array: <T, U extends T = T>(
     item: Serializer<T, U>,
     size: number,
     description?: string
   ) => Serializer<T[], U[]>;
 
-  // Maps and sets.
+  /**
+   * Creates a serializer for a map.
+   *
+   * @param key - The serializer to use for the map's keys.
+   * @param value - The serializer to use for the map's values.
+   * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param description - A custom description for the serializer.
+   */
   map: <TK, TV, UK extends TK = TK, UV extends TV = TV>(
     key: Serializer<TK, UK>,
     value: Serializer<TV, UV>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Map<TK, TV>, Map<UK, UV>>;
+
+  /**
+   * Creates a serializer for a set.
+   *
+   * @param item - The serializer to use for the set's items.
+   * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param description - A custom description for the serializer.
+   */
   set: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Set<T>, Set<U>>;
 
-  // Options.
+  /**
+   * Creates a serializer for an optional value.
+   *
+   * @param item - The serializer to use for the value that may be present.
+   * @param prefix - The serializer to use for the boolean prefix. Defaults to `u8`.
+   * @param description - A custom description for the serializer.
+   */
   option: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Option<T>, Option<U>>;
+
+  /**
+   * Creates a fixed serializer for an optional value.
+   *
+   * @param item - The serializer to use for the value that may be present.
+   * @param prefix - The serializer to use for the boolean prefix. Defaults to `u8`.
+   * @param description - A custom description for the serializer.
+   */
   fixedOption: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Option<T>, Option<U>>;
+
+  /**
+   * Creates a serializer for a nullable value.
+   *
+   * @param item - The serializer to use for the value that may be present.
+   * @param prefix - The serializer to use for the boolean prefix. Defaults to `u8`.
+   * @param description - A custom description for the serializer.
+   */
   nullable: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Nullable<T>, Nullable<U>>;
+
+  /**
+   * Creates a fixed serializer for a nullable value.
+   *
+   * @param item - The serializer to use for the value that may be present.
+   * @param prefix - The serializer to use for the boolean prefix. Defaults to `u8`.
+   * @param description - A custom description for the serializer.
+   */
   fixedNullable: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,

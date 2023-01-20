@@ -5,6 +5,7 @@ import { Serializer } from '../Serializer';
 export const utf8: Serializer<string> = {
   description: 'utf8',
   fixedSize: null,
+  maxSize: null,
   serialize(value: string) {
     return new TextEncoder().encode(value);
   },
@@ -20,6 +21,7 @@ export const baseX = (alphabet: string): Serializer<string> => {
   return {
     description: `base${base}`,
     fixedSize: null,
+    maxSize: null,
     serialize(value: string): Uint8Array {
       // Check if the value is valid.
       if (!value.match(new RegExp(`^[${alphabet}]*$`))) {
@@ -86,6 +88,7 @@ export const base58: Serializer<string> = baseX(
 export const base16: Serializer<string> = {
   description: 'base16',
   fixedSize: null,
+  maxSize: null,
   serialize(value: string) {
     const lowercaseValue = value.toLowerCase();
     if (!lowercaseValue.match(/^[0123456789abcdef]*$/)) {
