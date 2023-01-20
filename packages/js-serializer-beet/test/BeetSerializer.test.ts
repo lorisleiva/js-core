@@ -576,7 +576,7 @@ test('it can serialize sets', (t) => {
 test('it can serialize options', (t) => {
   const { option, unit, u8, u32, u64, string } = new BeetSerializer();
 
-  // Description matches the vec definition.
+  // Description matches the option definition.
   t.is(option(u8).description, 'option(u8)');
   t.is(option(string()).description, 'option(string(u32, utf8))');
 
@@ -627,12 +627,56 @@ test('it can serialize options', (t) => {
   t.deepEqual(d(option(u8, u32), '010000002a'), some(42));
 });
 
-// TODO: fixed options
+test('it can serialize fixed options', (t) => {
+  const { fixedOption, unit, u8, u32, u64, string } = new BeetSerializer();
+
+  // Description matches the fixed option definition.
+  t.is(fixedOption(u8).description, 'fixedOption(u8)');
+
+  // Description can be overridden.
+  t.is(fixedOption(u8, undefined, 'my option').description, 'my option');
+
+  // Fixed options must have fixed size.
+  t.is(fixedOption(unit).fixedSize, 1);
+  t.is(fixedOption(unit).maxSize, 1);
+  t.is(fixedOption(u8).fixedSize, 1 + 1);
+  t.is(fixedOption(u8).maxSize, 1 + 1);
+  t.is(fixedOption(u64).fixedSize, 1 + 8);
+  t.is(fixedOption(u64).maxSize, 1 + 8);
+  t.throws(() => fixedOption(string()), {
+    message: 'fixedOption can only be used with fixed size serializers',
+  });
+
+  // Examples with some.
+  t.is(s(fixedOption(u64), some(42)), '012a00000000000000');
+  t.deepEqual(d(fixedOption(u64), '012a00000000000000'), some(42n));
+  t.deepEqual(doffset(fixedOption(u64), '012a00000000000000'), 1 + 8);
+  t.deepEqual(d(fixedOption(u64), 'ffff012a00000000000000', 2), some(42n));
+  t.deepEqual(sd(fixedOption(u64), some(42n)), some(42n));
+
+  // Examples with none.
+  t.is(s(fixedOption(u64), none()), '000000000000000000');
+  t.deepEqual(d(fixedOption(u64), '000000000000000000'), none());
+  t.deepEqual(doffset(fixedOption(u64), '000000000000000000'), 1 + 8);
+  t.deepEqual(d(fixedOption(u64), 'ffff000000000000000000', 2), none());
+  t.deepEqual(sd(fixedOption(u64), none()), none());
+
+  // Example with different From and To types.
+  const optionU64 = fixedOption<number | bigint, bigint>(u64);
+  t.deepEqual(s(optionU64, some(2)), '010200000000000000');
+  t.deepEqual(d(optionU64, '010200000000000000'), some(2n));
+
+  // Custom prefix serializer
+  t.is(fixedOption(u8, u32).fixedSize, 4 + 1);
+  t.is(fixedOption(u8, u32).maxSize, 4 + 1);
+  t.is(s(fixedOption(u8, u32), some(42)), '010000002a');
+  t.deepEqual(d(fixedOption(u8, u32), '010000002a'), some(42));
+});
 
 test('it can serialize nullables', (t) => {
   const { nullable, unit, u8, u32, u64, string } = new BeetSerializer();
 
-  // Description matches the vec definition.
+  // Description matches the nullable definition.
   t.is(nullable(u8).description, 'nullable(u8)');
   t.is(nullable(string()).description, 'nullable(string(u32, utf8))');
 
@@ -680,7 +724,51 @@ test('it can serialize nullables', (t) => {
   t.is(d(nullable(u8, u32), '010000002a'), 42);
 });
 
-// TODO: fixed nullables
+test('it can serialize fixed nullables', (t) => {
+  const { fixedNullable, unit, u8, u32, u64, string } = new BeetSerializer();
+
+  // Description matches the fixed nullable definition.
+  t.is(fixedNullable(u8).description, 'fixedNullable(u8)');
+
+  // Description can be overridden.
+  t.is(fixedNullable(u8, undefined, 'my nullable').description, 'my nullable');
+
+  // Fixed nullables must have fixed size.
+  t.is(fixedNullable(unit).fixedSize, 1);
+  t.is(fixedNullable(unit).maxSize, 1);
+  t.is(fixedNullable(u8).fixedSize, 1 + 1);
+  t.is(fixedNullable(u8).maxSize, 1 + 1);
+  t.is(fixedNullable(u64).fixedSize, 1 + 8);
+  t.is(fixedNullable(u64).maxSize, 1 + 8);
+  t.throws(() => fixedNullable(string()), {
+    message: 'fixedNullable can only be used with fixed size serializers',
+  });
+
+  // Examples with some.
+  t.is(s(fixedNullable(u64), 42), '012a00000000000000');
+  t.deepEqual(d(fixedNullable(u64), '012a00000000000000'), 42n);
+  t.deepEqual(doffset(fixedNullable(u64), '012a00000000000000'), 1 + 8);
+  t.deepEqual(d(fixedNullable(u64), 'ffff012a00000000000000', 2), 42n);
+  t.deepEqual(sd(fixedNullable(u64), 42n), 42n);
+
+  // Examples with none.
+  t.is(s(fixedNullable(u64), null), '000000000000000000');
+  t.deepEqual(d(fixedNullable(u64), '000000000000000000'), null);
+  t.deepEqual(doffset(fixedNullable(u64), '000000000000000000'), 1 + 8);
+  t.deepEqual(d(fixedNullable(u64), 'ffff000000000000000000', 2), null);
+  t.deepEqual(sd(fixedNullable(u64), null), null);
+
+  // Example with different From and To types.
+  const optionU64 = fixedNullable<number | bigint, bigint>(u64);
+  t.deepEqual(s(optionU64, 2), '010200000000000000');
+  t.deepEqual(d(optionU64, '010200000000000000'), 2n);
+
+  // Custom prefix serializer
+  t.is(fixedNullable(u8, u32).fixedSize, 4 + 1);
+  t.is(fixedNullable(u8, u32).maxSize, 4 + 1);
+  t.is(s(fixedNullable(u8, u32), 42), '010000002a');
+  t.deepEqual(d(fixedNullable(u8, u32), '010000002a'), 42);
+});
 
 test('it can serialize structs', (t) => {
   const { struct, option, u8, u64, string } = new BeetSerializer();
