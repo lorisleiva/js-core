@@ -15,13 +15,13 @@ import {
   SerializerInterface,
   some,
   StructToSerializerTuple,
+  utf8,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import {
   fromWeb3JsPublicKey,
   toWeb3JsPublicKey,
 } from '@lorisleiva/js-web3js-adapters';
-import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
@@ -492,60 +492,72 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   fixed<T, U extends T = T>(
-    child: Serializer<T, U>,
     bytes: number,
+    child: Serializer<T, U>,
     description?: string
   ): Serializer<T, U> {
-    return {
-      description: description ?? `fixed(${child.description}, ${bytes})`,
-      fixedSize: bytes,
-      maxSize: bytes,
-      serialize: (value: T) => {
-        const buffer = child.serialize(value);
-        if (buffer.length > bytes) return buffer.slice(0, bytes);
-        const padding = new Uint8Array(bytes - buffer.length).fill(0);
-        return mergeBytes([buffer, padding]);
-      },
-      deserialize: (buffer: Uint8Array, offset = 0) => {
-        buffer = buffer.slice(offset, offset + bytes);
-        const [value] = child.deserialize(buffer, offset);
-        return [value, offset + bytes];
-      },
-    };
+    return fixed(bytes, child, description);
   }
 
-  string(prefix?: NumberSerializer, description?: string): Serializer<string> {
+  string(
+    prefix?: NumberSerializer,
+    content?: Serializer<string>,
+    description?: string
+  ): Serializer<string> {
+    const prefixSerializer = prefix ?? u32();
+    const contentSerializer = content ?? utf8;
     return {
-      description: 'string',
+      description: description ?? `string(${prefixSerializer.description})`,
       fixedSize: null,
       maxSize: null,
       serialize: (value: string) => {
-        const stringBeet = beet.utf8String.toFixedFromValue(value);
-        const buffer = Buffer.alloc(stringBeet.byteSize);
-        stringBeet.write(buffer, 0, value);
-        return new Uint8Array(buffer);
+        const contentBytes = contentSerializer.serialize(value);
+        const lengthBytes = prefixSerializer.serialize(contentBytes.length);
+        return mergeBytes([lengthBytes, contentBytes]);
       },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const stringBeet = beet.utf8String.toFixedFromData(buffer, offset);
-        const value = stringBeet.read(buffer, offset);
-        return [value, offset + stringBeet.byteSize];
+      deserialize: (buffer: Uint8Array, offset = 0) => {
+        const [length, lengthOffset] = prefixSerializer.deserialize(
+          buffer,
+          offset
+        );
+        offset = lengthOffset;
+        const contentBuffer = buffer.slice(offset, offset + Number(length));
+        const [value, contentOffset] =
+          contentSerializer.deserialize(contentBuffer);
+        offset += contentOffset;
+        return [value, offset];
       },
     };
   }
 
   fixedString(
     bytes: number,
-    prefix?: NumberSerializer | null,
+    content?: Serializer<string>,
     description?: string
   ): Serializer<string> {
-    // TODO
-    throw new Error('Not implemented');
+    const contentSerializer = content ?? utf8;
+    return fixed(
+      bytes,
+      contentSerializer,
+      description ?? `fixedString(${bytes}, ${contentSerializer.description})`
+    );
   }
 
   bool(size?: NumberSerializer, description?: string): Serializer<boolean> {
-    // TODO
-    throw new Error('Not implemented');
+    const serializer = size ?? u8();
+    if (serializer.fixedSize === null) {
+      throw new Error('bool serializer requires a fixed size');
+    }
+    return {
+      description: description ?? `bool(${serializer.description})`,
+      fixedSize: serializer.fixedSize,
+      maxSize: serializer.fixedSize,
+      serialize: (value: boolean) => serializer.serialize(value ? 1 : 0),
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [value, vOffset] = serializer.deserialize(bytes, offset);
+        return [value === 1, vOffset];
+      },
+    };
   }
 
   get unit(): Serializer<void> {
@@ -660,6 +672,28 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
+}
+
+function fixed<T, U extends T = T>(
+  bytes: number,
+  child: Serializer<T, U>,
+  description?: string
+): Serializer<T, U> {
+  return {
+    description: description ?? `fixed(${bytes}, ${child.description})`,
+    fixedSize: bytes,
+    maxSize: bytes,
+    serialize: (value: T) => {
+      const buffer = new Uint8Array(bytes).fill(0);
+      buffer.set(child.serialize(value).slice(0, bytes));
+      return buffer;
+    },
+    deserialize: (buffer: Uint8Array, offset = 0) => {
+      buffer = buffer.slice(offset, offset + bytes);
+      const [value] = child.deserialize(buffer, offset);
+      return [value, offset + bytes];
+    },
+  };
 }
 
 function sumSerializerSizes(sizes: (number | null)[]): number | null {

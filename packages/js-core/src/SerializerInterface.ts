@@ -178,13 +178,13 @@ export interface SerializerInterface {
   /**
    * Creates a fixed-size serializer from a given serializer.
    *
-   * @param child - The serializer to wrap into a fixed-size serializer.
    * @param bytes - The fixed number of bytes to read.
+   * @param child - The serializer to wrap into a fixed-size serializer.
    * @param description - A custom description for the serializer.
    */
   fixed: <T, U extends T = T>(
-    child: Serializer<T, U>,
     bytes: number,
+    child: Serializer<T, U>,
     description?: string
   ) => Serializer<T, U>;
 
@@ -192,10 +192,12 @@ export interface SerializerInterface {
    * Creates a string serializer.
    *
    * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param content - The string serializer to use for the content. Defaults to `utf8`.
    * @param description - A custom description for the serializer.
    */
   string: (
     prefix?: NumberSerializer,
+    content?: Serializer<string>,
     description?: string
   ) => Serializer<string>;
 
@@ -203,13 +205,12 @@ export interface SerializerInterface {
    * Creates serializer of fixed length strings.
    *
    * @param bytes - The fixed number of bytes to read.
-   * @param prefix - The serializer to use for the length prefix
-   * or null if no length prefix should be used. Defaults to `null`.
+   * @param content - The string serializer to use for the content. Defaults to `utf8`.
    * @param description - A custom description for the serializer.
    */
   fixedString: (
     bytes: number,
-    prefix?: NumberSerializer | null,
+    content?: Serializer<string>,
     description?: string
   ) => Serializer<string>;
 
