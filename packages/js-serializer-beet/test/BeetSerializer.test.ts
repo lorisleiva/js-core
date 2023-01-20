@@ -4,7 +4,6 @@ import {
   DataEnumToSerializerTuple,
   none,
   publicKey as toPublicKey,
-  removeNullCharacters,
   Serializer,
   some,
   utf8,
@@ -293,10 +292,10 @@ test('it can serialize fixed strings', (t) => {
 
   // Padding is added when the string is shorter than the fixed size.
   t.is(s(fixedString(12), ''), '0'.repeat(24));
-  t.is(removeNullCharacters(d(fixedString(12), '0'.repeat(24))), '');
+  t.is(d(fixedString(12), '0'.repeat(24)), '');
   t.is(doffset(fixedString(12), '0'.repeat(24)), 12);
   t.is(s(fixedString(5), '語'), 'e8aa9e0000');
-  t.is(removeNullCharacters(d(fixedString(5), 'e8aa9e0000')), '語');
+  t.is(d(fixedString(5), 'e8aa9e0000'), '語');
   t.is(doffset(fixedString(5), 'e8aa9e0000'), 5);
 
   // String is truncated when it is longer than the fixed size.

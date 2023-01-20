@@ -2,6 +2,7 @@ import {
   DataEnum,
   DataEnumToSerializerTuple,
   isSome,
+  mapSerializer,
   mergeBytes,
   none,
   Nullable,
@@ -10,6 +11,7 @@ import {
   publicKey,
   PublicKey,
   PublicKeyInput,
+  removeNullCharacters,
   ScalarEnum,
   Serializer,
   SerializerInterface,
@@ -538,10 +540,14 @@ export class BeetSerializer implements SerializerInterface {
     description?: string
   ): Serializer<string> {
     const contentSerializer = content ?? utf8;
-    return fixed(
-      bytes,
-      contentSerializer,
-      description ?? `fixedString(${bytes}, ${contentSerializer.description})`
+    return mapSerializer(
+      fixed(
+        bytes,
+        contentSerializer,
+        description ?? `fixedString(${bytes}, ${contentSerializer.description})`
+      ),
+      (value) => value,
+      removeNullCharacters
     );
   }
 
