@@ -1,4 +1,4 @@
-import { Program } from '../Program';
+import type { Program } from '../Program';
 import { MetaplexError } from './MetaplexError';
 
 type UnderlyingProgramError = Error & { code?: number; logs?: string[] };
