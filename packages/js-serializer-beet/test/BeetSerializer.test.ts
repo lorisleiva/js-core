@@ -7,6 +7,7 @@ import {
   removeNullCharacters,
   Serializer,
   some,
+  utf8,
 } from '@lorisleiva/js-core';
 import { Keypair as Web3Keypair } from '@solana/web3.js';
 import test from 'ava';
@@ -1038,7 +1039,51 @@ test('it can serialize data enums', (t) => {
   });
 });
 
-// TODO: fixed
+test('it can serialize fixed', (t) => {
+  const { fixed, string, u8, u32, u64, bytes } = new BeetSerializer();
+
+  // Description matches the fixed definition.
+  t.is(fixed(12, u64).description, 'fixed(12, u64)');
+
+  // Description can be overridden.
+  t.is(fixed(12, u64, 'my fixed').description, 'my fixed');
+
+  // Fixed and max sizes.
+  t.is(fixed(12, u64).fixedSize, 12);
+  t.is(fixed(12, u64).maxSize, 12);
+  t.is(fixed(42, bytes).fixedSize, 42);
+  t.is(fixed(42, bytes).maxSize, 42);
+
+  // Buffer size === fixed size.
+  t.is(s(fixed(8, u64), 42), '2a00000000000000');
+  t.is(d(fixed(8, u64), '2a00000000000000'), 42n);
+  t.is(doffset(fixed(8, u64), '2a00000000000000'), 8);
+  t.is(sd(fixed(8, u64), 42n), 42n);
+  t.is(s(fixed(5, utf8), 'Hello'), '48656c6c6f');
+  t.is(d(fixed(5, utf8), '48656c6c6f'), 'Hello');
+  t.is(doffset(fixed(5, utf8), '48656c6c6f'), 5);
+  t.is(sd(fixed(5, utf8), 'Hello'), 'Hello');
+
+  // Buffer size > fixed size => truncated.
+  t.is(s(fixed(4, u64), 42), '2a000000');
+  t.is(d(fixed(4, u64), '2a000000'), 42n);
+  t.is(doffset(fixed(4, u64), '2a000000'), 4);
+  t.is(sd(fixed(4, u64), 42n), 42n);
+  t.is(s(fixed(5, string(u8)), 'Hello'), '0548656c6c');
+  t.is(d(fixed(5, string(u8)), '0548656c6c'), 'Hell');
+  t.is(doffset(fixed(5, string(u8)), '0548656c6c'), 5);
+  t.is(sd(fixed(5, string(u8)), 'Hello'), 'Hell');
+
+  // Buffer size < fixed size => padded.
+  t.is(s(fixed(8, u32), 42), '2a00000000000000');
+  t.is(d(fixed(8, u32), '2a00000000000000'), 42);
+  t.is(doffset(fixed(8, u32), '2a00000000000000'), 8);
+  t.is(sd(fixed(8, u32), 42), 42);
+  t.is(s(fixed(8, utf8), 'Hello'), '48656c6c6f000000');
+  t.is(d(fixed(8, utf8), '48656c6c6f000000'), 'Hello\u0000\u0000\u0000');
+  t.is(doffset(fixed(8, utf8), '48656c6c6f000000'), 8);
+  t.is(sd(fixed(8, utf8), 'Hello'), 'Hello\u0000\u0000\u0000');
+});
 
 /** Serialize as a hex string. */
 function s<T, U extends T = T>(
