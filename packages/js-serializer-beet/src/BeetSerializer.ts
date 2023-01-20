@@ -507,7 +507,9 @@ export class BeetSerializer implements SerializerInterface {
     const prefixSerializer = prefix ?? u32();
     const contentSerializer = content ?? utf8;
     return {
-      description: description ?? `string(${prefixSerializer.description})`,
+      description:
+        description ??
+        `string(${prefixSerializer.description}, ${contentSerializer.description})`,
       fixedSize: null,
       maxSize: null,
       serialize: (value: string) => {
