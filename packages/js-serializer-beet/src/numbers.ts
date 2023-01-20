@@ -3,7 +3,6 @@ import type { FixedSizeBeet } from '@metaplex-foundation/beet';
 import * as beet from '@metaplex-foundation/beet';
 
 // Simple numbers.
-export const bool = () => wrapBeet(beet.bool);
 export const u8 = () => wrapBeet(beet.u8);
 export const u16 = () => wrapBeet(beet.u16);
 export const u32 = () => wrapBeet(beet.u32);
@@ -68,6 +67,7 @@ function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
   return {
     description: fixedBeet.description,
     fixedSize: fixedBeet.byteSize,
+    maxSize: fixedBeet.byteSize,
     serialize: (value: T) => {
       const buffer = Buffer.alloc(fixedBeet.byteSize);
       fixedBeet.write(buffer, 0, value);
@@ -87,6 +87,7 @@ function wrapBigintBeet(
   return {
     description: fixedBeet.description,
     fixedSize: fixedBeet.byteSize,
+    maxSize: fixedBeet.byteSize,
     serialize: (value: number | bigint) => {
       const buffer = Buffer.alloc(fixedBeet.byteSize);
       fixedBeet.write(buffer, 0, value);

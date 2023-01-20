@@ -15,7 +15,6 @@ import {
   SerializerInterface,
   some,
   StructToSerializerTuple,
-  sumSerializerFixedSizes,
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import {
@@ -27,19 +26,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
 import { OperationNotSupportedError } from './errors';
-import {
-  bool,
-  i128,
-  i16,
-  i32,
-  i64,
-  i8,
-  u128,
-  u16,
-  u32,
-  u64,
-  u8,
-} from './numbers';
+import { i128, i16, i32, i64, i8, u128, u16, u32, u64, u8 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
   tuple<T extends any[], U extends T = T>(
@@ -49,7 +36,8 @@ export class BeetSerializer implements SerializerInterface {
     const itemDescriptions = items.map((item) => item.description).join(', ');
     return {
       description: description ?? `tuple(${itemDescriptions})`,
-      fixedSize: sumSerializerFixedSizes(items),
+      fixedSize: sumSerializerSizes(items.map((item) => item.fixedSize)),
+      maxSize: sumSerializerSizes(items.map((item) => item.maxSize)),
       serialize: (value: T) => {
         if (value.length !== items.length) {
           throw new Error(
@@ -81,6 +69,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `vec(${itemSerializer.description})`,
       fixedSize: null,
+      maxSize: null,
       serialize: (value: T[]) => {
         const lengthBytes = prefixSeralizer.serialize(value.length);
         const itemBytes = value.map((item) => itemSerializer.serialize(item));
@@ -105,12 +94,15 @@ export class BeetSerializer implements SerializerInterface {
     size: number,
     description?: string
   ): Serializer<T[], U[]> {
-    const childSize = itemSerializer.fixedSize;
-    const fixedSize = childSize === null ? null : childSize * size;
+    function getSize(childSize: number | null): number | null {
+      if (size === 0) return 0;
+      return childSize === null ? null : childSize * size;
+    }
     return {
       description:
         description ?? `array(${itemSerializer.description}; ${size})`,
-      fixedSize: size === 0 ? 0 : fixedSize,
+      fixedSize: getSize(itemSerializer.fixedSize),
+      maxSize: getSize(itemSerializer.maxSize),
       serialize: (value: T[]) => {
         if (value.length !== size) {
           throw new Error(
@@ -143,6 +135,7 @@ export class BeetSerializer implements SerializerInterface {
         description ??
         `map(${keySerializer.description}, ${valueSerializer.description})`,
       fixedSize: null,
+      maxSize: null,
       serialize: (map: Map<TK, TV>) => {
         const lengthBytes = prefixSeralizer.serialize(map.size);
         const itemBytes = Array.from(map, ([key, value]) =>
@@ -178,6 +171,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `set(${itemSerializer.description})`,
       fixedSize: null,
+      maxSize: null,
       serialize: (set: Set<T>) => {
         const lengthBytes = prefixSeralizer.serialize(set.size);
         const itemBytes = Array.from(set, (value) =>
@@ -208,9 +202,11 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `option(${itemSerializer.description})`,
       fixedSize:
-        itemSerializer.fixedSize !== null && prefixSeralizer.fixedSize !== null
-          ? itemSerializer.fixedSize + prefixSeralizer.fixedSize
-          : null,
+        itemSerializer.fixedSize === 0 ? prefixSeralizer.maxSize : null,
+      maxSize: sumSerializerSizes([
+        prefixSeralizer.maxSize,
+        itemSerializer.maxSize,
+      ]),
       serialize: (option: Option<T>) => {
         const prefixByte = prefixSeralizer.serialize(Number(isSome(option)));
         const itemBytes = isSome(option)
@@ -234,6 +230,45 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
+  fixedOption<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
+    description?: string
+  ): Serializer<Option<T>, Option<U>> {
+    const prefixSeralizer = prefix ?? u8();
+    if (
+      itemSerializer.fixedSize === null ||
+      prefixSeralizer.fixedSize === null
+    ) {
+      throw new Error(
+        'fixedOption can only be used with fixed size serializers'
+      );
+    }
+    return {
+      description: description ?? `fixedOption(${itemSerializer.description})`,
+      fixedSize: prefixSeralizer.fixedSize + itemSerializer.fixedSize,
+      maxSize: prefixSeralizer.fixedSize + itemSerializer.fixedSize,
+      serialize: (option: Option<T>) => {
+        const fixedSize = itemSerializer.fixedSize as number;
+        const prefixByte = prefixSeralizer.serialize(Number(isSome(option)));
+        const itemBytes = isSome(option)
+          ? itemSerializer.serialize(option.value).slice(0, fixedSize)
+          : new Uint8Array(Array(fixedSize).fill(0));
+        return mergeBytes([prefixByte, itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [isSome] = prefixSeralizer.deserialize(bytes, offset);
+        offset += prefixSeralizer.fixedSize as number;
+        const newOffset = offset + (itemSerializer.fixedSize as number);
+        if (isSome === 0) {
+          return [none(), newOffset];
+        }
+        const [value] = itemSerializer.deserialize(bytes, offset);
+        return [some(value), newOffset];
+      },
+    };
+  }
+
   nullable<T, U extends T = T>(
     itemSerializer: Serializer<T, U>,
     prefix?: NumberSerializer,
@@ -243,9 +278,11 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `nullable(${itemSerializer.description})`,
       fixedSize:
-        itemSerializer.fixedSize !== null && prefixSeralizer.fixedSize !== null
-          ? itemSerializer.fixedSize + prefixSeralizer.fixedSize
-          : null,
+        itemSerializer.fixedSize === 0 ? prefixSeralizer.maxSize : null,
+      maxSize: sumSerializerSizes([
+        prefixSeralizer.maxSize,
+        itemSerializer.maxSize,
+      ]),
       serialize: (option: Nullable<T>) => {
         const prefixByte = prefixSeralizer.serialize(Number(option !== null));
         const itemBytes =
@@ -277,7 +314,8 @@ export class BeetSerializer implements SerializerInterface {
       .join(', ');
     return {
       description: description ?? `struct(${fieldDescriptions})`,
-      fixedSize: sumSerializerFixedSizes(fields.map(([, s]) => s)),
+      fixedSize: sumSerializerSizes(fields.map(([, field]) => field.fixedSize)),
+      maxSize: sumSerializerSizes(fields.map(([, field]) => field.maxSize)),
       serialize: (struct: T) => {
         const fieldBytes = fields.map(([key, serializer]) =>
           serializer.serialize(struct[key])
@@ -534,4 +572,11 @@ export class BeetSerializer implements SerializerInterface {
       },
     };
   }
+}
+
+function sumSerializerSizes(sizes: (number | null)[]): number | null {
+  return sizes.reduce(
+    (all, size) => (all === null || size === null ? null : all + size),
+    0 as number | null
+  );
 }

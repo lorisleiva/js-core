@@ -80,12 +80,3 @@ export const swapEndianness = (buffer: Uint8Array, bytes = 8): Uint8Array => {
 
   return newBuffer;
 };
-
-export const sumSerializerFixedSizes = (
-  serializers: { fixedSize: number | null }[]
-): number | null =>
-  serializers.reduce(
-    (all, { fixedSize }) =>
-      all === null || fixedSize === null ? null : all + fixedSize,
-    0 as number | null
-  );
