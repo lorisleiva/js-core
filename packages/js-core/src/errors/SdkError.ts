@@ -1,5 +1,5 @@
 import { Amount, AmountDecimals, AmountIdentifier } from '../Amount';
-import { PublicKey } from '../PublicKey';
+import { formatPublicKey, PublicKey } from '../PublicKey';
 import { MetaplexError } from './MetaplexError';
 
 /** @group Errors */
@@ -131,7 +131,7 @@ export class AccountNotFoundError extends SdkError {
       accountType
         ? `The account of type [${accountType}] was not found`
         : 'No account was found'
-    } at the provided address [${address.toString()}].${
+    } at the provided address [${formatPublicKey(address)}].${
       solution ? ` ${solution}` : ''
     }`;
     super(message);
@@ -144,7 +144,7 @@ export class UnexpectedAccountError extends SdkError {
 
   constructor(address: PublicKey, expectedType: string, cause?: Error) {
     const message =
-      `The account at the provided address [${address.toString()}] ` +
+      `The account at the provided address [${formatPublicKey(address)}] ` +
       `is not of the expected type [${expectedType}].`;
     super(message, cause);
   }
