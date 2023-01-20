@@ -253,7 +253,7 @@ export class BeetSerializer implements SerializerInterface {
         const prefixByte = prefixSeralizer.serialize(Number(isSome(option)));
         const itemBytes = isSome(option)
           ? itemSerializer.serialize(option.value).slice(0, fixedSize)
-          : new Uint8Array(Array(fixedSize).fill(0));
+          : new Uint8Array(fixedSize).fill(0);
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
@@ -301,6 +301,47 @@ export class BeetSerializer implements SerializerInterface {
         const [value, newOffset] = itemSerializer.deserialize(bytes, offset);
         offset = newOffset;
         return [value, offset];
+      },
+    };
+  }
+
+  fixedNullable<T, U extends T = T>(
+    itemSerializer: Serializer<T, U>,
+    prefix?: NumberSerializer,
+    description?: string
+  ): Serializer<Nullable<T>, Nullable<U>> {
+    const prefixSeralizer = prefix ?? u8();
+    if (
+      itemSerializer.fixedSize === null ||
+      prefixSeralizer.fixedSize === null
+    ) {
+      throw new Error(
+        'fixedNullable can only be used with fixed size serializers'
+      );
+    }
+    return {
+      description:
+        description ?? `fixedNullable(${itemSerializer.description})`,
+      fixedSize: prefixSeralizer.fixedSize + itemSerializer.fixedSize,
+      maxSize: prefixSeralizer.fixedSize + itemSerializer.fixedSize,
+      serialize: (option: Nullable<T>) => {
+        const fixedSize = itemSerializer.fixedSize as number;
+        const prefixByte = prefixSeralizer.serialize(Number(option !== null));
+        const itemBytes =
+          option !== null
+            ? itemSerializer.serialize(option).slice(0, fixedSize)
+            : new Uint8Array(fixedSize).fill(0);
+        return mergeBytes([prefixByte, itemBytes]);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const [isSome] = prefixSeralizer.deserialize(bytes, offset);
+        offset += prefixSeralizer.fixedSize as number;
+        const newOffset = offset + (itemSerializer.fixedSize as number);
+        if (isSome === 0) {
+          return [null, newOffset];
+        }
+        const [value] = itemSerializer.deserialize(bytes, offset);
+        return [value, newOffset];
       },
     };
   }
@@ -368,6 +409,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: description ?? `enum(${valueDescriptions})`,
       fixedSize: 1,
+      maxSize: 1,
       serialize: (value: T) => {
         const [variantKey, variantValue] = getVariantKeyValue(value);
         checkVariantExists(variantKey);
@@ -384,41 +426,48 @@ export class BeetSerializer implements SerializerInterface {
   }
 
   dataEnum<T extends DataEnum, U extends T = T>(
-    fields: DataEnumToSerializerTuple<T, U>,
+    variants: DataEnumToSerializerTuple<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ): Serializer<T, U> {
     const prefixSeralizer = prefix ?? u8();
-    const fieldDescriptions = fields
+    const fieldDescriptions = variants
       .map(
         ([name, serializer]) =>
           `${String(name)}${serializer ? `: ${serializer.description}` : ''}`
       )
       .join(', ');
-    const allVariantHaveTheSameFixedSize = fields.every(
+    const allVariantHaveTheSameFixedSize = variants.every(
       (one, i, all) => one[1].fixedSize === all[0][1].fixedSize
+    );
+    const fixedVariantSize = allVariantHaveTheSameFixedSize
+      ? variants[0][1].fixedSize
+      : null;
+    const maxVariantSize = maxSerializerSizes(
+      variants.map(([, field]) => field.maxSize)
     );
     return {
       description: description ?? `dataEnum(${fieldDescriptions})`,
       fixedSize:
-        allVariantHaveTheSameFixedSize &&
-        fields.length > 0 &&
-        fields[0][1].fixedSize !== null &&
-        prefixSeralizer.fixedSize !== null
-          ? fields[0][1].fixedSize + prefixSeralizer.fixedSize
-          : null,
+        variants.length === 0
+          ? prefixSeralizer.fixedSize
+          : sumSerializerSizes([prefixSeralizer.fixedSize, fixedVariantSize]),
+      maxSize:
+        variants.length === 0
+          ? prefixSeralizer.maxSize
+          : sumSerializerSizes([prefixSeralizer.maxSize, maxVariantSize]),
       serialize: (variant: T) => {
-        const discriminator = fields.findIndex(
+        const discriminator = variants.findIndex(
           ([key]) => variant.__kind === key
         );
         if (discriminator < 0) {
           throw new Error(
             `Invalid data enum variant. Got "${variant.__kind}", expected one of ` +
-              `[${fields.map(([key]) => key).join(', ')}]`
+              `[${variants.map(([key]) => key).join(', ')}]`
           );
         }
         const variantPrefix = prefixSeralizer.serialize(discriminator);
-        const variantSerializer = fields[discriminator][1];
+        const variantSerializer = variants[discriminator][1];
         const variantBytes = variantSerializer.serialize(variant as any);
         return mergeBytes([variantPrefix, variantBytes]);
       },
@@ -428,11 +477,11 @@ export class BeetSerializer implements SerializerInterface {
           offset
         );
         offset = dOffset;
-        const variantField = fields[Number(discriminator)] ?? null;
+        const variantField = variants[Number(discriminator)] ?? null;
         if (!variantField) {
           throw new Error(
             `Data enum index "${discriminator}" is out of range. ` +
-              `Index should be between 0 and ${fields.length - 1}.`
+              `Index should be between 0 and ${variants.length - 1}.`
           );
         }
         const [variant, vOffset] = variantField[1].deserialize(bytes, offset);
@@ -442,17 +491,71 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
+  fixed<T, U extends T = T>(
+    child: Serializer<T, U>,
+    bytes: number,
+    description?: string
+  ): Serializer<T, U> {
+    return {
+      description: description ?? `fixed(${child.description}, ${bytes})`,
+      fixedSize: bytes,
+      maxSize: bytes,
+      serialize: (value: T) => {
+        const buffer = child.serialize(value);
+        if (buffer.length > bytes) return buffer.slice(0, bytes);
+        const padding = new Uint8Array(bytes - buffer.length).fill(0);
+        return mergeBytes([buffer, padding]);
+      },
+      deserialize: (buffer: Uint8Array, offset = 0) => {
+        buffer = buffer.slice(offset, offset + bytes);
+        const [value] = child.deserialize(buffer, offset);
+        return [value, offset + bytes];
+      },
+    };
+  }
+
+  string(prefix?: NumberSerializer, description?: string): Serializer<string> {
+    return {
+      description: 'string',
+      fixedSize: null,
+      maxSize: null,
+      serialize: (value: string) => {
+        const stringBeet = beet.utf8String.toFixedFromValue(value);
+        const buffer = Buffer.alloc(stringBeet.byteSize);
+        stringBeet.write(buffer, 0, value);
+        return new Uint8Array(buffer);
+      },
+      deserialize: (bytes: Uint8Array, offset = 0) => {
+        const buffer = Buffer.from(bytes);
+        const stringBeet = beet.utf8String.toFixedFromData(buffer, offset);
+        const value = stringBeet.read(buffer, offset);
+        return [value, offset + stringBeet.byteSize];
+      },
+    };
+  }
+
+  fixedString(
+    bytes: number,
+    prefix?: NumberSerializer | null,
+    description?: string
+  ): Serializer<string> {
+    // TODO
+    throw new Error('Not implemented');
+  }
+
+  bool(size?: NumberSerializer, description?: string): Serializer<boolean> {
+    // TODO
+    throw new Error('Not implemented');
+  }
+
   get unit(): Serializer<void> {
     return {
       description: 'unit',
       fixedSize: 0,
+      maxSize: 0,
       serialize: () => new Uint8Array(),
       deserialize: (_bytes: Uint8Array, offset = 0) => [undefined, offset],
     };
-  }
-
-  get bool(): Serializer<boolean> {
-    return bool();
   }
 
   get u8(): Serializer<number> {
@@ -499,6 +602,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: 'f32 [not supported]',
       fixedSize: 4,
+      maxSize: 4,
       serialize: () => {
         throw new OperationNotSupportedError('f32');
       },
@@ -512,6 +616,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: 'f64 [not supported]',
       fixedSize: 8,
+      maxSize: 8,
       serialize: () => {
         throw new OperationNotSupportedError('f64');
       },
@@ -521,29 +626,11 @@ export class BeetSerializer implements SerializerInterface {
     };
   }
 
-  get string(): Serializer<string> {
-    return {
-      description: 'string',
-      fixedSize: null,
-      serialize: (value: string) => {
-        const stringBeet = beet.utf8String.toFixedFromValue(value);
-        const buffer = Buffer.alloc(stringBeet.byteSize);
-        stringBeet.write(buffer, 0, value);
-        return new Uint8Array(buffer);
-      },
-      deserialize: (bytes: Uint8Array, offset = 0) => {
-        const buffer = Buffer.from(bytes);
-        const stringBeet = beet.utf8String.toFixedFromData(buffer, offset);
-        const value = stringBeet.read(buffer, offset);
-        return [value, offset + stringBeet.byteSize];
-      },
-    };
-  }
-
   get bytes(): Serializer<Uint8Array> {
     return {
       description: 'bytes',
       fixedSize: null,
+      maxSize: null,
       serialize: (value: Uint8Array) => new Uint8Array(value),
       deserialize: (bytes: Uint8Array, offset = 0) => [
         new Uint8Array(bytes),
@@ -556,6 +643,7 @@ export class BeetSerializer implements SerializerInterface {
     return {
       description: 'publicKey',
       fixedSize: 32,
+      maxSize: 32,
       serialize: (value: PublicKeyInput) => {
         const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
         const key = new Web3PublicKey(toWeb3JsPublicKey(publicKey(value)));
@@ -577,6 +665,13 @@ export class BeetSerializer implements SerializerInterface {
 function sumSerializerSizes(sizes: (number | null)[]): number | null {
   return sizes.reduce(
     (all, size) => (all === null || size === null ? null : all + size),
+    0 as number | null
+  );
+}
+
+function maxSerializerSizes(sizes: (number | null)[]): number | null {
+  return sizes.reduce(
+    (all, size) => (all === null || size === null ? null : Math.max(all, size)),
     0 as number | null
   );
 }
