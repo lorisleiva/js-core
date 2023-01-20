@@ -1,21 +1,21 @@
-import { BigIntInput, toBigInt } from './BigInt';
+import { BigIntInput, createBigInt } from './BigInt';
 import { mapSerializer, Serializer } from './Serializer';
 
 export type DateTimeString = string;
 export type DateTimeInput = DateTimeString | BigIntInput | Date;
 export type DateTime = bigint;
 
-export const toDateTime = (value: DateTimeInput): DateTime => {
+export const dateTime = (value: DateTimeInput): DateTime => {
   if (typeof value === 'string' || isDateObject(value)) {
     const date = new Date(value);
     const timestamp = Math.floor(date.getTime() / 1000);
-    return toBigInt(timestamp);
+    return createBigInt(timestamp);
   }
 
-  return toBigInt(value);
+  return createBigInt(value);
 };
 
-export const now = (): DateTime => toDateTime(new Date(Date.now()));
+export const now = (): DateTime => dateTime(new Date(Date.now()));
 
 const isDateObject = (value: any): value is Date =>
   Object.prototype.toString.call(value) === '[object Date]';
@@ -42,8 +42,8 @@ export const mapDateTimeSerializer = (
   mapSerializer(
     serializer as Serializer<number | bigint>,
     (value: DateTimeInput): number | bigint => {
-      const dateTime = toDateTime(value);
-      return dateTime > Number.MAX_SAFE_INTEGER ? dateTime : Number(dateTime);
+      const date = dateTime(value);
+      return date > Number.MAX_SAFE_INTEGER ? date : Number(date);
     },
-    (value: number | bigint): DateTime => toDateTime(value)
+    (value: number | bigint): DateTime => dateTime(value)
   );

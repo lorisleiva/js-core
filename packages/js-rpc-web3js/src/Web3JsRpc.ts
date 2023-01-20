@@ -30,7 +30,7 @@ import {
   RpcInterface,
   RpcSendTransactionOptions,
   SolAmount,
-  toAmount,
+  createAmount,
   Transaction,
   TransactionMetaInnerInstruction,
   TransactionMetaTokenBalance,
@@ -184,7 +184,7 @@ export class Web3JsRpc implements RpcInterface {
       tokenBalance: Web3JsTokenBalance
     ): TransactionMetaTokenBalance => ({
       accountIndex: tokenBalance.accountIndex,
-      amount: toAmount(
+      amount: createAmount(
         tokenBalance.uiTokenAmount.amount,
         'splToken',
         tokenBalance.uiTokenAmount.decimals

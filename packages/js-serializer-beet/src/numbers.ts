@@ -1,4 +1,4 @@
-import { Serializer, toBigInt } from '@lorisleiva/js-core';
+import { Serializer } from '@lorisleiva/js-core';
 import type { FixedSizeBeet } from '@metaplex-foundation/beet';
 import * as beet from '@metaplex-foundation/beet';
 
@@ -96,10 +96,9 @@ function wrapBigintBeet(
     deserialize: (bytes: Uint8Array, offset = 0) => {
       const buffer = Buffer.from(bytes);
       const rawValue = fixedBeet.read(buffer, offset);
-      const value =
-        typeof rawValue === 'number'
-          ? BigInt(rawValue)
-          : toBigInt(rawValue.toString());
+      const value = BigInt(
+        typeof rawValue === 'number' ? rawValue : rawValue.toString()
+      );
       return [value, offset + fixedBeet.byteSize];
     },
   };

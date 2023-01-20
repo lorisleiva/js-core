@@ -1,4 +1,4 @@
-import { BigIntInput, toBigInt } from './BigInt';
+import { BigIntInput, createBigInt } from './BigInt';
 import { AmountMismatchError, UnexpectedAmountError } from './errors';
 import { mapSerializer, Serializer } from './Serializer';
 
@@ -20,17 +20,20 @@ export type SolAmount = Amount<'SOL', 9>;
 export type UsdAmount = Amount<'USD', 2>;
 export type PercentAmount<D extends AmountDecimals> = Amount<'%', D>;
 
-export const toAmount = <I extends AmountIdentifier, D extends AmountDecimals>(
+export const createAmount = <
+  I extends AmountIdentifier,
+  D extends AmountDecimals
+>(
   basisPoints: BigIntInput,
   identifier: I,
   decimals: D
 ): Amount<I, D> => ({
-  basisPoints: toBigInt(basisPoints),
+  basisPoints: createBigInt(basisPoints),
   identifier,
   decimals,
 });
 
-export const toAmountFromDecimals = <
+export const createAmountFromDecimals = <
   I extends AmountIdentifier,
   D extends AmountDecimals
 >(
@@ -38,7 +41,7 @@ export const toAmountFromDecimals = <
   identifier: I,
   decimals: D
 ): Amount<I, D> => {
-  const exponentAmount = toAmount(
+  const exponentAmount = createAmount(
     BigInt(10) ** BigInt(decimals ?? 0),
     identifier,
     decimals
@@ -47,7 +50,7 @@ export const toAmountFromDecimals = <
   return multiplyAmount(exponentAmount, decimalAmount);
 };
 
-export const toTokenAmount = <
+export const tokenAmount = <
   I extends AmountIdentifier,
   D extends AmountDecimals
 >(
@@ -55,20 +58,20 @@ export const toTokenAmount = <
   identifier?: I,
   decimals?: D
 ): Amount<I, D> =>
-  toAmountFromDecimals(
+  createAmountFromDecimals(
     tokens,
     (identifier ?? 'Token') as I,
     (decimals ?? 0) as D
   );
 
 export const lamports = (lamports: BigIntInput): SolAmount =>
-  toAmount(lamports, 'SOL', 9);
+  createAmount(lamports, 'SOL', 9);
 
 export const sol = (sol: number): SolAmount =>
-  toAmountFromDecimals(sol, 'SOL', 9);
+  createAmountFromDecimals(sol, 'SOL', 9);
 
 export const usd = (usd: number): UsdAmount =>
-  toAmountFromDecimals(usd, 'USD', 2);
+  createAmountFromDecimals(usd, 'USD', 2);
 
 export const isAmount = <I extends AmountIdentifier, D extends AmountDecimals>(
   amount: Amount,
@@ -210,7 +213,7 @@ export const isEqualToAmount = <
   right: Amount<I, D>,
   tolerance?: Amount<I, D>
 ): boolean => {
-  tolerance = tolerance ?? toAmount(0, left.identifier, left.decimals);
+  tolerance = tolerance ?? createAmount(0, left.identifier, left.decimals);
   assertSameAmounts(left, right, 'isEqualToAmount');
   assertSameAmounts(left, tolerance, 'isEqualToAmount');
 
@@ -308,5 +311,5 @@ export const mapAmountSerializer = <
         ? value.basisPoints
         : Number(value.basisPoints),
     (value: number | bigint): Amount<I, D> =>
-      toAmount(value, identifier, decimals)
+      createAmount(value, identifier, decimals)
   );

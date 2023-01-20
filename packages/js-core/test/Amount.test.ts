@@ -18,14 +18,14 @@ import {
   sol,
   lamports,
   AmountMismatchError,
-  toAmount,
+  createAmount,
   amountToString,
-  toTokenAmount,
+  tokenAmount,
 } from '../src';
 
 test('it can create amounts from any types', (t) => {
-  const usdAmount = toAmount(1500, 'USD', 2);
-  const gbpAmount = toAmount(4200, 'GBP', 2);
+  const usdAmount = createAmount(1500, 'USD', 2);
+  const gbpAmount = createAmount(4200, 'GBP', 2);
 
   t.is(usdAmount.basisPoints.toString(), '1500');
   t.is(usdAmount.identifier, 'USD');
@@ -36,11 +36,11 @@ test('it can create amounts from any types', (t) => {
 });
 
 test('it can be formatted', (t) => {
-  const percentAmount = toAmount(1234, '%', 2);
-  const usdAmount = toAmount(1536, 'USD', 2);
-  const gbpAmount = toAmount(4210, 'GBP', 2);
-  const solAmount = toAmount(2_500_000_000, 'SOL', 9);
-  const solAmountLeadingZeroDecimal = toAmount(2_005_000_000, 'SOL', 9);
+  const percentAmount = createAmount(1234, '%', 2);
+  const usdAmount = createAmount(1536, 'USD', 2);
+  const gbpAmount = createAmount(4210, 'GBP', 2);
+  const solAmount = createAmount(2_500_000_000, 'SOL', 9);
+  const solAmountLeadingZeroDecimal = createAmount(2_005_000_000, 'SOL', 9);
 
   t.is(amountToString(percentAmount), '12.34');
   t.is(formatAmount(percentAmount), '12.34%');
@@ -63,17 +63,17 @@ test('it can be formatted', (t) => {
 test('it has helpers for certain currencies', (t) => {
   amountEquals(t, usd(15.36), 'USD 15.36');
   amountEquals(t, usd(15.36), 'USD 15.36');
-  amountEquals(t, toAmount(1536, 'USD', 2), 'USD 15.36');
+  amountEquals(t, createAmount(1536, 'USD', 2), 'USD 15.36');
   amountEquals(t, sol(2.5), 'SOL 2.500000000');
   amountEquals(t, lamports(2_500_000_000), 'SOL 2.500000000');
-  amountEquals(t, toAmount(2_500_000_000, 'SOL', 9), 'SOL 2.500000000');
+  amountEquals(t, createAmount(2_500_000_000, 'SOL', 9), 'SOL 2.500000000');
 });
 
 test('it can create amounts representing SPL tokens', (t) => {
-  amountEquals(t, toTokenAmount(1), 'Token 1');
-  amountEquals(t, toTokenAmount(4.5, 'DGEN'), 'DGEN 4');
-  amountEquals(t, toTokenAmount(4.5, 'DGEN', 2), 'DGEN 4.50');
-  amountEquals(t, toTokenAmount(6.2587, 'DGEN', 9), 'DGEN 6.258700000');
+  amountEquals(t, tokenAmount(1), 'Token 1');
+  amountEquals(t, tokenAmount(4.5, 'DGEN'), 'DGEN 4');
+  amountEquals(t, tokenAmount(4.5, 'DGEN', 2), 'DGEN 4.50');
+  amountEquals(t, tokenAmount(6.2587, 'DGEN', 9), 'DGEN 6.258700000');
 });
 
 test('it can add and subtract amounts together', (t) => {
