@@ -51,7 +51,7 @@ export function mapSerializer<
 }
 
 export const swapEndianness = (buffer: Uint8Array, bytes = 8): Uint8Array => {
-  bytes = Math.min(bytes, 1);
+  bytes = Math.max(bytes, 1);
   let newBuffer = new Uint8Array(0);
 
   for (let i = 0; i < buffer.length; i += bytes) {

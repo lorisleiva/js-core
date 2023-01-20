@@ -31,7 +31,7 @@ export interface SerializerInterface {
     items: WrapInSerializer<[...T], [...U]>,
     description?: string
   ) => Serializer<T, U>;
-  vec: <T, U extends T = T>(
+  vec: <T, U extends T = T>( // Fixable.
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
@@ -42,7 +42,7 @@ export interface SerializerInterface {
     description?: string
   ) => Serializer<T[], U[]>;
 
-  // Maps, sets and options.
+  // Maps and sets.
   map: <TK, TV, UK extends TK = TK, UV extends TV = TV>(
     key: Serializer<TK, UK>,
     value: Serializer<TV, UV>,
@@ -54,7 +54,14 @@ export interface SerializerInterface {
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Set<T>, Set<U>>;
+
+  // Options.
   option: <T, U extends T = T>(
+    item: Serializer<T, U>,
+    prefix?: NumberSerializer,
+    description?: string
+  ) => Serializer<Option<T>, Option<U>>;
+  fixedOption: <T, U extends T = T>(
     item: Serializer<T, U>,
     prefix?: NumberSerializer,
     description?: string
@@ -64,38 +71,133 @@ export interface SerializerInterface {
     prefix?: NumberSerializer,
     description?: string
   ) => Serializer<Nullable<T>, Nullable<U>>;
+  fixedNullable: <T, U extends T = T>(
+    item: Serializer<T, U>,
+    prefix?: NumberSerializer,
+    description?: string
+  ) => Serializer<Nullable<T>, Nullable<U>>;
 
-  // Structs.
+  /**
+   * Creates a serializer for a custom object.
+   *
+   * @param fields - The name and serializer of each field.
+   * @param description - A custom description for the serializer.
+   */
   struct: <T extends object, U extends T = T>(
     fields: StructToSerializerTuple<T, U>,
     description?: string
   ) => Serializer<T, U>;
 
-  // Enums.
+  /**
+   * Creates a scalar enum serializer.
+   *
+   * @param constructor - The constructor of the scalar enum.
+   * @param description - A custom description for the serializer.
+   */
   enum<T>(constructor: ScalarEnum<T>, description?: string): Serializer<T>;
+
+  /**
+   * Creates a data enum serializer.
+   *
+   * @param variants - The variant serializers of the data enum.
+   * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param description - A custom description for the serializer.
+   */
   dataEnum<T extends DataEnum, U extends T = T>(
-    fields: DataEnumToSerializerTuple<T, U>,
+    variants: DataEnumToSerializerTuple<T, U>,
     prefix?: NumberSerializer,
     description?: string
   ): Serializer<T, U>;
 
-  // Leaves.
+  /**
+   * Creates a fixed-size serializer from a given serializer.
+   *
+   * @param child - The serializer to wrap into a fixed-size serializer.
+   * @param bytes - The fixed number of bytes to read.
+   * @param description - A custom description for the serializer.
+   */
+  fixed: <T, U extends T = T>(
+    child: Serializer<T, U>,
+    bytes: number,
+    description?: string
+  ) => Serializer<T, U>;
+
+  /**
+   * Creates a string serializer.
+   *
+   * @param prefix - The serializer to use for the length prefix. Defaults to `u32`.
+   * @param description - A custom description for the serializer.
+   */
+  string: (
+    prefix?: NumberSerializer,
+    description?: string
+  ) => Serializer<string>;
+
+  /**
+   * Creates serializer of fixed length strings.
+   *
+   * @param bytes - The fixed number of bytes to read.
+   * @param prefix - The serializer to use for the length prefix
+   * or null if no length prefix should be used. Defaults to `null`.
+   * @param description - A custom description for the serializer.
+   */
+  fixedString: (
+    bytes: number,
+    prefix?: NumberSerializer | null,
+    description?: string
+  ) => Serializer<string>;
+
+  /**
+   * Creates a boolean serializer.
+   *
+   * @param size - The number serializer to delegate to. Defaults to `u8`.
+   * @param description - A custom description for the serializer.
+   */
+  bool: (size?: NumberSerializer, description?: string) => Serializer<boolean>;
+
+  /** Creates a void serializer. */
   unit: Serializer<void>;
-  bool: Serializer<boolean>;
+
+  /** Creates a serializer for 1-byte unsigned integers. */
   u8: Serializer<number>;
+
+  /** Creates a serializer for 2-bytes unsigned integers. */
   u16: Serializer<number>;
+
+  /** Creates a serializer for 4-bytes unsigned integers. */
   u32: Serializer<number>;
+
+  /** Creates a serializer for 8-bytes unsigned integers. */
   u64: Serializer<number | bigint, bigint>;
+
+  /** Creates a serializer for 16-bytes unsigned integers. */
   u128: Serializer<number | bigint, bigint>;
+
+  /** Creates a serializer for 1-byte signed integers. */
   i8: Serializer<number>;
+
+  /** Creates a serializer for 2-bytes signed integers. */
   i16: Serializer<number>;
+
+  /** Creates a serializer for 4-bytes signed integers. */
   i32: Serializer<number>;
+
+  /** Creates a serializer for 8-bytes signed integers. */
   i64: Serializer<number | bigint, bigint>;
+
+  /** Creates a serializer for 16-bytes signed integers. */
   i128: Serializer<number | bigint, bigint>;
+
+  /** Creates a serializer for 4-bytes floating point numbers. */
   f32: Serializer<number>;
+
+  /** Creates a serializer for 8-bytes floating point numbers. */
   f64: Serializer<number>;
-  string: Serializer<string>;
+
+  /** Creates a serializer that passes the buffer as-is. */
   bytes: Serializer<Uint8Array>;
+
+  /** Creates a serializer for 32-bytes public keys. */
   publicKey: Serializer<PublicKey | PublicKeyInput, PublicKey>;
 }
 
@@ -132,7 +234,15 @@ export class NullSerializer implements SerializerInterface {
     throw this.error;
   }
 
+  fixedOption<T, U extends T = T>(): Serializer<Option<T>, Option<U>> {
+    throw this.error;
+  }
+
   nullable<T, U extends T = T>(): Serializer<Nullable<T>, Nullable<U>> {
+    throw this.error;
+  }
+
+  fixedNullable<T, U extends T = T>(): Serializer<Nullable<T>, Nullable<U>> {
     throw this.error;
   }
 
@@ -148,11 +258,23 @@ export class NullSerializer implements SerializerInterface {
     throw this.error;
   }
 
-  get unit(): Serializer<void> {
+  fixed<T, U extends T = T>(): Serializer<T, U> {
     throw this.error;
   }
 
-  get bool(): Serializer<boolean> {
+  string(): Serializer<string> {
+    throw this.error;
+  }
+
+  fixedString(): Serializer<string> {
+    throw this.error;
+  }
+
+  bool(): Serializer<boolean> {
+    throw this.error;
+  }
+
+  get unit(): Serializer<void> {
     throw this.error;
   }
 
@@ -201,10 +323,6 @@ export class NullSerializer implements SerializerInterface {
   }
 
   get f64(): Serializer<number> {
-    throw this.error;
-  }
-
-  get string(): Serializer<string> {
     throw this.error;
   }
 
