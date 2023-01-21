@@ -1,9 +1,9 @@
 import {
-  AssetNotFoundError,
   DownloaderInterface,
   GenericFile,
   UploaderInterface,
 } from '@lorisleiva/js-core';
+import { AssetNotFoundError } from './errors';
 
 const DEFAULT_BASE_URL = 'https://mockstorage.example.com/';
 

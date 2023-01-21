@@ -1,5 +1,5 @@
 import type { SolAmount } from './Amount';
-import { AccountNotFoundError } from './errors';
+import { AccountNotFoundError, UnexpectedAccountError } from './errors';
 import type { PublicKey } from './PublicKey';
 import type { Serializer } from './Serializer';
 
@@ -31,8 +31,16 @@ export function deserializeAccount<T extends object>(
   dataSerializer: Serializer<T>
 ): Account<T> {
   const { data, address, ...rest } = rawAccount;
-  const [parsedData] = dataSerializer.deserialize(data);
-  return { address, header: rest, ...parsedData };
+  try {
+    const [parsedData] = dataSerializer.deserialize(data);
+    return { address, header: rest, ...parsedData };
+  } catch (error: any) {
+    throw new UnexpectedAccountError(
+      address,
+      dataSerializer.description,
+      error
+    );
+  }
 }
 
 export function assertAccountExists(

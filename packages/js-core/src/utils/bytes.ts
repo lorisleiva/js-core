@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { SdkError } from '../errors/SdkError';
+import { InvalidBaseStringError } from '../errors/InvalidBaseStringError';
 import type { Serializer } from '../Serializer';
 
 export const utf8: Serializer<string> = {
@@ -117,13 +117,3 @@ export const mergeBytes = (bytesArr: Uint8Array[]): Uint8Array => {
   });
   return result;
 };
-
-/** @group Errors */
-export class InvalidBaseStringError extends SdkError {
-  readonly name: string = 'InvalidBaseStringError';
-
-  constructor(value: string, base: number) {
-    const message = `Expected a string of base ${base}, got [${value}].`;
-    super(message);
-  }
-}

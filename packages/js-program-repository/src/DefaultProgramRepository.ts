@@ -70,7 +70,7 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
 
     // Parse the instruction number.
     const instructionRegex = /Error processing Instruction (\d+):/;
-    const instruction = logs.match(instructionRegex)?.[1] ?? null;
+    const instruction = error.message.match(instructionRegex)?.[1] ?? null;
 
     // Parse the error code.
     const errorCodeRegex = /Custom program error: (0x[a-f0-9]+)/i;
@@ -78,7 +78,7 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
     const errorCode = errorCodeString ? parseInt(errorCodeString, 16) : null;
 
     // Ensure we could find an instruction number and an error code.
-    if (!instruction || !errorCode) return null;
+    if (instruction === null || errorCode === null) return null;
 
     // Get the program ID from the instruction in the transaction.
     const instructionNumber: number = parseInt(instruction, 10);
