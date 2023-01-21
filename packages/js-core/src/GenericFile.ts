@@ -1,4 +1,3 @@
-import { InvalidJsonVariableError } from './errors';
 import { generateRandomString } from './utils';
 
 export type GenericFile = {
@@ -50,17 +49,7 @@ export const createGenericFileFromJson = <T extends object = object>(
   json: T,
   fileName = 'inline.json',
   options: GenericFileOptions = {}
-): GenericFile => {
-  let jsonString;
-
-  try {
-    jsonString = JSON.stringify(json);
-  } catch (error) {
-    throw new InvalidJsonVariableError(error as Error);
-  }
-
-  return createGenericFile(jsonString, fileName, options);
-};
+): GenericFile => createGenericFile(JSON.stringify(json), fileName, options);
 
 export const createBrowserFileFromGenericFile = (
   file: GenericFile

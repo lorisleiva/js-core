@@ -2,8 +2,6 @@ export * from './AccountNotFoundError';
 export * from './AmountMismatchError';
 export * from './InterfaceImplementationMissingError';
 export * from './InvalidBaseStringError';
-export * from './InvalidJsonStringError';
-export * from './InvalidJsonVariableError';
 export * from './MetaplexError';
 export * from './ProgramError';
 export * from './SdkError';
