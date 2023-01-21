@@ -1,4 +1,5 @@
 import type { Program } from '../Program';
+import { formatPublicKey } from '../PublicKey';
 import { MetaplexError } from './MetaplexError';
 
 type UnderlyingProgramError = Error & { code?: number; logs?: string[] };
@@ -19,7 +20,7 @@ export class ProgramError extends MetaplexError {
     super(
       message,
       'program',
-      `${program.name} [${program.address.toString()}]`,
+      `${program.name} [${formatPublicKey(program.address)}]`,
       cause
     );
     this.program = program;
@@ -40,7 +41,7 @@ export class UnknownProgramError extends ProgramError {
     const ofCode = cause.code ? ` of code [${cause.code}]` : '';
     const message =
       `The program [${program.name}] ` +
-      `at address [${program.address.toString()}] ` +
+      `at address [${formatPublicKey(program.address)}] ` +
       `raised an error${ofCode} ` +
       `that is not recognized by the programs registered on the SDK. ` +
       `Please check the underlying program error below for more details.`;
