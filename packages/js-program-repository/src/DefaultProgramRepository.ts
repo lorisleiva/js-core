@@ -17,6 +17,16 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
 
   constructor(protected readonly context: Pick<Context, 'rpc'>) {}
 
+  has(
+    nameOrAddress: string | PublicKey,
+    clusterFilter: ClusterFilter = 'current'
+  ): boolean {
+    const programs = this.all(clusterFilter);
+    return typeof nameOrAddress === 'string'
+      ? programs.some((p) => p.name === nameOrAddress)
+      : programs.some((p) => samePublicKey(p.address, nameOrAddress));
+  }
+
   get<T extends Program = Program>(
     nameOrAddress: string | PublicKey,
     clusterFilter: ClusterFilter = 'current'
@@ -42,8 +52,12 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
       : this.programs.filter((program) => program.isOnCluster(cluster));
   }
 
-  add(program: Program): void {
-    this.programs.unshift(program);
+  add(program: Program, overrides = true): void {
+    if (overrides) {
+      this.programs.unshift(program);
+    } else {
+      this.programs.push(program);
+    }
   }
 
   resolveError(
