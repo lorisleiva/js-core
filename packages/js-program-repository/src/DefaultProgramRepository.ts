@@ -101,7 +101,7 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
     }
 
     // Finally, resolve the error.
-    return program.getErrorFromCode(errorCode);
+    return program.getErrorFromCode(errorCode, error);
   }
 
   protected parseClusterFilter(clusterFilter: ClusterFilter): Cluster | '*' {
