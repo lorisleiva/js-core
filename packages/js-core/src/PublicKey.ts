@@ -1,15 +1,15 @@
-import type { Signer } from './Signer';
 import { base58 } from './utils';
 
 export const PUBLIC_KEY_LENGTH = 32;
 
+export type HasPublicKey = { publicKey: PublicKey };
 export type PublicKeyBase58 = string;
 export type PublicKeyBytes = Uint8Array;
 export type PublicKeyInput =
-  | PublicKeyBase58
-  | PublicKeyBytes
+  | HasPublicKey
   | PublicKey
-  | { publicKey: PublicKey };
+  | PublicKeyBase58
+  | PublicKeyBytes;
 
 export type PublicKey = {
   readonly bytes: PublicKeyBytes;
@@ -25,7 +25,7 @@ export const publicKey = (input: PublicKeyInput): PublicKey => {
   if (typeof input === 'string') {
     key = { bytes: base58.serialize(input) };
   }
-  // { publicKey: PublicKey }.
+  // HasPublicKey.
   else if (typeof input === 'object' && 'publicKey' in input) {
     key = { bytes: new Uint8Array(input.publicKey.bytes) };
   }
@@ -64,14 +64,17 @@ export function assertPublicKey(value: any): asserts value is PublicKey {
   }
 }
 
-export const samePublicKey = (left: PublicKey, right: PublicKey): boolean =>
-  left.bytes.toString() === right.bytes.toString();
+export const samePublicKey = (
+  left: PublicKeyInput,
+  right: PublicKeyInput
+): boolean =>
+  publicKey(left).bytes.toString() === publicKey(right).bytes.toString();
 
-export const formatPublicKey = (publicKey: PublicKey): string =>
-  base58.deserialize(publicKey.bytes)[0];
+export const displayPublicKey = (key: PublicKeyInput): string =>
+  base58.deserialize(publicKey(key).bytes)[0];
 
 export const checkForIsWritableOverride = (
-  account: (PublicKey | Signer) & { isWritable?: boolean },
+  account: (PublicKey | HasPublicKey) & { isWritable?: boolean },
   value: boolean
 ) =>
   'isWritable' in account && typeof account.isWritable === 'boolean'

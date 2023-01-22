@@ -1,4 +1,4 @@
-import { formatPublicKey, PublicKey } from '../PublicKey';
+import { displayPublicKey, PublicKey } from '../PublicKey';
 import { SdkError } from './SdkError';
 
 /** @group Errors */
@@ -10,7 +10,7 @@ export class AccountNotFoundError extends SdkError {
       accountType
         ? `The account of type [${accountType}] was not found`
         : 'No account was found'
-    } at the provided address [${formatPublicKey(address)}].${
+    } at the provided address [${displayPublicKey(address)}].${
       solution ? ` ${solution}` : ''
     }`;
     super(message);

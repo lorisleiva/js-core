@@ -1,5 +1,5 @@
 import type { Program } from '../Program';
-import { formatPublicKey } from '../PublicKey';
+import { displayPublicKey } from '../PublicKey';
 import { MetaplexError } from './MetaplexError';
 
 export type UnderlyingProgramError = Error & { code?: number; logs?: string[] };
@@ -20,7 +20,7 @@ export class ProgramError extends MetaplexError {
     super(
       message,
       'program',
-      `${program.name} [${formatPublicKey(program.address)}]`,
+      `${program.name} [${displayPublicKey(program.address)}]`,
       cause
     );
     this.program = program;

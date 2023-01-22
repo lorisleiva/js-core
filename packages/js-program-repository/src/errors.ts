@@ -1,6 +1,6 @@
 import {
   Cluster,
-  formatPublicKey,
+  displayPublicKey,
   Program,
   ProgramError,
   PublicKey,
@@ -17,7 +17,7 @@ export class ProgramNotRecognizedError extends SdkError {
 
   constructor(nameOrAddress: string | PublicKey, cluster: Cluster | '*') {
     const isName = typeof nameOrAddress === 'string';
-    const toString = isName ? nameOrAddress : formatPublicKey(nameOrAddress);
+    const toString = isName ? nameOrAddress : displayPublicKey(nameOrAddress);
     const clusterString = cluster === '*' ? 'any' : `the [${cluster}]`;
     const message =
       `The provided program ${isName ? 'name' : 'address'} [${toString}] ` +
@@ -38,7 +38,7 @@ export class ProgramErrorNotRecognizedError extends ProgramError {
     const ofCode = cause.code ? ` of code [${cause.code}]` : '';
     const message =
       `The program [${program.name}] ` +
-      `at address [${formatPublicKey(program.address)}] ` +
+      `at address [${displayPublicKey(program.address)}] ` +
       `raised an error${ofCode} ` +
       `that is not recognized by the programs registered on the SDK. ` +
       `Please check the underlying program error below for more details.`;

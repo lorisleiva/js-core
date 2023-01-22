@@ -1,7 +1,7 @@
 import test, { Assertions } from 'ava';
 import {
   Amount,
-  formatAmount,
+  displayAmount,
   addAmounts,
   subtractAmounts,
   multiplyAmount,
@@ -43,21 +43,21 @@ test('it can be formatted', (t) => {
   const solAmountLeadingZeroDecimal = createAmount(2_005_000_000, 'SOL', 9);
 
   t.is(amountToString(percentAmount), '12.34');
-  t.is(formatAmount(percentAmount), '12.34%');
+  t.is(displayAmount(percentAmount), '12.34%');
 
   t.is(amountToString(usdAmount), '15.36');
-  t.is(formatAmount(usdAmount), 'USD 15.36');
+  t.is(displayAmount(usdAmount), 'USD 15.36');
 
   t.is(amountToString(gbpAmount), '42.10');
-  t.is(formatAmount(gbpAmount), 'GBP 42.10');
+  t.is(displayAmount(gbpAmount), 'GBP 42.10');
 
   t.is(amountToString(solAmount), '2.500000000');
   t.is(amountToString(solAmount, 2), '2.50');
-  t.is(formatAmount(solAmount), 'SOL 2.500000000');
-  t.is(formatAmount(solAmount, 2), 'SOL 2.50');
+  t.is(displayAmount(solAmount), 'SOL 2.500000000');
+  t.is(displayAmount(solAmount, 2), 'SOL 2.50');
 
   t.is(amountToString(solAmountLeadingZeroDecimal), '2.005000000');
-  t.is(formatAmount(solAmountLeadingZeroDecimal), 'SOL 2.005000000');
+  t.is(displayAmount(solAmountLeadingZeroDecimal), 'SOL 2.005000000');
 });
 
 test('it has helpers for certain currencies', (t) => {
@@ -165,6 +165,6 @@ test('it returns a new instance when running operations', (t) => {
 });
 
 const amountEquals = (t: Assertions, amount: Amount, expected: string) => {
-  const actual = formatAmount(amount);
+  const actual = displayAmount(amount);
   t.is(actual, expected, `${actual} === ${expected}`);
 };

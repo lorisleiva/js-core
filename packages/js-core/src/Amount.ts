@@ -285,7 +285,7 @@ export const amountToString = (value: Amount, maxDecimals?: number): string => {
 export const amountToNumber = (value: Amount): number =>
   parseFloat(amountToString(value));
 
-export const formatAmount = (value: Amount, maxDecimals?: number): string => {
+export const displayAmount = (value: Amount, maxDecimals?: number): string => {
   const amountAsString = amountToString(value, maxDecimals);
 
   switch (value.identifier) {
