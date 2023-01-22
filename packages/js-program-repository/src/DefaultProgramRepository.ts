@@ -10,7 +10,10 @@ import {
   samePublicKey,
   Transaction,
 } from '@lorisleiva/js-core';
-import { ProgramNotRecognizedError } from './errors';
+import {
+  ProgramErrorNotRecognizedError,
+  ProgramNotRecognizedError,
+} from './errors';
 
 export class DefaultProgramRepository implements ProgramRepositoryInterface {
   protected programs: Program[] = [];
@@ -101,7 +104,8 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
     }
 
     // Finally, resolve the error.
-    return program.getErrorFromCode(errorCode, error);
+    const resolvedError = program.getErrorFromCode(errorCode, error);
+    return resolvedError ?? new ProgramErrorNotRecognizedError(program, error);
   }
 
   protected parseClusterFilter(clusterFilter: ClusterFilter): Cluster | '*' {

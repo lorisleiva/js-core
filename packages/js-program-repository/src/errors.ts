@@ -1,8 +1,11 @@
 import {
   Cluster,
+  formatPublicKey,
+  Program,
+  ProgramError,
   PublicKey,
   SdkError,
-  formatPublicKey,
+  UnderlyingProgramError,
 } from '@lorisleiva/js-core';
 
 export class ProgramNotRecognizedError extends SdkError {
@@ -24,5 +27,21 @@ export class ProgramNotRecognizedError extends SdkError {
     super(message);
     this.nameOrAddress = nameOrAddress;
     this.cluster = cluster;
+  }
+}
+
+/** @group Errors */
+export class ProgramErrorNotRecognizedError extends ProgramError {
+  readonly name: string = 'ProgramErrorNotRecognizedError';
+
+  constructor(program: Program, cause: UnderlyingProgramError) {
+    const ofCode = cause.code ? ` of code [${cause.code}]` : '';
+    const message =
+      `The program [${program.name}] ` +
+      `at address [${formatPublicKey(program.address)}] ` +
+      `raised an error${ofCode} ` +
+      `that is not recognized by the programs registered on the SDK. ` +
+      `Please check the underlying program error below for more details.`;
+    super(message, program, cause);
   }
 }
