@@ -5,12 +5,12 @@ import { SdkError } from './SdkError';
 export class AccountNotFoundError extends SdkError {
   readonly name: string = 'AccountNotFoundError';
 
-  constructor(address: PublicKey, accountType?: string, solution?: string) {
+  constructor(publicKey: PublicKey, accountType?: string, solution?: string) {
     const message = `${
       accountType
         ? `The account of type [${accountType}] was not found`
         : 'No account was found'
-    } at the provided address [${displayPublicKey(address)}].${
+    } at the provided address [${displayPublicKey(publicKey)}].${
       solution ? ` ${solution}` : ''
     }`;
     super(message);

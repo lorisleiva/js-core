@@ -25,7 +25,7 @@ export function fromWeb3JsMessage(
       data: instruction.data,
     })),
     addressLookupTables: message.addressTableLookups.map((lookup) => ({
-      address: fromWeb3JsPublicKey(lookup.accountKey),
+      publicKey: fromWeb3JsPublicKey(lookup.accountKey),
       writableIndexes: lookup.writableIndexes,
       readonlyIndexes: lookup.readonlyIndexes,
     })),
@@ -58,7 +58,7 @@ export function toWeb3JsMessage(
       data: instruction.data,
     })),
     addressTableLookups: message.addressLookupTables.map((lookup) => ({
-      accountKey: toWeb3JsPublicKey(lookup.address),
+      accountKey: toWeb3JsPublicKey(lookup.publicKey),
       writableIndexes: lookup.writableIndexes,
       readonlyIndexes: lookup.readonlyIndexes,
     })),
@@ -83,7 +83,7 @@ export function toWeb3JsMessageFromInput(
     addressLookupTableAccounts: input.addressLookupTables?.map(
       (account) =>
         new Web3JsAddressLookupTableAccount({
-          key: toWeb3JsPublicKey(account.address),
+          key: toWeb3JsPublicKey(account.publicKey),
           state: {
             ...account,
             authority: account.authority

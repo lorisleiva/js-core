@@ -13,16 +13,16 @@ export type AccountHeader = {
 };
 
 export type RpcAccount = AccountHeader & {
-  address: PublicKey;
+  publicKey: PublicKey;
   data: Uint8Array;
 };
 
 export type MaybeRpcAccount =
   | ({ exists: true } & RpcAccount)
-  | { exists: false; address: PublicKey };
+  | { exists: false; publicKey: PublicKey };
 
 export type Account<T extends object> = T & {
-  address: PublicKey;
+  publicKey: PublicKey;
   header: AccountHeader;
 };
 
@@ -30,13 +30,13 @@ export function deserializeAccount<T extends object>(
   rawAccount: RpcAccount,
   dataSerializer: Serializer<T>
 ): Account<T> {
-  const { data, address, ...rest } = rawAccount;
+  const { data, publicKey, ...rest } = rawAccount;
   try {
     const [parsedData] = dataSerializer.deserialize(data);
-    return { address, header: rest, ...parsedData };
+    return { publicKey, header: rest, ...parsedData };
   } catch (error: any) {
     throw new UnexpectedAccountError(
-      address,
+      publicKey,
       dataSerializer.description,
       error
     );
@@ -49,6 +49,6 @@ export function assertAccountExists(
   solution?: string
 ): asserts account is MaybeRpcAccount & { exists: true } {
   if (!account.exists) {
-    throw new AccountNotFoundError(account.address, name, solution);
+    throw new AccountNotFoundError(account.publicKey, name, solution);
   }
 }

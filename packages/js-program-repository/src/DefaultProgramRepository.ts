@@ -21,28 +21,28 @@ export class DefaultProgramRepository implements ProgramRepositoryInterface {
   constructor(protected readonly context: Pick<Context, 'rpc'>) {}
 
   has(
-    nameOrAddress: string | PublicKey,
+    identifier: string | PublicKey,
     clusterFilter: ClusterFilter = 'current'
   ): boolean {
     const programs = this.all(clusterFilter);
-    return typeof nameOrAddress === 'string'
-      ? programs.some((p) => p.name === nameOrAddress)
-      : programs.some((p) => samePublicKey(p.address, nameOrAddress));
+    return typeof identifier === 'string'
+      ? programs.some((p) => p.name === identifier)
+      : programs.some((p) => samePublicKey(p.publicKey, identifier));
   }
 
   get<T extends Program = Program>(
-    nameOrAddress: string | PublicKey,
+    identifier: string | PublicKey,
     clusterFilter: ClusterFilter = 'current'
   ): T {
     const cluster = this.parseClusterFilter(clusterFilter);
     const programs = this.all(clusterFilter);
     const program =
-      typeof nameOrAddress === 'string'
-        ? programs.find((p) => p.name === nameOrAddress)
-        : programs.find((p) => samePublicKey(p.address, nameOrAddress));
+      typeof identifier === 'string'
+        ? programs.find((p) => p.name === identifier)
+        : programs.find((p) => samePublicKey(p.publicKey, identifier));
 
     if (!program) {
-      throw new ProgramNotRecognizedError(nameOrAddress, cluster);
+      throw new ProgramNotRecognizedError(identifier, cluster);
     }
 
     return program as T;

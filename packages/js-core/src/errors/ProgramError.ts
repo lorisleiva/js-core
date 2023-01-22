@@ -20,7 +20,7 @@ export class ProgramError extends MetaplexError {
     super(
       message,
       'program',
-      `${program.name} [${displayPublicKey(program.address)}]`,
+      `${program.name} [${displayPublicKey(program.publicKey)}]`,
       cause
     );
     this.program = program;

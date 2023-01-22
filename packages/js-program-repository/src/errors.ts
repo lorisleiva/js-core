@@ -11,13 +11,13 @@ import {
 export class ProgramNotRecognizedError extends SdkError {
   readonly name: string = 'ProgramNotRecognizedError';
 
-  readonly nameOrAddress: string | PublicKey;
+  readonly identifier: string | PublicKey;
 
   readonly cluster: Cluster | '*';
 
-  constructor(nameOrAddress: string | PublicKey, cluster: Cluster | '*') {
-    const isName = typeof nameOrAddress === 'string';
-    const toString = isName ? nameOrAddress : displayPublicKey(nameOrAddress);
+  constructor(identifier: string | PublicKey, cluster: Cluster | '*') {
+    const isName = typeof identifier === 'string';
+    const toString = isName ? identifier : displayPublicKey(identifier);
     const clusterString = cluster === '*' ? 'any' : `the [${cluster}]`;
     const message =
       `The provided program ${isName ? 'name' : 'address'} [${toString}] ` +
@@ -25,7 +25,7 @@ export class ProgramNotRecognizedError extends SdkError {
       'Did you forget to register this program? ' +
       'If so, you may use "context.programs.add(myProgram)" to fix this.';
     super(message);
-    this.nameOrAddress = nameOrAddress;
+    this.identifier = identifier;
     this.cluster = cluster;
   }
 }
@@ -38,7 +38,7 @@ export class ProgramErrorNotRecognizedError extends ProgramError {
     const ofCode = cause.code ? ` of code [${cause.code}]` : '';
     const message =
       `The program [${program.name}] ` +
-      `at address [${displayPublicKey(program.address)}] ` +
+      `at address [${displayPublicKey(program.publicKey)}] ` +
       `raised an error${ofCode} ` +
       `that is not recognized by the programs registered on the SDK. ` +
       `Please check the underlying program error below for more details.`;

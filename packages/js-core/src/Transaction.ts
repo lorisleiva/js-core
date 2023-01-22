@@ -37,7 +37,7 @@ export type CompiledInstruction = {
 };
 
 export type CompiledAddressLookupTable = {
-  readonly address: PublicKey;
+  readonly publicKey: PublicKey;
   readonly writableIndexes: number[];
   readonly readonlyIndexes: number[];
 };
@@ -95,7 +95,7 @@ export type TransactionInputBase = {
 };
 
 export type AddressLookupTableInput = {
-  address: PublicKey;
+  publicKey: PublicKey;
   addresses: PublicKey[];
   deactivationSlot: bigint;
   lastExtendedSlot: number;

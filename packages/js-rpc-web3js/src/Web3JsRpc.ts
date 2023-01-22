@@ -82,26 +82,26 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async getAccount(
-    address: PublicKey,
+    publicKey: PublicKey,
     options: RpcGetAccountOptions = {}
   ): Promise<MaybeRpcAccount> {
     const account = await this.connection.getAccountInfo(
-      toWeb3JsPublicKey(address),
+      toWeb3JsPublicKey(publicKey),
       options
     );
-    return this.parseMaybeAccount(account, address);
+    return this.parseMaybeAccount(account, publicKey);
   }
 
   async getAccounts(
-    addresses: PublicKey[],
+    publicKeys: PublicKey[],
     options: RpcGetAccountsOptions = {}
   ): Promise<MaybeRpcAccount[]> {
     const accounts = await this.connection.getMultipleAccountsInfo(
-      addresses.map(toWeb3JsPublicKey),
+      publicKeys.map(toWeb3JsPublicKey),
       options
     );
     return accounts.map((account, index) =>
-      this.parseMaybeAccount(account, addresses[index])
+      this.parseMaybeAccount(account, publicKeys[index])
     );
   }
 
@@ -122,11 +122,11 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async getBalance(
-    address: PublicKey,
+    publicKey: PublicKey,
     options: RpcGetBalanceOptions = {}
   ): Promise<SolAmount> {
     const balanceInLamports = await this.connection.getBalance(
-      toWeb3JsPublicKey(address),
+      toWeb3JsPublicKey(publicKey),
       options
     );
     return lamports(balanceInLamports);
@@ -234,19 +234,19 @@ export class Web3JsRpc implements RpcInterface {
   }
 
   async accountExists(
-    address: PublicKey,
+    publicKey: PublicKey,
     options: RpcAccountExistsOptions = {}
   ): Promise<boolean> {
-    return !isZeroAmount(await this.getBalance(address, options));
+    return !isZeroAmount(await this.getBalance(publicKey, options));
   }
 
   async airdrop(
-    address: PublicKey,
+    publicKey: PublicKey,
     amount: SolAmount,
     options: RpcAirdropOptions = {}
   ): Promise<void> {
     const signature = await this.connection.requestAirdrop(
-      toWeb3JsPublicKey(address),
+      toWeb3JsPublicKey(publicKey),
       Number(amount.basisPoints)
     );
     if (options.strategy) {
@@ -313,25 +313,25 @@ export class Web3JsRpc implements RpcInterface {
 
   protected parseAccount(
     account: Web3JsAccountInfo<Uint8Array>,
-    address: PublicKey
+    publicKey: PublicKey
   ): RpcAccount {
     return {
       executable: account.executable,
       owner: fromWeb3JsPublicKey(account.owner),
       lamports: lamports(account.lamports),
       rentEpoch: account.rentEpoch,
-      address,
+      publicKey,
       data: new Uint8Array(account.data),
     };
   }
 
   protected parseMaybeAccount(
     account: Web3JsAccountInfo<Uint8Array> | null,
-    address: PublicKey
+    publicKey: PublicKey
   ): MaybeRpcAccount {
     return account
-      ? { ...this.parseAccount(account, address), exists: true }
-      : { exists: false, address };
+      ? { ...this.parseAccount(account, publicKey), exists: true }
+      : { exists: false, publicKey };
   }
 
   protected parseDataFilter(

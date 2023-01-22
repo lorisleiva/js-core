@@ -16,11 +16,11 @@ export interface RpcInterface {
   getEndpoint(): string;
   getCluster(): Cluster;
   getAccount(
-    address: PublicKey,
+    publicKey: PublicKey,
     options?: RpcGetAccountOptions
   ): Promise<MaybeRpcAccount>;
   getAccounts(
-    addresses: PublicKey[],
+    publicKeys: PublicKey[],
     options?: RpcGetAccountsOptions
   ): Promise<MaybeRpcAccount[]>;
   getProgramAccounts(
@@ -28,7 +28,7 @@ export interface RpcInterface {
     options?: RpcGetProgramAccountsOptions
   ): Promise<RpcAccount[]>;
   getBalance(
-    address: PublicKey,
+    publicKey: PublicKey,
     options?: RpcGetBalanceOptions
   ): Promise<SolAmount>;
   getRent(bytes: number, options?: RpcGetRentOptions): Promise<SolAmount>;
@@ -40,11 +40,11 @@ export interface RpcInterface {
     options?: RpcGetTransactionOptions
   ): Promise<TransactionWithMeta | null>;
   accountExists(
-    address: PublicKey,
+    publicKey: PublicKey,
     options?: RpcAccountExistsOptions
   ): Promise<boolean>;
   airdrop(
-    address: PublicKey,
+    publicKey: PublicKey,
     amount: SolAmount,
     options?: RpcAirdropOptions
   ): Promise<void>;

@@ -5,9 +5,9 @@ import { SdkError } from './SdkError';
 export class UnexpectedAccountError extends SdkError {
   readonly name: string = 'UnexpectedAccountError';
 
-  constructor(address: PublicKey, expectedType: string, cause?: Error) {
+  constructor(publicKey: PublicKey, expectedType: string, cause?: Error) {
     const message =
-      `The account at the provided address [${displayPublicKey(address)}] ` +
+      `The account at the provided address [${displayPublicKey(publicKey)}] ` +
       `is not of the expected type [${expectedType}].`;
     super(message, cause);
   }
