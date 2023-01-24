@@ -50,6 +50,11 @@ export const createAmountFromDecimals = <
   return multiplyAmount(exponentAmount, decimalAmount);
 };
 
+export const percentAmount = <D extends AmountDecimals>(
+  percent: number,
+  decimals: D = 2 as D
+): Amount<'%', D> => createAmountFromDecimals(percent, '%', decimals);
+
 export const tokenAmount = <
   I extends AmountIdentifier,
   D extends AmountDecimals

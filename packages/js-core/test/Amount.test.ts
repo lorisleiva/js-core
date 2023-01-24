@@ -21,6 +21,7 @@ import {
   createAmount,
   amountToString,
   tokenAmount,
+  percentAmount,
 } from '../src';
 
 test('it can create amounts from any types', (t) => {
@@ -162,6 +163,16 @@ test('it returns a new instance when running operations', (t) => {
   t.not(b, subtractAmounts(a, b));
   t.not(a, multiplyAmount(a, 3));
   t.not(a, divideAmount(a, 3));
+});
+
+test('it can create percent amounts', (t) => {
+  amountEquals(t, percentAmount(5.5), '5.50%');
+  amountEquals(t, percentAmount(5.5, 2), '5.50%');
+  amountEquals(t, percentAmount(5.5, 4), '5.5000%');
+  amountEquals(t, percentAmount(5.12345, 4), '5.1234%');
+  amountEquals(t, percentAmount(5.12345, 0), '5%');
+  amountEquals(t, percentAmount(100), '100.00%');
+  amountEquals(t, percentAmount(250), '250.00%');
 });
 
 const amountEquals = (t: Assertions, amount: Amount, expected: string) => {
