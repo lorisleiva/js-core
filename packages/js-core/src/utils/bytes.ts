@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 import { InvalidBaseStringError } from '../errors/InvalidBaseStringError';
 import type { Serializer } from '../Serializer';
+import { removeNullCharacters } from './nullCharacters';
 
 export const utf8: Serializer<string> = {
   description: 'utf8',
@@ -11,7 +12,7 @@ export const utf8: Serializer<string> = {
   },
   deserialize(buffer, offset = 0) {
     const value = new TextDecoder().decode(buffer.slice(offset));
-    return [value, buffer.length];
+    return [removeNullCharacters(value), buffer.length];
   },
 };
 
