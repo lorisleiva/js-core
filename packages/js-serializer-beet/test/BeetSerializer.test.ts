@@ -1079,9 +1079,9 @@ test('it can serialize fixed', (t) => {
   t.is(doffset(fixed(8, u32), '2a00000000000000'), 8);
   t.is(sd(fixed(8, u32), 42), 42);
   t.is(s(fixed(8, utf8), 'Hello'), '48656c6c6f000000');
-  t.is(d(fixed(8, utf8), '48656c6c6f000000'), 'Hello\u0000\u0000\u0000');
+  t.is(d(fixed(8, utf8), '48656c6c6f000000'), 'Hello');
   t.is(doffset(fixed(8, utf8), '48656c6c6f000000'), 8);
-  t.is(sd(fixed(8, utf8), 'Hello'), 'Hello\u0000\u0000\u0000');
+  t.is(sd(fixed(8, utf8), 'Hello'), 'Hello');
 });
 
 /** Serialize as a hex string. */

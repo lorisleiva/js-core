@@ -11,7 +11,6 @@ import {
   publicKey,
   PublicKey,
   PublicKeyInput,
-  removeNullCharacters,
   ScalarEnum,
   Serializer,
   SerializerInterface,
@@ -546,8 +545,7 @@ export class BeetSerializer implements SerializerInterface {
         contentSerializer,
         description ?? `fixedString(${bytes}, ${contentSerializer.description})`
       ),
-      (value) => value,
-      removeNullCharacters
+      (value) => value
     );
   }
 
