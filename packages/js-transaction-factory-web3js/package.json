@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-transaction-factory-web3js",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
