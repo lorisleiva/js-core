@@ -70,7 +70,7 @@ export const samePublicKey = (
 ): boolean =>
   publicKey(left).bytes.toString() === publicKey(right).bytes.toString();
 
-export const displayPublicKey = (key: PublicKeyInput): string =>
+export const base58PublicKey = (key: PublicKeyInput): string =>
   base58.deserialize(publicKey(key).bytes)[0];
 
 export const checkForIsWritableOverride = (

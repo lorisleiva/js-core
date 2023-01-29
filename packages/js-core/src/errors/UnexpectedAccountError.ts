@@ -1,4 +1,4 @@
-import { displayPublicKey, PublicKey } from '../PublicKey';
+import { base58PublicKey, PublicKey } from '../PublicKey';
 import { SdkError } from './SdkError';
 
 /** @group Errors */
@@ -7,7 +7,7 @@ export class UnexpectedAccountError extends SdkError {
 
   constructor(publicKey: PublicKey, expectedType: string, cause?: Error) {
     const message =
-      `The account at the provided address [${displayPublicKey(publicKey)}] ` +
+      `The account at the provided address [${base58PublicKey(publicKey)}] ` +
       `is not of the expected type [${expectedType}].`;
     super(message, cause);
   }

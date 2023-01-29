@@ -48,7 +48,7 @@ export interface RpcInterface {
     amount: SolAmount,
     options?: RpcAirdropOptions
   ): Promise<void>;
-  call<R, P extends any[]>(
+  call<R, P extends any[] = any[]>(
     method: string,
     params?: [...P],
     options?: RpcCallOptions
@@ -116,7 +116,9 @@ export type RpcAccountExistsOptions = RpcBaseOptions;
 
 export type RpcAirdropOptions = Partial<RpcConfirmTransactionOptions>;
 
-export type RpcCallOptions = RpcBaseOptions;
+export type RpcCallOptions = RpcBaseOptions & {
+  extra?: object;
+};
 
 export type RpcSendTransactionOptions = RpcBaseOptions & {
   skipPreflight?: boolean;

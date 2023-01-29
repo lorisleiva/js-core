@@ -262,21 +262,46 @@ export class Web3JsRpc implements RpcInterface {
     });
   }
 
-  async call<Result, Params extends any[]>(
+  async call<Result, Params extends any[] = any[]>(
     method: string,
     params?: [...Params],
     options: RpcCallOptions = {}
   ): Promise<Result> {
     const client = (this.connection as any)._rpcClient as RpcClient;
+    const resolvedParams = this._resolveCallParams(
+      (params ? [...params] : []) as [...Params],
+      options.commitment,
+      options.extra
+    );
     return new Promise((resolve, reject) => {
-      const callback: JSONRPCCallbackTypePlain = (error, result) =>
-        error ? reject(error) : resolve(result);
+      const callback: JSONRPCCallbackTypePlain = (error, response) =>
+        error ? reject(error) : resolve(response.result);
       if (options.id) {
-        client.request(method, params, options.id, callback);
+        client.request(method, resolvedParams, options.id, callback);
       } else {
-        client.request(method, params, callback);
+        client.request(method, resolvedParams, callback);
       }
     });
+  }
+
+  private _resolveCallParams<Params extends any[]>(
+    args: Params,
+    override?: Commitment,
+    extra?: object
+  ): Params {
+    const commitment =
+      override || (this.connection.commitment as Commitment | undefined);
+    if (commitment || extra) {
+      let options: any = {};
+      if (commitment) {
+        options.commitment = commitment;
+      }
+      if (extra) {
+        options = { ...options, ...extra };
+      }
+      args.push(options);
+    }
+    return args;
   }
 
   async sendTransaction(
