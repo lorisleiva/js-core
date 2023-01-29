@@ -1,5 +1,5 @@
 import test from 'ava';
-import { base10, base16, base58, utf8 } from '../../src';
+import { base10, base16, base58, base64, utf8 } from '../../src';
 
 test('it can serialize utf8 strings', (t) => {
   t.deepEqual(utf8.serialize(''), new Uint8Array([]));
@@ -113,5 +113,35 @@ test('it can serialize base 58 strings', (t) => {
   t.throws(() => base58.serialize('INVALID_INPUT'), {
     message: (m) =>
       m.includes('Expected a string of base 58, got [INVALID_INPUT].'),
+  });
+});
+
+test('it can serialize base 64 strings', (t) => {
+  t.deepEqual(base64.serialize(''), new Uint8Array([]));
+  t.deepEqual(base64.deserialize(new Uint8Array([])), ['', 0]);
+
+  t.deepEqual(base64.serialize('A'), new Uint8Array([0]));
+  t.deepEqual(base64.deserialize(new Uint8Array([0])), ['A', 1]);
+
+  t.deepEqual(base64.serialize('B'), new Uint8Array([1]));
+  t.deepEqual(base64.deserialize(new Uint8Array([1])), ['B', 1]);
+
+  t.deepEqual(base64.serialize('AA'), new Uint8Array([0, 0]));
+  t.deepEqual(base64.deserialize(new Uint8Array([0, 0])), ['AA', 2]);
+
+  t.deepEqual(base64.serialize('q'), new Uint8Array([42]));
+  t.deepEqual(base64.deserialize(new Uint8Array([42])), ['q', 1]);
+
+  const sentence = 'TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu';
+  const bytes = new Uint8Array([
+    77, 97, 110, 121, 32, 104, 97, 110, 100, 115, 32, 109, 97, 107, 101, 32,
+    108, 105, 103, 104, 116, 32, 119, 111, 114, 107, 46,
+  ]);
+  t.deepEqual(base64.serialize(sentence), bytes);
+  t.deepEqual(base64.deserialize(bytes), [sentence, 27]);
+
+  t.throws(() => base64.serialize('INVALID_INPUT'), {
+    message: (m) =>
+      m.includes('Expected a string of base 64, got [INVALID_INPUT].'),
   });
 });

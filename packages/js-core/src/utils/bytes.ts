@@ -85,6 +85,9 @@ export const base10: Serializer<string> = baseX('0123456789');
 export const base58: Serializer<string> = baseX(
   '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 );
+export const base64: Serializer<string> = baseX(
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+);
 
 export const base16: Serializer<string> = {
   description: 'base16',
