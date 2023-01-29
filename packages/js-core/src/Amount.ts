@@ -65,7 +65,7 @@ export const tokenAmount = <
 ): Amount<I, D> =>
   createAmountFromDecimals(
     tokens,
-    (identifier ?? 'Token') as I,
+    (identifier ?? 'splToken') as I,
     (decimals ?? 0) as D
   );
 
@@ -296,7 +296,15 @@ export const displayAmount = (value: Amount, maxDecimals?: number): string => {
   switch (value.identifier) {
     case '%':
       return `${amountAsString}%`;
+    case 'splToken':
+      return /^1(\.0+)?$/.test(amountAsString)
+        ? `${amountAsString} Token`
+        : `${amountAsString} Tokens`;
     default:
+      if (value.identifier.startsWith('splToken.')) {
+        const [, identifier] = value.identifier.split('.');
+        return `${identifier} ${amountAsString}`;
+      }
       return `${value.identifier} ${amountAsString}`;
   }
 };

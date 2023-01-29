@@ -71,7 +71,9 @@ test('it has helpers for certain currencies', (t) => {
 });
 
 test('it can create amounts representing SPL tokens', (t) => {
-  amountEquals(t, tokenAmount(1), 'Token 1');
+  amountEquals(t, tokenAmount(1), '1 Token');
+  amountEquals(t, tokenAmount(1, undefined, 5), '1.00000 Token');
+  amountEquals(t, tokenAmount(1.5, undefined, 2), '1.50 Tokens');
   amountEquals(t, tokenAmount(4.5, 'DGEN'), 'DGEN 4');
   amountEquals(t, tokenAmount(4.5, 'DGEN', 2), 'DGEN 4.50');
   amountEquals(t, tokenAmount(6.2587, 'DGEN', 9), 'DGEN 6.258700000');
