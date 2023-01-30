@@ -10,6 +10,7 @@ export * from './Enums';
 export * from './errors';
 export * from './GenericAbortSignal';
 export * from './GenericFile';
+export * from './GpaBuilder';
 export * from './HttpInterface';
 export * from './Instruction';
 export * from './Keypair';
