@@ -1,5 +1,6 @@
 import type { RpcAccount } from './Account';
 import type { Context } from './Context';
+import { SdkError } from './errors';
 import {
   base58PublicKey,
   isPublicKey,
@@ -11,14 +12,16 @@ import type {
   RpcDataSlice,
   RpcGetProgramAccountsOptions,
 } from './RpcInterface';
+import { StructToSerializerTuple } from './SerializerInterface';
 import { base10, base58, base64 } from './utils';
 
 export type GpaBuilderSortCallback = (a: RpcAccount, b: RpcAccount) => number;
 
-export class GpaBuilder {
+export class GpaBuilder<T extends object = {}> {
   constructor(
     protected readonly context: Pick<Context, 'rpc'>,
     protected readonly programId: PublicKey,
+    protected readonly fields?: StructToSerializerTuple<T, T>,
     protected readonly options: {
       sortCallback?: GpaBuilderSortCallback;
       dataSlice?: RpcDataSlice;
@@ -26,23 +29,23 @@ export class GpaBuilder {
     } = {}
   ) {}
 
-  reset(): GpaBuilder {
-    return new GpaBuilder(this.context, this.programId, {});
+  reset(): GpaBuilder<T> {
+    return new GpaBuilder<T>(this.context, this.programId, this.fields, {});
   }
 
-  slice(offset: number, length: number): GpaBuilder {
-    return new GpaBuilder(this.context, this.programId, {
+  slice(offset: number, length: number): GpaBuilder<T> {
+    return new GpaBuilder<T>(this.context, this.programId, this.fields, {
       ...this.options,
       dataSlice: { offset, length },
     });
   }
 
-  withoutData(): GpaBuilder {
+  withoutData(): GpaBuilder<T> {
     return this.slice(0, 0);
   }
 
-  addFilter(...filters: RpcDataFilter[]) {
-    return new GpaBuilder(this.context, this.programId, {
+  addFilter(...filters: RpcDataFilter[]): GpaBuilder<T> {
+    return new GpaBuilder<T>(this.context, this.programId, this.fields, {
       ...this.options,
       filters: [...(this.options.filters ?? []), ...filters],
     });
@@ -51,7 +54,7 @@ export class GpaBuilder {
   where(
     offset: number,
     data: string | bigint | number | boolean | Uint8Array | PublicKey
-  ) {
+  ): GpaBuilder<T> {
     let bytes: Uint8Array;
     if (typeof data === 'string') {
       bytes = base58.serialize(data);
@@ -70,12 +73,44 @@ export class GpaBuilder {
     return this.addFilter({ memcmp: { offset, bytes } });
   }
 
-  whereSize(dataSize: number) {
+  whereField<K extends keyof T>(field: K, data: T[K]): GpaBuilder<T> {
+    if (!this.fields) {
+      throw new SdkError('Fields are not defined in this GpaBuilder.');
+    }
+
+    const fieldIndex = this.fields.findIndex(([name]) => name === field);
+    if (fieldIndex < 0) {
+      throw new SdkError(
+        `Field [${field as string}] is not defined in this GpaBuilder.`
+      );
+    }
+
+    const [, serializer] = this.fields[fieldIndex];
+    const offset = this.fields
+      .slice(0, fieldIndex)
+      .reduce(
+        (acc, [, s]) =>
+          acc === null || s.fixedSize === null ? null : acc + s.fixedSize,
+        0 as number | null
+      );
+
+    if (offset === null) {
+      throw new SdkError(
+        `Field [${field as string}] is not in the fixed part of ` +
+          `the account's data. Either it is of variable length, or ` +
+          `it is located after a field of variable length.`
+      );
+    }
+
+    return this.where(offset, serializer.serialize(data));
+  }
+
+  whereSize(dataSize: number): GpaBuilder<T> {
     return this.addFilter({ dataSize });
   }
 
-  sortUsing(callback: GpaBuilderSortCallback) {
-    return new GpaBuilder(this.context, this.programId, {
+  sortUsing(callback: GpaBuilderSortCallback): GpaBuilder<T> {
+    return new GpaBuilder(this.context, this.programId, this.fields, {
       ...this.options,
       sortCallback: callback,
     });
@@ -95,10 +130,10 @@ export class GpaBuilder {
     return accounts;
   }
 
-  async getAndMap<T>(
-    callback: (account: RpcAccount) => T,
+  async getAndMap<U>(
+    callback: (account: RpcAccount) => U,
     options: RpcGetProgramAccountsOptions = {}
-  ): Promise<T[]> {
+  ): Promise<U[]> {
     return (await this.get(options)).map(callback);
   }
 
@@ -115,15 +150,14 @@ export class GpaBuilder {
       try {
         return publicKey(account.data);
       } catch (error) {
-        // TODO: Custom error.
         const message =
-          `Following a getProgramAccount call, you are trying to use a slice ` +
-          `of an account's data as a public key. However, we encountered an account ` +
+          `Following a getProgramAccount call, you are trying to use an ` +
+          `account's data (or a slice of it) as a public key. ` +
+          `However, we encountered an account ` +
           `[${base58PublicKey(account.publicKey)}] whose data ` +
-          `[base64=${base64.deserialize(
-            account.data
-          )}] is not a valid public key.`;
-        throw new Error(message);
+          `[base64=${base64.deserialize(account.data)}] ` +
+          `is not a valid public key.`;
+        throw new SdkError(message);
       }
     }, options);
   }
