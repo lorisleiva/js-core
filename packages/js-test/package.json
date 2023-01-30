@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-test",
-  "version": "0.0.48",
+  "version": "0.0.49",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
