@@ -97,8 +97,9 @@ export class GpaBuilder<T extends object = {}> {
     if (offset === null) {
       throw new SdkError(
         `Field [${field as string}] is not in the fixed part of ` +
-          `the account's data. Either it is of variable length, or ` +
-          `it is located after a field of variable length.`
+          `the account's data. In other words, it is located after ` +
+          `a field of variable length which means we cannot find a ` +
+          `fixed offset for the filter.`
       );
     }
 

@@ -5,15 +5,9 @@ import {
   defaultPublicKey,
   GpaBuilder,
   gpaBuilder,
+  Serializer,
   StructToSerializerTuple,
 } from '../src';
-
-function getTestGpaBuilder<T extends object = {}>(
-  fields?: StructToSerializerTuple<T, T>
-): GpaBuilder<T> {
-  const context = createNullContext();
-  return gpaBuilder(context, defaultPublicKey(), fields);
-}
 
 test('it can add a data slice', (t) => {
   let builder = getTestGpaBuilder().slice(42, 10);
@@ -68,4 +62,58 @@ test('it can add memcmp filters', (t) => {
   });
 });
 
-// it can add memcmp filters from fields (where)
+test('it can add memcmp filters from fields', (t) => {
+  type Person = {
+    age: number; // Size: 1
+    name: string; // Size: 32
+    balances: (number | bigint)[]; // Size: null
+    id: number | bigint; // Size: 8
+  };
+  const builder = getTestGpaBuilder<Person>([
+    ['age', getTestSerializer<number>(1, 1)],
+    ['name', getTestSerializer<string>(2, 32)],
+    ['balances', getTestSerializer<(number | bigint)[], bigint[]>(3, null)],
+    ['id', getTestSerializer<number | bigint, bigint>(4, 8)],
+  ]);
+
+  // Age (offset = 0, identifier = 1).
+  t.deepEqual(builder.whereField('age', 28).options.filters?.[0], {
+    memcmp: { offset: 0, bytes: new Uint8Array([1]) },
+  });
+
+  // Name (offset = 1, identifier = 2).
+  t.deepEqual(builder.whereField('name', 'Alice').options.filters?.[0], {
+    memcmp: { offset: 1, bytes: new Uint8Array([2]) },
+  });
+
+  // Balances (offset = 33, identifier = 3).
+  t.deepEqual(builder.whereField('balances', [1, 2, 3]).options.filters?.[0], {
+    memcmp: { offset: 33, bytes: new Uint8Array([3]) },
+  });
+
+  // ID (offset = null, identifier = 4).
+  t.throws(() => builder.whereField('id', 999), {
+    message: (m) =>
+      m.includes("Field [id] is not in the fixed part of the account's data"),
+  });
+});
+
+function getTestGpaBuilder<T extends object = {}>(
+  fields?: StructToSerializerTuple<T, T>
+): GpaBuilder<T> {
+  const context = createNullContext();
+  return gpaBuilder(context, defaultPublicKey(), fields);
+}
+
+function getTestSerializer<T, U extends T = T>(
+  identifier: number,
+  size: number | null
+): Serializer<T, U> {
+  return {
+    description: 'test',
+    fixedSize: size,
+    maxSize: size,
+    serialize: () => new Uint8Array([identifier]),
+    deserialize: (bytes) => [{} as U, bytes.length],
+  };
+}
