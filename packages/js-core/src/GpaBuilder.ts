@@ -20,9 +20,9 @@ export type GpaBuilderSortCallback = (a: RpcAccount, b: RpcAccount) => number;
 export class GpaBuilder<T extends object = {}> {
   constructor(
     protected readonly context: Pick<Context, 'rpc'>,
-    protected readonly programId: PublicKey,
-    protected readonly fields?: StructToSerializerTuple<T, T>,
-    protected readonly options: {
+    readonly programId: PublicKey,
+    readonly fields?: StructToSerializerTuple<T, T>,
+    readonly options: {
       sortCallback?: GpaBuilderSortCallback;
       dataSlice?: RpcDataSlice;
       filters?: RpcDataFilter[];
@@ -162,3 +162,9 @@ export class GpaBuilder<T extends object = {}> {
     }, options);
   }
 }
+
+export const gpaBuilder = <T extends object = {}>(
+  context: Pick<Context, 'rpc'>,
+  programId: PublicKey,
+  fields?: StructToSerializerTuple<T, T>
+): GpaBuilder<T> => new GpaBuilder(context, programId, fields);
