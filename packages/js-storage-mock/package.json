@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-storage-mock",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
