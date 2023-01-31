@@ -16,45 +16,65 @@ import { StructToSerializerTuple } from './SerializerInterface';
 import { base10, base58, base64 } from './utils';
 
 export type GpaBuilderSortCallback = (a: RpcAccount, b: RpcAccount) => number;
+export type GpaBuilderMapCallback<T> = (account: RpcAccount) => T;
 
-export class GpaBuilder<T extends object = {}> {
+export class GpaBuilder<
+  Account extends object = RpcAccount,
+  Fields extends object = {}
+> {
   constructor(
     protected readonly context: Pick<Context, 'rpc'>,
     readonly programId: PublicKey,
-    readonly fields?: StructToSerializerTuple<T, T>,
+    readonly fields?: StructToSerializerTuple<Fields, Fields>,
     readonly options: {
       sortCallback?: GpaBuilderSortCallback;
+      deserializeCallback?: GpaBuilderMapCallback<Account>;
       dataSlice?: RpcDataSlice;
       filters?: RpcDataFilter[];
     } = {}
   ) {}
 
-  reset(): GpaBuilder<T> {
-    return new GpaBuilder<T>(this.context, this.programId, this.fields, {});
+  reset(): GpaBuilder<Account, Fields> {
+    return new GpaBuilder<Account, Fields>(
+      this.context,
+      this.programId,
+      this.fields,
+      {}
+    );
   }
 
-  slice(offset: number, length: number): GpaBuilder<T> {
-    return new GpaBuilder<T>(this.context, this.programId, this.fields, {
-      ...this.options,
-      dataSlice: { offset, length },
-    });
+  slice(offset: number, length: number): GpaBuilder<Account, Fields> {
+    return new GpaBuilder<Account, Fields>(
+      this.context,
+      this.programId,
+      this.fields,
+      {
+        ...this.options,
+        dataSlice: { offset, length },
+      }
+    );
   }
 
-  withoutData(): GpaBuilder<T> {
+  withoutData(): GpaBuilder<Account, Fields> {
     return this.slice(0, 0);
   }
 
-  addFilter(...filters: RpcDataFilter[]): GpaBuilder<T> {
-    return new GpaBuilder<T>(this.context, this.programId, this.fields, {
-      ...this.options,
-      filters: [...(this.options.filters ?? []), ...filters],
-    });
+  addFilter(...filters: RpcDataFilter[]): GpaBuilder<Account, Fields> {
+    return new GpaBuilder<Account, Fields>(
+      this.context,
+      this.programId,
+      this.fields,
+      {
+        ...this.options,
+        filters: [...(this.options.filters ?? []), ...filters],
+      }
+    );
   }
 
   where(
     offset: number,
     data: string | bigint | number | boolean | Uint8Array | PublicKey
-  ): GpaBuilder<T> {
+  ): GpaBuilder<Account, Fields> {
     let bytes: Uint8Array;
     if (typeof data === 'string') {
       bytes = base58.serialize(data);
@@ -73,11 +93,11 @@ export class GpaBuilder<T extends object = {}> {
     return this.addFilter({ memcmp: { offset, bytes } });
   }
 
-  whereField<K extends keyof T>(
+  whereField<K extends keyof Fields>(
     field: K,
-    data: T[K],
+    data: Fields[K],
     offset?: number
-  ): GpaBuilder<T> {
+  ): GpaBuilder<Account, Fields> {
     if (!this.fields) {
       throw new SdkError('Fields are not defined in this GpaBuilder.');
     }
@@ -114,15 +134,29 @@ export class GpaBuilder<T extends object = {}> {
     return this.where(computedOffset, serializer.serialize(data));
   }
 
-  whereSize(dataSize: number): GpaBuilder<T> {
+  whereSize(dataSize: number): GpaBuilder<Account, Fields> {
     return this.addFilter({ dataSize });
   }
 
-  sortUsing(callback: GpaBuilderSortCallback): GpaBuilder<T> {
+  sortUsing(callback: GpaBuilderSortCallback): GpaBuilder<Account, Fields> {
     return new GpaBuilder(this.context, this.programId, this.fields, {
       ...this.options,
       sortCallback: callback,
     });
+  }
+
+  deserializeUsing<T extends object>(
+    callback: GpaBuilderMapCallback<T>
+  ): GpaBuilder<T, Fields> {
+    return new GpaBuilder<T, Fields>(
+      this.context,
+      this.programId,
+      this.fields,
+      {
+        ...this.options,
+        deserializeCallback: callback,
+      }
+    );
   }
 
   async get(options: RpcGetProgramAccountsOptions = {}): Promise<RpcAccount[]> {
@@ -139,10 +173,10 @@ export class GpaBuilder<T extends object = {}> {
     return accounts;
   }
 
-  async getAndMap<U>(
-    callback: (account: RpcAccount) => U,
+  async getAndMap<T>(
+    callback: GpaBuilderMapCallback<T>,
     options: RpcGetProgramAccountsOptions = {}
-  ): Promise<U[]> {
+  ): Promise<T[]> {
     return (await this.get(options)).map(callback);
   }
 
@@ -172,8 +206,12 @@ export class GpaBuilder<T extends object = {}> {
   }
 }
 
-export const gpaBuilder = <T extends object = {}>(
+export const gpaBuilder = <
+  Account extends object = RpcAccount,
+  Fields extends object = {}
+>(
   context: Pick<Context, 'rpc'>,
   programId: PublicKey,
-  fields?: StructToSerializerTuple<T, T>
-): GpaBuilder<T> => new GpaBuilder(context, programId, fields);
+  fields?: StructToSerializerTuple<Fields, Fields>
+): GpaBuilder<Account, Fields> =>
+  new GpaBuilder<Account, Fields>(context, programId, fields);
