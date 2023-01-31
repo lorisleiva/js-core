@@ -6,7 +6,6 @@ import {
   GpaBuilder,
   gpaBuilder,
   Serializer,
-  StructToSerializerTuple,
 } from '../src';
 
 test('it can add a data slice', (t) => {
@@ -69,7 +68,7 @@ test('it can add memcmp filters from fields', (t) => {
     balances: (number | bigint)[]; // Size: null
     id: number | bigint; // Size: 8
   };
-  const builder = getTestGpaBuilder<Person>([
+  const builder = getTestGpaBuilder().registerFields<Person>([
     ['age', getTestSerializer<number>(1, 1)],
     ['name', getTestSerializer<string>(2, 32)],
     ['balances', getTestSerializer<(number | bigint)[], bigint[]>(3, null)],
@@ -103,11 +102,8 @@ test('it can add memcmp filters from fields', (t) => {
   });
 });
 
-function getTestGpaBuilder<T extends object = {}>(
-  fields?: StructToSerializerTuple<T, T>
-): GpaBuilder<T> {
-  const context = createNullContext();
-  return gpaBuilder(context, defaultPublicKey(), fields);
+function getTestGpaBuilder(): GpaBuilder {
+  return gpaBuilder(createNullContext(), defaultPublicKey());
 }
 
 function getTestSerializer<T, U extends T = T>(

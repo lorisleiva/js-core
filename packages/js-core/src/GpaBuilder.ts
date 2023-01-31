@@ -25,34 +25,45 @@ export class GpaBuilder<
   constructor(
     protected readonly context: Pick<Context, 'rpc'>,
     readonly programId: PublicKey,
-    readonly fields?: StructToSerializerTuple<Fields, Fields>,
     readonly options: {
-      sortCallback?: GpaBuilderSortCallback;
-      deserializeCallback?: GpaBuilderMapCallback<Account>;
-      dataSlice?: RpcDataSlice;
-      filters?: RpcDataFilter[];
+      readonly fields?: StructToSerializerTuple<Fields, Fields>;
+      readonly deserializeCallback?: GpaBuilderMapCallback<Account>;
+      readonly dataSlice?: RpcDataSlice;
+      readonly filters?: RpcDataFilter[];
+      readonly sortCallback?: GpaBuilderSortCallback;
     } = {}
   ) {}
 
   reset(): GpaBuilder<Account, Fields> {
-    return new GpaBuilder<Account, Fields>(
-      this.context,
-      this.programId,
-      this.fields,
-      {}
-    );
+    return new GpaBuilder<Account, Fields>(this.context, this.programId, {
+      fields: this.options.fields,
+      deserializeCallback: this.options.deserializeCallback,
+    });
+  }
+
+  registerFields<T extends object>(
+    fields: StructToSerializerTuple<T, T>
+  ): GpaBuilder<Account, T> {
+    return new GpaBuilder<Account, T>(this.context, this.programId, {
+      ...this.options,
+      fields,
+    });
+  }
+
+  deserializeUsing<T extends object>(
+    callback: GpaBuilderMapCallback<T>
+  ): GpaBuilder<T, Fields> {
+    return new GpaBuilder<T, Fields>(this.context, this.programId, {
+      ...this.options,
+      deserializeCallback: callback,
+    });
   }
 
   slice(offset: number, length: number): GpaBuilder<Account, Fields> {
-    return new GpaBuilder<Account, Fields>(
-      this.context,
-      this.programId,
-      this.fields,
-      {
-        ...this.options,
-        dataSlice: { offset, length },
-      }
-    );
+    return new GpaBuilder<Account, Fields>(this.context, this.programId, {
+      ...this.options,
+      dataSlice: { offset, length },
+    });
   }
 
   withoutData(): GpaBuilder<Account, Fields> {
@@ -60,15 +71,10 @@ export class GpaBuilder<
   }
 
   addFilter(...filters: RpcDataFilter[]): GpaBuilder<Account, Fields> {
-    return new GpaBuilder<Account, Fields>(
-      this.context,
-      this.programId,
-      this.fields,
-      {
-        ...this.options,
-        filters: [...(this.options.filters ?? []), ...filters],
-      }
-    );
+    return new GpaBuilder<Account, Fields>(this.context, this.programId, {
+      ...this.options,
+      filters: [...(this.options.filters ?? []), ...filters],
+    });
   }
 
   where(
@@ -98,23 +104,25 @@ export class GpaBuilder<
     data: Fields[K],
     offset?: number
   ): GpaBuilder<Account, Fields> {
-    if (!this.fields) {
+    if (!this.options.fields) {
       throw new SdkError('Fields are not defined in this GpaBuilder.');
     }
 
-    const fieldIndex = this.fields.findIndex(([name]) => name === field);
+    const fieldIndex = this.options.fields.findIndex(
+      ([name]) => name === field
+    );
     if (fieldIndex < 0) {
       throw new SdkError(
         `Field [${field as string}] is not defined in this GpaBuilder.`
       );
     }
 
-    const [, serializer] = this.fields[fieldIndex];
+    const [, serializer] = this.options.fields[fieldIndex];
     if (offset !== undefined) {
       return this.where(offset, serializer.serialize(data));
     }
 
-    const computedOffset = this.fields
+    const computedOffset = this.options.fields
       .slice(0, fieldIndex)
       .reduce(
         (acc, [, s]) =>
@@ -139,24 +147,10 @@ export class GpaBuilder<
   }
 
   sortUsing(callback: GpaBuilderSortCallback): GpaBuilder<Account, Fields> {
-    return new GpaBuilder(this.context, this.programId, this.fields, {
+    return new GpaBuilder(this.context, this.programId, {
       ...this.options,
       sortCallback: callback,
     });
-  }
-
-  deserializeUsing<T extends object>(
-    callback: GpaBuilderMapCallback<T>
-  ): GpaBuilder<T, Fields> {
-    return new GpaBuilder<T, Fields>(
-      this.context,
-      this.programId,
-      this.fields,
-      {
-        ...this.options,
-        deserializeCallback: callback,
-      }
-    );
   }
 
   async get(options: RpcGetProgramAccountsOptions = {}): Promise<RpcAccount[]> {
@@ -178,6 +172,14 @@ export class GpaBuilder<
     options: RpcGetProgramAccountsOptions = {}
   ): Promise<T[]> {
     return (await this.get(options)).map(callback);
+  }
+
+  async getDeserialized(
+    options: RpcGetProgramAccountsOptions = {}
+  ): Promise<Account[]> {
+    const rpcAccounts = await this.get(options);
+    if (!this.options.deserializeCallback) return rpcAccounts as Account[];
+    return rpcAccounts.map(this.options.deserializeCallback);
   }
 
   async getPublicKeys(
@@ -206,12 +208,7 @@ export class GpaBuilder<
   }
 }
 
-export const gpaBuilder = <
-  Account extends object = RpcAccount,
-  Fields extends object = {}
->(
+export const gpaBuilder = (
   context: Pick<Context, 'rpc'>,
-  programId: PublicKey,
-  fields?: StructToSerializerTuple<Fields, Fields>
-): GpaBuilder<Account, Fields> =>
-  new GpaBuilder<Account, Fields>(context, programId, fields);
+  programId: PublicKey
+): GpaBuilder => new GpaBuilder(context, programId);
