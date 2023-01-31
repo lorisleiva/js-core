@@ -96,6 +96,11 @@ test('it can add memcmp filters from fields', (t) => {
     message: (m) =>
       m.includes("Field [id] is not in the fixed part of the account's data"),
   });
+
+  // ID (offset = null, identifier = 4) with explicit offset.
+  t.deepEqual(builder.whereField('id', 999, 42).options.filters?.[0], {
+    memcmp: { offset: 42, bytes: new Uint8Array([4]) },
+  });
 });
 
 function getTestGpaBuilder<T extends object = {}>(

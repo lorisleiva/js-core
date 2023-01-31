@@ -73,7 +73,11 @@ export class GpaBuilder<T extends object = {}> {
     return this.addFilter({ memcmp: { offset, bytes } });
   }
 
-  whereField<K extends keyof T>(field: K, data: T[K]): GpaBuilder<T> {
+  whereField<K extends keyof T>(
+    field: K,
+    data: T[K],
+    offset?: number
+  ): GpaBuilder<T> {
     if (!this.fields) {
       throw new SdkError('Fields are not defined in this GpaBuilder.');
     }
@@ -86,7 +90,11 @@ export class GpaBuilder<T extends object = {}> {
     }
 
     const [, serializer] = this.fields[fieldIndex];
-    const offset = this.fields
+    if (offset !== undefined) {
+      return this.where(offset, serializer.serialize(data));
+    }
+
+    const computedOffset = this.fields
       .slice(0, fieldIndex)
       .reduce(
         (acc, [, s]) =>
@@ -94,7 +102,7 @@ export class GpaBuilder<T extends object = {}> {
         0 as number | null
       );
 
-    if (offset === null) {
+    if (computedOffset === null) {
       throw new SdkError(
         `Field [${field as string}] is not in the fixed part of ` +
           `the account's data. In other words, it is located after ` +
@@ -103,7 +111,7 @@ export class GpaBuilder<T extends object = {}> {
       );
     }
 
-    return this.where(offset, serializer.serialize(data));
+    return this.where(computedOffset, serializer.serialize(data));
   }
 
   whereSize(dataSize: number): GpaBuilder<T> {
