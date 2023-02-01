@@ -2,7 +2,6 @@ import {
   DataEnum,
   DataEnumToSerializerTuple,
   isSome,
-  mapSerializer,
   mergeBytes,
   none,
   Nullable,
@@ -26,10 +25,21 @@ import {
 import * as beetSolana from '@metaplex-foundation/beet-solana';
 import { PublicKey as Web3PublicKey } from '@solana/web3.js';
 import { Buffer } from 'buffer';
-import { OperationNotSupportedError } from './errors';
+import {
+  BeetSerializerError,
+  DeserializingEmptyBufferError,
+  OperationNotSupportedError,
+} from './errors';
 import { i128, i16, i32, i64, i8, u128, u16, u32, u64, u8 } from './numbers';
 
 export class BeetSerializer implements SerializerInterface {
+  constructor(
+    protected readonly options: {
+      /** @defaultValue `true` */
+      tolerateEmptyBuffers?: boolean;
+    } = {}
+  ) {}
+
   tuple<T extends any[], U extends T = T>(
     items: WrapInSerializer<[...T], [...U]>,
     description?: string
@@ -41,7 +51,7 @@ export class BeetSerializer implements SerializerInterface {
       maxSize: sumSerializerSizes(items.map((item) => item.maxSize)),
       serialize: (value: T) => {
         if (value.length !== items.length) {
-          throw new Error(
+          throw new BeetSerializerError(
             `Expected tuple to have ${items.length} items but got ${value.length}.`
           );
         }
@@ -77,6 +87,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([lengthBytes, ...itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer<U[]>('vec', [], offset);
+        }
         const values: U[] = [];
         const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
@@ -106,7 +119,7 @@ export class BeetSerializer implements SerializerInterface {
       maxSize: getSize(itemSerializer.maxSize),
       serialize: (value: T[]) => {
         if (value.length !== size) {
-          throw new Error(
+          throw new BeetSerializerError(
             `Expected array to have ${size} items but got ${value.length}.`
           );
         }
@@ -149,6 +162,9 @@ export class BeetSerializer implements SerializerInterface {
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const map: Map<UK, UV> = new Map();
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer('map', map, offset);
+        }
         const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
@@ -182,6 +198,9 @@ export class BeetSerializer implements SerializerInterface {
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
         const set: Set<U> = new Set();
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer('set', set, offset);
+        }
         const [length, newOffset] = prefixSeralizer.deserialize(bytes, offset);
         offset = newOffset;
         for (let i = 0; i < length; i += 1) {
@@ -216,6 +235,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer<Option<U>>('option', none(), offset);
+        }
         const [isSome, prefixOffset] = prefixSeralizer.deserialize(
           bytes,
           offset
@@ -241,7 +263,7 @@ export class BeetSerializer implements SerializerInterface {
       itemSerializer.fixedSize === null ||
       prefixSeralizer.fixedSize === null
     ) {
-      throw new Error(
+      throw new BeetSerializerError(
         'fixedOption can only be used with fixed size serializers'
       );
     }
@@ -258,6 +280,13 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer<Option<U>>(
+            'fixedOption',
+            none(),
+            offset
+          );
+        }
         const [isSome] = prefixSeralizer.deserialize(bytes, offset);
         offset += prefixSeralizer.fixedSize as number;
         const newOffset = offset + (itemSerializer.fixedSize as number);
@@ -291,6 +320,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer('nullable', null, offset);
+        }
         const [isSome, prefixOffset] = prefixSeralizer.deserialize(
           bytes,
           offset
@@ -316,7 +348,7 @@ export class BeetSerializer implements SerializerInterface {
       itemSerializer.fixedSize === null ||
       prefixSeralizer.fixedSize === null
     ) {
-      throw new Error(
+      throw new BeetSerializerError(
         'fixedNullable can only be used with fixed size serializers'
       );
     }
@@ -335,6 +367,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([prefixByte, itemBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          return this.handleEmptyBuffer('fixedNullable', null, offset);
+        }
         const [isSome] = prefixSeralizer.deserialize(bytes, offset);
         offset += prefixSeralizer.fixedSize as number;
         const newOffset = offset + (itemSerializer.fixedSize as number);
@@ -401,7 +436,7 @@ export class BeetSerializer implements SerializerInterface {
     }
     function checkVariantExists(variantKey: keyof ScalarEnum<T>): void {
       if (!enumValues.includes(variantKey)) {
-        throw new Error(
+        throw new BeetSerializerError(
           `Invalid enum variant. Got "${variantKey}", expected one of ` +
             `[${enumValues.join(', ')}]`
         );
@@ -417,6 +452,9 @@ export class BeetSerializer implements SerializerInterface {
         return u8().serialize(variantValue);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          throw new DeserializingEmptyBufferError('enum');
+        }
         const [value, newOffset] = u8().deserialize(bytes, offset);
         offset = newOffset;
         const [variantKey, variantValue] = getVariantKeyValue(value as T);
@@ -462,7 +500,7 @@ export class BeetSerializer implements SerializerInterface {
           ([key]) => variant.__kind === key
         );
         if (discriminator < 0) {
-          throw new Error(
+          throw new BeetSerializerError(
             `Invalid data enum variant. Got "${variant.__kind}", expected one of ` +
               `[${variants.map(([key]) => key).join(', ')}]`
           );
@@ -473,6 +511,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([variantPrefix, variantBytes]);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          throw new DeserializingEmptyBufferError('dataEnum');
+        }
         const [discriminator, dOffset] = prefixSeralizer.deserialize(
           bytes,
           offset
@@ -480,7 +521,7 @@ export class BeetSerializer implements SerializerInterface {
         offset = dOffset;
         const variantField = variants[Number(discriminator)] ?? null;
         if (!variantField) {
-          throw new Error(
+          throw new BeetSerializerError(
             `Data enum index "${discriminator}" is out of range. ` +
               `Index should be between 0 and ${variants.length - 1}.`
           );
@@ -519,6 +560,9 @@ export class BeetSerializer implements SerializerInterface {
         return mergeBytes([lengthBytes, contentBytes]);
       },
       deserialize: (buffer: Uint8Array, offset = 0) => {
+        if (buffer.length === 0) {
+          throw new DeserializingEmptyBufferError('string');
+        }
         const [length, lengthOffset] = prefixSerializer.deserialize(
           buffer,
           offset
@@ -539,20 +583,17 @@ export class BeetSerializer implements SerializerInterface {
     description?: string
   ): Serializer<string> {
     const contentSerializer = content ?? utf8;
-    return mapSerializer(
-      fixed(
-        bytes,
-        contentSerializer,
-        description ?? `fixedString(${bytes}, ${contentSerializer.description})`
-      ),
-      (value) => value
+    return fixed(
+      bytes,
+      contentSerializer,
+      description ?? `fixedString(${bytes}, ${contentSerializer.description})`
     );
   }
 
   bool(size?: NumberSerializer, description?: string): Serializer<boolean> {
     const serializer = size ?? u8();
     if (serializer.fixedSize === null) {
-      throw new Error('bool serializer requires a fixed size');
+      throw new BeetSerializerError('Serializer [bool] requires a fixed size.');
     }
     return {
       description: description ?? `bool(${serializer.description})`,
@@ -560,6 +601,9 @@ export class BeetSerializer implements SerializerInterface {
       maxSize: serializer.fixedSize,
       serialize: (value: boolean) => serializer.serialize(value ? 1 : 0),
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          throw new DeserializingEmptyBufferError('bool');
+        }
         const [value, vOffset] = serializer.deserialize(bytes, offset);
         return [value === 1, vOffset];
       },
@@ -669,6 +713,9 @@ export class BeetSerializer implements SerializerInterface {
         return new Uint8Array(buffer);
       },
       deserialize: (bytes: Uint8Array, offset = 0) => {
+        if (bytes.length === 0) {
+          throw new DeserializingEmptyBufferError('publicKey');
+        }
         const buffer = Buffer.from(bytes);
         const value = beetSolana.publicKey.read(buffer, offset);
         return [
@@ -677,6 +724,17 @@ export class BeetSerializer implements SerializerInterface {
         ];
       },
     };
+  }
+
+  protected handleEmptyBuffer<T>(
+    serializer: string,
+    defaultValue: T,
+    offset: number
+  ): [T, number] {
+    if (!(this.options.tolerateEmptyBuffers ?? true)) {
+      throw new DeserializingEmptyBufferError(serializer);
+    }
+    return [defaultValue, offset];
   }
 }
 
@@ -696,6 +754,11 @@ function fixed<T, U extends T = T>(
     },
     deserialize: (buffer: Uint8Array, offset = 0) => {
       buffer = buffer.slice(offset, offset + bytes);
+      if (buffer.length < bytes) {
+        throw new BeetSerializerError(
+          `Serializer [fixed] expected ${bytes} bytes, got ${buffer.length}.`
+        );
+      }
       const [value] = child.deserialize(buffer, offset);
       return [value, offset + bytes];
     },

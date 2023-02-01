@@ -9,8 +9,12 @@ import {
   utf8,
 } from '@lorisleiva/js-core';
 import { Keypair as Web3Keypair } from '@solana/web3.js';
-import test from 'ava';
-import { BeetSerializer, OperationNotSupportedError } from '../src';
+import test, { ThrowsExpectation } from 'ava';
+import {
+  BeetSerializer,
+  DeserializingEmptyBufferError,
+  OperationNotSupportedError,
+} from '../src';
 
 test('it can serialize units', (t) => {
   const { unit } = new BeetSerializer();
@@ -342,7 +346,9 @@ test('it can serialize public keys', (t) => {
   t.deepEqual(sd(publicKey, pubKeyString), pubKey);
   t.deepEqual(sd(publicKey, pubKey), pubKey);
   t.deepEqual(sd(publicKey, generatedPubKey), generatedPubKey);
-  const throwExpectation = { message: 'Invalid public key' };
+  const throwExpectation = {
+    message: (m: string) => m.includes('Invalid public key'),
+  };
   t.throws(() => s(publicKey, ''), throwExpectation);
   t.throws(() => s(publicKey, 'x'), throwExpectation);
   t.throws(() => s(publicKey, 'x'.repeat(32)), throwExpectation);
@@ -396,10 +402,12 @@ test('it can serialize tuples', (t) => {
 
   // Invalid input.
   t.throws(() => s(tuple([u8]), [] as any), {
-    message: 'Expected tuple to have 1 items but got 0.',
+    message: (m: string) =>
+      m.includes('Expected tuple to have 1 items but got 0.'),
   });
   t.throws(() => s(tuple([u8, string()]), [1, 2, 'three'] as any), {
-    message: 'Expected tuple to have 2 items but got 3.',
+    message: (m: string) =>
+      m.includes('Expected tuple to have 2 items but got 3.'),
   });
 });
 
@@ -476,10 +484,12 @@ test('it can serialize arrays', (t) => {
 
   // Invalid input.
   t.throws(() => s(array(u8, 1), []), {
-    message: 'Expected array to have 1 items but got 0.',
+    message: (m: string) =>
+      m.includes('Expected array to have 1 items but got 0.'),
   });
   t.throws(() => s(array(string(), 2), ['a', 'b', 'c']), {
-    message: 'Expected array to have 2 items but got 3.',
+    message: (m: string) =>
+      m.includes('Expected array to have 2 items but got 3.'),
   });
 });
 
@@ -644,7 +654,8 @@ test('it can serialize fixed options', (t) => {
   t.is(fixedOption(u64).fixedSize, 1 + 8);
   t.is(fixedOption(u64).maxSize, 1 + 8);
   t.throws(() => fixedOption(string()), {
-    message: 'fixedOption can only be used with fixed size serializers',
+    message: (m: string) =>
+      m.includes('fixedOption can only be used with fixed size serializers'),
   });
 
   // Examples with some.
@@ -741,7 +752,8 @@ test('it can serialize fixed nullables', (t) => {
   t.is(fixedNullable(u64).fixedSize, 1 + 8);
   t.is(fixedNullable(u64).maxSize, 1 + 8);
   t.throws(() => fixedNullable(string()), {
-    message: 'fixedNullable can only be used with fixed size serializers',
+    message: (m: string) =>
+      m.includes('fixedNullable can only be used with fixed size serializers'),
   });
 
   // Examples with some.
@@ -889,12 +901,16 @@ test('it can serialize enums', (t) => {
 
   // Invalid examples.
   t.throws(() => s(scalarEnum(Feedback), 'Missing'), {
-    message:
-      'Invalid enum variant. Got "Missing", expected one of [BAD, GOOD, 0, 1]',
+    message: (m: string) =>
+      m.includes(
+        'Invalid enum variant. Got "Missing", expected one of [BAD, GOOD, 0, 1]'
+      ),
   });
   t.throws(() => s(scalarEnum(Direction), 'Diagonal' as any), {
-    message:
-      'Invalid enum variant. Got "Diagonal", expected one of [Up, Down, Left, Right]',
+    message: (m: string) =>
+      m.includes(
+        'Invalid enum variant. Got "Diagonal", expected one of [Up, Down, Left, Right]'
+      ),
   });
 });
 
@@ -974,13 +990,17 @@ test('it can serialize data enums', (t) => {
 
   // Invalid examples.
   t.throws(() => s(dataEnum(webEvent), { __kind: 'Missing' } as any), {
-    message:
-      'Invalid data enum variant. Got "Missing", ' +
-      'expected one of [PageLoad, Click, KeyPress, PageUnload]',
+    message: (m: string) =>
+      m.includes(
+        'Invalid data enum variant. Got "Missing", ' +
+          'expected one of [PageLoad, Click, KeyPress, PageUnload]'
+      ),
   });
   t.throws(() => d(dataEnum(webEvent), '04'), {
-    message:
-      'Data enum index "4" is out of range. Index should be between 0 and 3.',
+    message: (m: string) =>
+      m.includes(
+        'Data enum index "4" is out of range. Index should be between 0 and 3.'
+      ),
   });
 
   // Example with different From and To types.
@@ -1082,6 +1102,95 @@ test('it can serialize fixed', (t) => {
   t.is(d(fixed(8, utf8), '48656c6c6f000000'), 'Hello');
   t.is(doffset(fixed(8, utf8), '48656c6c6f000000'), 8);
   t.is(sd(fixed(8, utf8), 'Hello'), 'Hello');
+});
+
+test('it can handle empty buffers', (t) => {
+  const { u8, unit } = new BeetSerializer();
+  const tolerant = new BeetSerializer();
+  const intolerant = new BeetSerializer({ tolerateEmptyBuffers: false });
+  const e: ThrowsExpectation = { instanceOf: DeserializingEmptyBufferError };
+  const fixedError = (expectedBytes: number) => ({
+    message: (m: string) =>
+      m.includes(`Serializer [fixed] expected ${expectedBytes} bytes, got 0.`),
+  });
+  const empty = (serializer: Serializer<any, any>) =>
+    serializer.deserialize(new Uint8Array())[0];
+
+  // Tuple.
+  t.throws(() => empty(tolerant.tuple([u8])), e);
+  t.throws(() => empty(intolerant.tuple([u8])), e);
+  t.deepEqual(empty(tolerant.tuple([])), []);
+  t.deepEqual(empty(intolerant.tuple([])), []);
+
+  // Vec.
+  t.deepEqual(empty(tolerant.vec(u8)), []);
+  t.throws(() => empty(intolerant.vec(u8)), e);
+
+  // Array.
+  t.throws(() => empty(tolerant.array(u8, 5)), e);
+  t.throws(() => empty(intolerant.array(u8, 5)), e);
+  t.deepEqual(empty(tolerant.array(u8, 0)), []);
+  t.deepEqual(empty(intolerant.array(u8, 0)), []);
+
+  // Map.
+  t.deepEqual(empty(tolerant.map(u8, u8)), new Map());
+  t.throws(() => empty(intolerant.map(u8, u8)), e);
+
+  // Set.
+  t.deepEqual(empty(tolerant.set(u8)), new Set());
+  t.throws(() => empty(intolerant.set(u8)), e);
+
+  // Options.
+  t.deepEqual(empty(tolerant.option(u8)), none());
+  t.deepEqual(empty(tolerant.fixedOption(u8)), none());
+  t.deepEqual(empty(tolerant.nullable(u8)), null);
+  t.deepEqual(empty(tolerant.fixedNullable(u8)), null);
+  t.throws(() => empty(intolerant.option(u8)), e);
+  t.throws(() => empty(intolerant.fixedOption(u8)), e);
+  t.throws(() => empty(intolerant.nullable(u8)), e);
+  t.throws(() => empty(intolerant.fixedNullable(u8)), e);
+
+  // Struct.
+  t.throws(() => empty(tolerant.struct([['age', u8]])), e);
+  t.throws(() => empty(intolerant.struct([['age', u8]])), e);
+  t.deepEqual(empty(tolerant.struct([])), {});
+  t.deepEqual(empty(intolerant.struct([])), {});
+
+  // Enum.
+  enum DummyEnum {}
+  t.throws(() => empty(tolerant.enum(DummyEnum)), e);
+  t.throws(() => empty(intolerant.enum(DummyEnum)), e);
+
+  // DataEnum.
+  type DummyDataEnum = { __kind: 'foo' };
+  t.throws(() => empty(tolerant.dataEnum<DummyDataEnum>([['foo', unit]])), e);
+  t.throws(() => empty(intolerant.dataEnum<DummyDataEnum>([['foo', unit]])), e);
+
+  // Fixed.
+  t.throws(() => empty(tolerant.fixed(42, u8)), fixedError(42));
+  t.throws(() => empty(intolerant.fixed(42, u8)), fixedError(42));
+
+  // Strings.
+  t.throws(() => empty(tolerant.string()), e);
+  t.throws(() => empty(intolerant.string()), e);
+  t.throws(() => empty(tolerant.fixedString(5)), fixedError(5));
+  t.throws(() => empty(intolerant.fixedString(5)), fixedError(5));
+  t.is(empty(tolerant.fixedString(0)), '');
+  t.is(empty(intolerant.fixedString(0)), '');
+
+  // Bool.
+  t.throws(() => empty(tolerant.bool()), e);
+  t.throws(() => empty(intolerant.bool()), e);
+
+  // Unit.
+  t.is(empty(tolerant.unit), undefined);
+  t.is(empty(intolerant.unit), undefined);
+
+  // Numbers.
+  t.throws(() => empty(tolerant.u8), e);
+  t.throws(() => empty(tolerant.u64), e);
+  t.throws(() => empty(intolerant.u8), e);
+  t.throws(() => empty(intolerant.u64), e);
 });
 
 /** Serialize as a hex string. */

@@ -1,6 +1,7 @@
 import { Serializer } from '@lorisleiva/js-core';
 import type { FixedSizeBeet } from '@metaplex-foundation/beet';
 import * as beet from '@metaplex-foundation/beet';
+import { DeserializingEmptyBufferError } from './errors';
 
 // Simple numbers.
 export const u8 = () => wrapBeet(beet.u8);
@@ -74,6 +75,9 @@ function wrapBeet<T>(fixedBeet: FixedSizeBeet<T>): Serializer<T> {
       return new Uint8Array(buffer);
     },
     deserialize: (bytes: Uint8Array, offset = 0) => {
+      if (bytes.length === 0) {
+        throw new DeserializingEmptyBufferError(fixedBeet.description);
+      }
       const buffer = Buffer.from(bytes);
       const value = fixedBeet.read(buffer, offset);
       return [value, offset + fixedBeet.byteSize];
@@ -94,6 +98,9 @@ function wrapBigintBeet(
       return new Uint8Array(buffer);
     },
     deserialize: (bytes: Uint8Array, offset = 0) => {
+      if (bytes.length === 0) {
+        throw new DeserializingEmptyBufferError(fixedBeet.description);
+      }
       const buffer = Buffer.from(bytes);
       const rawValue = fixedBeet.read(buffer, offset);
       const value = BigInt(

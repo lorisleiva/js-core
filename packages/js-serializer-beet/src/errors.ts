@@ -19,3 +19,11 @@ export class OperationNotSupportedError extends BeetSerializerError {
     );
   }
 }
+
+export class DeserializingEmptyBufferError extends BeetSerializerError {
+  readonly name: string = 'DeserializingEmptyBufferError';
+
+  constructor(serializer: string) {
+    super(`Serializer [${serializer}] cannot deserialize empty buffers.`);
+  }
+}
