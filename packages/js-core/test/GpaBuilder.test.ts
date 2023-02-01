@@ -5,6 +5,7 @@ import {
   defaultPublicKey,
   GpaBuilder,
   gpaBuilder,
+  RpcAccount,
   Serializer,
 } from '../src';
 
@@ -61,19 +62,15 @@ test('it can add memcmp filters', (t) => {
   });
 });
 
+type Person = {
+  age: number; // Size: 1
+  name: string; // Size: 32
+  balances: (number | bigint)[]; // Size: null
+  id: number | bigint; // Size: 8
+};
+
 test('it can add memcmp filters from fields', (t) => {
-  type Person = {
-    age: number; // Size: 1
-    name: string; // Size: 32
-    balances: (number | bigint)[]; // Size: null
-    id: number | bigint; // Size: 8
-  };
-  const builder = getTestGpaBuilder().registerFields<Person>([
-    ['age', getTestSerializer<number>(1, 1)],
-    ['name', getTestSerializer<string>(2, 32)],
-    ['balances', getTestSerializer<(number | bigint)[], bigint[]>(3, null)],
-    ['id', getTestSerializer<number | bigint, bigint>(4, 8)],
-  ]);
+  const builder = getPersonGpaBuilder();
 
   // Age (offset = 0, identifier = 1).
   t.deepEqual(builder.whereField('age', 28).options.filters?.[0], {
@@ -102,8 +99,51 @@ test('it can add memcmp filters from fields', (t) => {
   });
 });
 
+test('it can add a data slice using a field', (t) => {
+  const builder = getPersonGpaBuilder();
+
+  // Age (offset = 0, size = 1).
+  t.deepEqual(builder.sliceField('age').options.dataSlice, {
+    offset: 0,
+    length: 1,
+  });
+
+  // Name (offset = 1, size = 32).
+  t.deepEqual(builder.sliceField('name').options.dataSlice, {
+    offset: 1,
+    length: 32,
+  });
+
+  // Balances (offset = 33, size = null).
+  t.throws(() => builder.sliceField('balances'), {
+    message: (m) =>
+      m.includes('Cannot slice field [balances] because its size is variable.'),
+  });
+
+  // ID (offset = null, size = 8).
+  t.throws(() => builder.sliceField('id'), {
+    message: (m) =>
+      m.includes("Field [id] is not in the fixed part of the account's data"),
+  });
+
+  // ID (offset = null, size = 8) with explicit offset.
+  t.deepEqual(builder.sliceField('id', 42).options.dataSlice, {
+    offset: 42,
+    length: 8,
+  });
+});
+
 function getTestGpaBuilder(): GpaBuilder {
   return gpaBuilder(createNullContext(), defaultPublicKey());
+}
+
+function getPersonGpaBuilder(): GpaBuilder<RpcAccount, Person> {
+  return getTestGpaBuilder().registerFields<Person>([
+    ['age', getTestSerializer<number>(1, 1)],
+    ['name', getTestSerializer<string>(2, 32)],
+    ['balances', getTestSerializer<(number | bigint)[], bigint[]>(3, null)],
+    ['id', getTestSerializer<number | bigint, bigint>(4, 8)],
+  ]);
 }
 
 function getTestSerializer<T, U extends T = T>(

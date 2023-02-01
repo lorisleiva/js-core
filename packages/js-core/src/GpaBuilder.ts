@@ -12,7 +12,8 @@ import type {
   RpcDataSlice,
   RpcGetProgramAccountsOptions,
 } from './RpcInterface';
-import { StructToSerializerTuple } from './SerializerInterface';
+import type { Serializer } from './Serializer';
+import type { StructToSerializerTuple } from './SerializerInterface';
 import { base10, base58, base64 } from './utils';
 
 export type GpaBuilderSortCallback = (a: RpcAccount, b: RpcAccount) => number;
@@ -66,6 +67,19 @@ export class GpaBuilder<
     });
   }
 
+  sliceField(
+    field: keyof Fields,
+    offset?: number
+  ): GpaBuilder<Account, Fields> {
+    const [effectiveOffset, serializer] = this.getField(field, offset);
+    if (!serializer.fixedSize) {
+      throw new SdkError(
+        `Cannot slice field [${field as string}] because its size is variable.`
+      );
+    }
+    return this.slice(effectiveOffset, serializer.fixedSize);
+  }
+
   withoutData(): GpaBuilder<Account, Fields> {
     return this.slice(0, 0);
   }
@@ -104,42 +118,8 @@ export class GpaBuilder<
     data: Fields[K],
     offset?: number
   ): GpaBuilder<Account, Fields> {
-    if (!this.options.fields) {
-      throw new SdkError('Fields are not defined in this GpaBuilder.');
-    }
-
-    const fieldIndex = this.options.fields.findIndex(
-      ([name]) => name === field
-    );
-    if (fieldIndex < 0) {
-      throw new SdkError(
-        `Field [${field as string}] is not defined in this GpaBuilder.`
-      );
-    }
-
-    const [, serializer] = this.options.fields[fieldIndex];
-    if (offset !== undefined) {
-      return this.where(offset, serializer.serialize(data));
-    }
-
-    const computedOffset = this.options.fields
-      .slice(0, fieldIndex)
-      .reduce(
-        (acc, [, s]) =>
-          acc === null || s.fixedSize === null ? null : acc + s.fixedSize,
-        0 as number | null
-      );
-
-    if (computedOffset === null) {
-      throw new SdkError(
-        `Field [${field as string}] is not in the fixed part of ` +
-          `the account's data. In other words, it is located after ` +
-          `a field of variable length which means we cannot find a ` +
-          `fixed offset for the filter.`
-      );
-    }
-
-    return this.where(computedOffset, serializer.serialize(data));
+    const [effectiveOffset, serializer] = this.getField(field, offset);
+    return this.where(effectiveOffset, serializer.serialize(data));
   }
 
   whereSize(dataSize: number): GpaBuilder<Account, Fields> {
@@ -205,6 +185,51 @@ export class GpaBuilder<
         throw new SdkError(message);
       }
     }, options);
+  }
+
+  protected getField<K extends keyof Fields>(
+    field: K,
+    offset?: number
+  ): [number, Serializer<Fields[K]>] {
+    if (!this.options.fields) {
+      throw new SdkError('Fields are not defined in this GpaBuilder.');
+    }
+
+    const fieldIndex = this.options.fields.findIndex(
+      ([name]) => name === field
+    );
+    if (fieldIndex < 0) {
+      throw new SdkError(
+        `Field [${field as string}] is not defined in this GpaBuilder.`
+      );
+    }
+
+    const serializer = this.options.fields[
+      fieldIndex
+    ][1] as unknown as Serializer<Fields[K]>;
+
+    if (offset !== undefined) {
+      return [offset, serializer];
+    }
+
+    const computedOffset = this.options.fields
+      .slice(0, fieldIndex)
+      .reduce(
+        (acc, [, s]) =>
+          acc === null || s.fixedSize === null ? null : acc + s.fixedSize,
+        0 as number | null
+      );
+
+    if (computedOffset === null) {
+      throw new SdkError(
+        `Field [${field as string}] is not in the fixed part of ` +
+          `the account's data. In other words, it is located after ` +
+          `a field of variable length which means we cannot find a ` +
+          `fixed offset for the filter.`
+      );
+    }
+
+    return [computedOffset, serializer];
   }
 }
 
