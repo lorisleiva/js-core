@@ -1191,6 +1191,14 @@ test('it can handle empty buffers', (t) => {
   t.throws(() => empty(tolerant.u64), e);
   t.throws(() => empty(intolerant.u8), e);
   t.throws(() => empty(intolerant.u64), e);
+
+  // PublicKey.
+  t.throws(() => empty(tolerant.publicKey), e);
+  t.throws(() => empty(intolerant.publicKey), e);
+
+  // Bytes.
+  t.deepEqual(empty(tolerant.bytes), new Uint8Array());
+  t.deepEqual(empty(intolerant.bytes), new Uint8Array());
 });
 
 /** Serialize as a hex string. */

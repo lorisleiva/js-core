@@ -19,13 +19,6 @@ import {
   WrapInSerializer,
 } from '@lorisleiva/js-core';
 import {
-  fromWeb3JsPublicKey,
-  toWeb3JsPublicKey,
-} from '@lorisleiva/js-web3js-adapters';
-import * as beetSolana from '@metaplex-foundation/beet-solana';
-import { PublicKey as Web3PublicKey } from '@solana/web3.js';
-import { Buffer } from 'buffer';
-import {
   BeetSerializerError,
   DeserializingEmptyBufferError,
   OperationNotSupportedError,
@@ -706,22 +699,18 @@ export class BeetSerializer implements SerializerInterface {
       description: 'publicKey',
       fixedSize: 32,
       maxSize: 32,
-      serialize: (value: PublicKeyInput) => {
-        const buffer = Buffer.alloc(beetSolana.publicKey.byteSize);
-        const key = new Web3PublicKey(toWeb3JsPublicKey(publicKey(value)));
-        beetSolana.publicKey.write(buffer, 0, key);
-        return new Uint8Array(buffer);
-      },
+      serialize: (value: PublicKeyInput) => publicKey(value).bytes,
       deserialize: (bytes: Uint8Array, offset = 0) => {
         if (bytes.length === 0) {
           throw new DeserializingEmptyBufferError('publicKey');
         }
-        const buffer = Buffer.from(bytes);
-        const value = beetSolana.publicKey.read(buffer, offset);
-        return [
-          fromWeb3JsPublicKey(value),
-          offset + beetSolana.publicKey.byteSize,
-        ];
+        const pubkeyBytes = bytes.slice(offset, offset + 32);
+        if (pubkeyBytes.length < 32) {
+          throw new BeetSerializerError(
+            `Serializer [publicKey] expected 32 bytes, got ${pubkeyBytes.length}.`
+          );
+        }
+        return [publicKey(pubkeyBytes), offset + 32];
       },
     };
   }
