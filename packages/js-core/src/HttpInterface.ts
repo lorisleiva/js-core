@@ -17,10 +17,13 @@ export type HttpRequest<D = any> = {
   headers?: HttpRequestHeaders;
   timeout?: Milliseconds;
   signal?: GenericAbortSignal;
+  throwOnError?: boolean;
 };
 
 export type HttpResponse<D = any> = {
   data: D;
+  body: string;
+  ok: boolean;
   status: number;
   statusText: string;
   headers: HttpResponseHeaders;
