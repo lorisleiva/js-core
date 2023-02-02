@@ -1,16 +1,41 @@
 import test from 'ava';
-import { request } from '@lorisleiva/js-core';
-import { fetchHttp, FetchHttp } from '../src';
+import { HttpResponse, request } from '@lorisleiva/js-core';
+import { FetchHttp } from '../src';
 
 const BASE_URL = 'http://localhost:3000';
 
-test('example test', async (t) => {
-  t.is(typeof fetchHttp, 'function');
+type User = {
+  id: number;
+  userId: number;
+  name: string;
+};
+
+test('it can send a JSON get request', async (t) => {
+  const http = new FetchHttp();
+  const response = await http.send<User>(
+    request().get(`${BASE_URL}/users/1`).asJson()
+  );
+  t.like(response, <HttpResponse<User>>{
+    data: {
+      id: 1,
+      userId: 101,
+      name: 'Alice',
+    },
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+  });
 });
 
-test.only('example test 2', async (t) => {
+test('it can handle JSON errors', async (t) => {
   const http = new FetchHttp();
-  const response = await http.send(request().get(`${BASE_URL}/users`).asJson());
-  console.log(response);
-  t.pass();
+  const response = await http.send<User>(
+    request().get(`${BASE_URL}/errors/404`).asJson()
+  );
+  t.like(response, <HttpResponse>{
+    data: { message: 'Custom 404 error message' },
+    ok: false,
+    status: 404,
+    statusText: 'Not Found',
+  });
 });

@@ -5,13 +5,13 @@ const jsonServer = require('json-server');
 const server = jsonServer.create();
 server.use(jsonServer.defaults());
 server.use(jsonServer.bodyParser);
-server.use(jsonServer.router('test/db.json'));
 
-// Add custom routes before JSON Server router
-server.get('/echo', (req, res) => {
-  res.json(req.query);
+// Custom routes.
+server.get('/errors/404', (req, res) => {
+  res.status(404).json({ message: 'Custom 404 error message' });
 });
 
+server.use(jsonServer.router('test/db.json'));
 server.listen(3000, () => {
   console.log('Test server running at http://localhost:3000...');
 });
