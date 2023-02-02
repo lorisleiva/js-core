@@ -33,6 +33,10 @@ export class HttpRequestBuilder<D> implements HttpRequest<D> {
     return this.contentType('application/json');
   }
 
+  asMultipart() {
+    return this.contentType('multipart/form-data');
+  }
+
   asForm() {
     return this.contentType('application/x-www-form-urlencoded');
   }

@@ -3,15 +3,14 @@
 const jsonServer = require('json-server');
 
 const server = jsonServer.create();
-server.use(jsonServer.defaults());
-server.use(jsonServer.bodyParser);
+server.use(jsonServer.defaults({ bodyParser: true }));
 
 server.post('/post', (req, res) => {
-  res.status(201).json({
-    id: 42,
-    userId: 142,
-    name: req.body.name,
-  });
+  res.status(201).json({ id: 42, userId: 142, name: req.body.name });
+});
+
+server.post('/post-multipart', (req, res) => {
+  res.status(200).json({ from: 'multipart' });
 });
 
 server.get('/errors/404', (req, res) => {

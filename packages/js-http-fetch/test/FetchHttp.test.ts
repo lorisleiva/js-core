@@ -59,3 +59,19 @@ test('it can send a JSON post request', async (t) => {
     statusText: 'Created',
   });
 });
+
+test('it can send a Multipart post request', async (t) => {
+  const http = new FetchHttp();
+  const response = await http.send<User>(
+    request()
+      .post(`${BASE_URL}/post-multipart`)
+      .withData(new FormData())
+      .asMultipart()
+  );
+  t.like(response, <HttpResponse>{
+    data: { from: 'multipart' },
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+  });
+});
