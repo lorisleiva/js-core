@@ -8,7 +8,6 @@ export type HttpRequest<D = any> = {
   url: string;
   data: D;
   headers: HttpRequestHeaders;
-  params?: object | URLSearchParams; // ?
   maxRedirects?: number;
   timeout?: Milliseconds;
   signal?: GenericAbortSignal;
@@ -89,8 +88,17 @@ export class HttpRequestBuilder<D> implements HttpRequest<D> {
     return new HttpRequestBuilder<D>({ ...this.request, method, url });
   }
 
-  withParams(params: object | URLSearchParams) {
-    return new HttpRequestBuilder<D>({ ...this.request, params });
+  withParams(
+    params: string | URLSearchParams | string[][] | Record<string, string>
+  ) {
+    const url = new URL(this.request.url);
+    const newSearch = new URLSearchParams(params);
+    const search = new URLSearchParams(url.searchParams);
+    [...newSearch.entries()].forEach(([key, val]) => {
+      search.append(key, val);
+    });
+    url.search = search.toString();
+    return new HttpRequestBuilder<D>({ ...this.request, url: url.toString() });
   }
 
   withData<T>(data: T) {
@@ -129,12 +137,12 @@ export class HttpRequestBuilder<D> implements HttpRequest<D> {
     return this.request.data;
   }
 
-  get params(): object | URLSearchParams | undefined {
-    return this.request.params;
-  }
-
   get headers(): HttpRequestHeaders {
     return this.request.headers;
+  }
+
+  get maxRedirects(): number | undefined {
+    return this.request.maxRedirects;
   }
 
   get timeout(): Milliseconds | undefined {

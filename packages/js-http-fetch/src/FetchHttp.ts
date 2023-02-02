@@ -17,6 +17,7 @@ export class FetchHttp implements HttpInterface {
             {} as Record<string, string>
           )
         : undefined,
+      follow: request.maxRedirects,
       signal: request.signal as any,
       timeout: request.timeout,
     };
@@ -26,8 +27,13 @@ export class FetchHttp implements HttpInterface {
       response.headers.get('content-type')?.includes('application/json') ??
       false;
 
+    const bodyAsText = await response.text();
+    const bodyAsJson = isJsonResponse ? JSON.parse(bodyAsText) : undefined;
+
     return {
-      data: isJsonResponse ? await response.json() : await response.text(),
+      data: bodyAsJson ?? bodyAsText,
+      body: bodyAsText,
+      ok: response.ok,
       status: response.status,
       statusText: response.statusText,
       headers: { ...response.headers.raw() },

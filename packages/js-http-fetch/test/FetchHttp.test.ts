@@ -1,4 +1,5 @@
 import test from 'ava';
+import { request } from '@lorisleiva/js-core';
 import { fetchHttp, FetchHttp } from '../src';
 
 test('example test', async (t) => {
@@ -7,11 +8,9 @@ test('example test', async (t) => {
 
 test.only('example test 2', async (t) => {
   const http = new FetchHttp();
-  const foo = await http.send({
-    method: 'GET',
-    url: 'https://jsonplaceholder.typicode.com/todos/1',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  console.log(foo);
+  const response = await http.send(
+    request().get('https://jsonplaceholder.typicode.com/todos/1').asJson()
+  );
+  console.log(response);
   t.pass();
 });
