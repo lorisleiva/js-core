@@ -7,20 +7,20 @@ export type HttpRequest<D = any> = {
   method: HttpMethod;
   url: string;
   data: D;
-  params?: object | URLSearchParams; // ?
   headers: HttpRequestHeaders;
+  params?: object | URLSearchParams; // ?
   maxRedirects?: number;
   timeout?: Milliseconds;
   signal?: GenericAbortSignal;
   throwOnError?: boolean; // ?
 };
 
-export const request = (url: string) =>
+export const request = () =>
   new HttpRequestBuilder<undefined>({
     method: 'get',
     data: undefined,
     headers: {},
-    url,
+    url: '',
   });
 
 export class HttpRequestBuilder<D> implements HttpRequest<D> {
@@ -74,11 +74,47 @@ export class HttpRequestBuilder<D> implements HttpRequest<D> {
   }
 
   noTimeout() {
-    return this.useTimeout(0);
+    return this.withTimeout(0);
   }
 
-  useTimeout(timeout: Milliseconds) {
+  withTimeout(timeout: Milliseconds) {
     return new HttpRequestBuilder<D>({ ...this.request, timeout });
+  }
+
+  withAbortSignal(signal: GenericAbortSignal) {
+    return new HttpRequestBuilder<D>({ ...this.request, signal });
+  }
+
+  withEndpoint(method: HttpMethod, url: string) {
+    return new HttpRequestBuilder<D>({ ...this.request, method, url });
+  }
+
+  withParams(params: object | URLSearchParams) {
+    return new HttpRequestBuilder<D>({ ...this.request, params });
+  }
+
+  withData<T>(data: T) {
+    return new HttpRequestBuilder<T>({ ...this.request, data });
+  }
+
+  get(url: string) {
+    return this.withEndpoint('get', url);
+  }
+
+  post(url: string) {
+    return this.withEndpoint('post', url);
+  }
+
+  put(url: string) {
+    return this.withEndpoint('put', url);
+  }
+
+  patch(url: string) {
+    return this.withEndpoint('patch', url);
+  }
+
+  delete(url: string) {
+    return this.withEndpoint('delete', url);
   }
 
   get method(): HttpMethod {
