@@ -9,19 +9,9 @@ server.use(jsonServer.router('test/db.json'));
 
 // Add custom routes before JSON Server router
 server.get('/echo', (req, res) => {
-  res.jsonp(req.query);
-});
-
-// To handle POST, PUT and PATCH you need to use a body-parser
-// You can use the one used by JSON Server
-server.use((req, res, next) => {
-  if (req.method === 'POST') {
-    req.body.createdAt = Date.now();
-  }
-  // Continue to JSON Server router
-  next();
+  res.json(req.query);
 });
 
 server.listen(3000, () => {
-  console.log('Test server is running...');
+  console.log('Test server running at http://localhost:3000...');
 });

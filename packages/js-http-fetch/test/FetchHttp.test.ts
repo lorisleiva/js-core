@@ -2,7 +2,7 @@ import test from 'ava';
 import { request } from '@lorisleiva/js-core';
 import { fetchHttp, FetchHttp } from '../src';
 
-const BASE_URL = 'http://localhost:3003/api';
+const BASE_URL = 'http://localhost:3000';
 
 test('example test', async (t) => {
   t.is(typeof fetchHttp, 'function');
