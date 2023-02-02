@@ -39,3 +39,23 @@ test('it can handle JSON errors', async (t) => {
     statusText: 'Not Found',
   });
 });
+
+test('it can send a JSON post request', async (t) => {
+  const http = new FetchHttp();
+  const response = await http.send<User>(
+    request()
+      .post(`${BASE_URL}/post`)
+      .withData<{ name: string }>({ name: 'Loris' })
+      .asJson()
+  );
+  t.like(response, <HttpResponse<User>>{
+    data: {
+      id: 42,
+      userId: 142,
+      name: 'Loris',
+    },
+    ok: true,
+    status: 201,
+    statusText: 'Created',
+  });
+});

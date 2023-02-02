@@ -6,7 +6,14 @@ const server = jsonServer.create();
 server.use(jsonServer.defaults());
 server.use(jsonServer.bodyParser);
 
-// Custom routes.
+server.post('/post', (req, res) => {
+  res.status(201).json({
+    id: 42,
+    userId: 142,
+    name: req.body.name,
+  });
+});
+
 server.get('/errors/404', (req, res) => {
   res.status(404).json({ message: 'Custom 404 error message' });
 });

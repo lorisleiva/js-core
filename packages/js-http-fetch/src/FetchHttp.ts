@@ -5,9 +5,19 @@ export class FetchHttp implements HttpInterface {
   async send<ResponseData, RequestData = any>(
     request: HttpRequest<RequestData>
   ): Promise<HttpResponse<ResponseData>> {
+    const isJsonRequest =
+      request.headers['content-type']?.includes('application/json') ?? false;
+
+    let data: BodyInit | undefined;
+    if (isJsonRequest && request.data) {
+      data = JSON.stringify(request.data);
+    } else {
+      data = request.data as BodyInit | undefined;
+    }
+
     const requestInit: RequestInit = {
       method: request.method,
-      body: request.data as BodyInit | undefined,
+      body: data,
       headers: request.headers
         ? Object.entries(request.headers).reduce(
             (acc, [name, headers]) => ({

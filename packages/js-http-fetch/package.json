@@ -24,7 +24,7 @@
     "clean": "rimraf dist",
     "build": "pnpm clean && tsc && tsc -p test/tsconfig.json && rollup -c",
     "test": "pnpm server:start && ava; pnpm server:stop",
-    "server:start": "node ./test/_server.cjs &",
+    "server:start": "node ./test/_server.cjs > /dev/null &",
     "server:stop": "kill $(lsof -t -i:3000) 2> /dev/null || true"
   },
   "dependencies": {
