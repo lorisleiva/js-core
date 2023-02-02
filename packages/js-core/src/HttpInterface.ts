@@ -3,40 +3,80 @@ import type { GenericAbortSignal } from './GenericAbortSignal';
 
 export interface HttpInterface {
   send: <ResponseData, RequestData = any>(
-    method: HttpMethod,
-    url: string,
-    options?: HttpOptions<RequestData>
+    request: HttpRequest<RequestData>
   ) => Promise<HttpResponse<ResponseData>>;
 }
 
-export type HttpOptions<RequestData = any> = {
-  data?: RequestData;
-  params?: any;
-  headers?: HttpHeaders;
-  timeout?: number;
+type Milliseconds = number;
+
+export type HttpRequest<D = any> = {
+  method: HttpMethod;
+  url: string;
+  data?: D;
+  params?: object | URLSearchParams;
+  headers?: HttpRequestHeaders;
+  timeout?: Milliseconds;
   signal?: GenericAbortSignal;
 };
 
-export type HttpResponse<ResponseData = any> = {
-  data: ResponseData;
+export type HttpResponse<D = any> = {
+  data: D;
   status: number;
   statusText: string;
-  headers: HttpHeaders;
+  headers: HttpResponseHeaders;
 };
 
-export type HttpHeaders = Record<string, string[]>;
+export type HttpHeaderValue = string | string[];
 
-export enum HttpMethod {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  HEAD = 'HEAD',
-  DELETE = 'DELETE',
-  PATCH = 'PATCH',
-  OPTIONS = 'OPTIONS',
-  CONNECT = 'CONNECT',
-  TRACE = 'TRACE',
-}
+export type HttpHeaderContentTypeValue =
+  | HttpHeaderValue
+  | 'text/html'
+  | 'text/plain'
+  | 'multipart/form-data'
+  | 'application/json'
+  | 'application/x-www-form-urlencoded'
+  | 'application/octet-stream';
+
+export type HttpHeaders = Record<string, HttpHeaderValue>;
+
+export type HttpRequestHeaders = HttpHeaders & {
+  Accept?: HttpHeaderValue;
+  Authorization?: HttpHeaderValue;
+  'Content-Encoding'?: HttpHeaderValue;
+  'Content-Length'?: HttpHeaderValue;
+  'Content-Type'?: HttpHeaderContentTypeValue;
+  'User-Agent'?: HttpHeaderValue;
+};
+
+export type HttpResponseHeaders = HttpHeaders & {
+  Server?: HttpHeaderValue;
+  'Cache-Control'?: HttpHeaderValue;
+  'Content-Encoding'?: HttpHeaderValue;
+  'Content-Length'?: HttpHeaderValue;
+  'Content-Type'?: HttpHeaderContentTypeValue;
+};
+
+export type HttpMethod =
+  | 'get'
+  | 'GET'
+  | 'delete'
+  | 'DELETE'
+  | 'head'
+  | 'HEAD'
+  | 'options'
+  | 'OPTIONS'
+  | 'post'
+  | 'POST'
+  | 'put'
+  | 'PUT'
+  | 'patch'
+  | 'PATCH'
+  | 'purge'
+  | 'PURGE'
+  | 'link'
+  | 'LINK'
+  | 'unlink'
+  | 'UNLINK';
 
 export class NullHttp implements HttpInterface {
   send<ResponseData>(): Promise<HttpResponse<ResponseData>> {

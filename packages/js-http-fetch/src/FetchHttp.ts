@@ -1,37 +1,36 @@
-import {
-  HttpInterface,
-  HttpMethod,
-  HttpOptions,
-  HttpResponse,
-} from '@lorisleiva/js-core';
-import fetch, { RequestInit } from 'node-fetch';
+import { HttpInterface, HttpRequest, HttpResponse } from '@lorisleiva/js-core';
+import fetch, { BodyInit, RequestInit } from 'node-fetch';
 
 export class FetchHttp implements HttpInterface {
   async send<ResponseData, RequestData = any>(
-    method: HttpMethod,
-    url: string,
-    options?: HttpOptions<RequestData>
+    request: HttpRequest<RequestData>
   ): Promise<HttpResponse<ResponseData>> {
     const requestInit: RequestInit = {
-      method,
-      body: options?.params,
-      headers: options?.headers
-        ? Object.entries(options.headers).reduce(
-            (acc, [name, headers]) => ({ ...acc, [name]: headers.join(', ') }),
+      method: request.method,
+      body: request.data as BodyInit | undefined,
+      headers: request.headers
+        ? Object.entries(request.headers).reduce(
+            (acc, [name, headers]) => ({
+              ...acc,
+              [name]: Array.isArray(headers) ? headers.join(', ') : headers,
+            }),
             {} as Record<string, string>
           )
         : undefined,
-      signal: options?.signal as any,
-      timeout: options?.timeout,
+      signal: request.signal as any,
+      timeout: request.timeout,
     };
 
-    const response = await fetch(url, requestInit);
+    const response = await fetch(request.url, requestInit);
+    const isJsonResponse =
+      response.headers.get('content-type')?.includes('application/json') ??
+      false;
 
     return {
-      data: await response.json(),
+      data: isJsonResponse ? await response.json() : await response.text(),
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers.raw(),
+      headers: { ...response.headers.raw() },
     };
   }
 }
