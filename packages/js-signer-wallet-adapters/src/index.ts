@@ -1,1 +1,2 @@
-export * from './plugin';
+export * from './createSignerFromWalletAdapter';
+export * from './errors';
