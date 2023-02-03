@@ -8,6 +8,7 @@ import {
   createSignerFromKeypair,
   GenericFile,
   GenericFileTag,
+  isKeypairSigner,
   Keypair,
   lamports,
   Signer,
@@ -228,13 +229,8 @@ export class BundlrUploader implements UploaderInterface {
       typeof window === 'undefined' || window.process?.hasOwnProperty('type');
 
     let bundlr;
-    if (isNode && 'secretKey' in payer)
-      bundlr = await this.initNodeBundlr(
-        address,
-        currency,
-        payer as Keypair, // TODO
-        options
-      );
+    if (isNode && isKeypairSigner(payer))
+      bundlr = await this.initNodeBundlr(address, currency, payer, options);
     else {
       bundlr = await this.initWebBundlr(address, currency, payer, options);
     }

@@ -1,7 +1,5 @@
-import type { Context } from './Context';
-import type { Keypair } from './KeyPair';
-import { samePublicKey, PublicKey } from './PublicKey';
-import { addTransactionSignature, Transaction } from './Transaction';
+import { PublicKey, samePublicKey } from './PublicKey';
+import { Transaction } from './Transaction';
 
 export type Signer = {
   publicKey: PublicKey;
@@ -76,31 +74,6 @@ export const deduplicateSigners = (signers: Signer[]): Signer[] => {
     return [...all, one];
   }, [] as Signer[]);
 };
-
-export const generateSigner = (context: Pick<Context, 'eddsa'>): Signer =>
-  createSignerFromKeypair(context, context.eddsa.generateKeypair());
-
-export const createSignerFromKeypair = (
-  context: Pick<Context, 'eddsa'>,
-  keypair: Keypair
-): Signer => ({
-  publicKey: keypair.publicKey,
-  async signMessage(message: Uint8Array): Promise<Uint8Array> {
-    return context.eddsa.sign(message, keypair);
-  },
-  async signTransaction(transaction: Transaction): Promise<Transaction> {
-    const message = transaction.serializedMessage;
-    const signature = context.eddsa.sign(message, keypair);
-    return addTransactionSignature(transaction, signature, keypair.publicKey);
-  },
-  async signAllTransactions(
-    transactions: Transaction[]
-  ): Promise<Transaction[]> {
-    return Promise.all(
-      transactions.map((transaction) => this.signTransaction(transaction))
-    );
-  },
-});
 
 export const createNoopSigner = (publicKey: PublicKey): Signer => ({
   publicKey,
