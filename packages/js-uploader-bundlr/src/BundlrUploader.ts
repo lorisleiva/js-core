@@ -61,7 +61,7 @@ function _removeDoubleDefault(pkg: any) {
   return pkg;
 }
 
-export type BundlrOptions = {
+export type BundlrUploaderOptions = {
   address?: string;
   timeout?: number;
   providerUrl?: string;
@@ -94,13 +94,13 @@ const MINIMUM_SIZE = 80_000;
 export class BundlrUploader implements UploaderInterface {
   protected context: Pick<Context, 'rpc' | 'payer' | 'eddsa'>;
 
-  protected options: BundlrOptions;
+  protected options: BundlrUploaderOptions;
 
   protected _bundlr: WebBundlr | NodeBundlr | null = null;
 
   constructor(
     context: Pick<Context, 'rpc' | 'payer' | 'eddsa'>,
-    options: BundlrOptions = {}
+    options: BundlrUploaderOptions = {}
   ) {
     this.context = context;
     this.options = {

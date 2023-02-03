@@ -1,7 +1,9 @@
 import type { MetaplexPlugin } from '@lorisleiva/js-core';
-import { BundlrOptions, BundlrUploader } from './BundlrUploader';
+import { BundlrUploaderOptions, BundlrUploader } from './BundlrUploader';
 
-export const bundlrUploader = (options?: BundlrOptions): MetaplexPlugin => ({
+export const bundlrUploader = (
+  options?: BundlrUploaderOptions
+): MetaplexPlugin => ({
   install(metaplex) {
     metaplex.uploader = new BundlrUploader(metaplex, options);
   },
