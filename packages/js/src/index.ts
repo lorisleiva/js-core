@@ -2,7 +2,7 @@ import {
   Metaplex,
   createMetaplex as baseCreateMetaplex,
 } from '@lorisleiva/js-core';
-import { Web3JsRpcOptions } from '@lorisleiva/js-rpc-web3js';
+import type { Web3JsRpcOptions } from '@lorisleiva/js-rpc-web3js';
 import { defaultPlugins } from './plugin';
 
 export const createMetaplex = (
