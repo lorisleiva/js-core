@@ -290,6 +290,10 @@ importers:
       '@ava/typescript': ^3.0.1
       '@ipld/dag-pb': ^2.1.17
       '@lorisleiva/js-core': workspace:^
+      '@lorisleiva/js-downloader-http': workspace:^
+      '@lorisleiva/js-eddsa-web3js': workspace:^
+      '@lorisleiva/js-http-fetch': workspace:^
+      '@lorisleiva/js-rpc-web3js': workspace:^
       '@nftstorage/metaplex-auth': ^1.2.0
       ava: ^5.1.0
       ipfs-car: ^0.7.0
@@ -309,6 +313,10 @@ importers:
       node-fetch: 2.6.9
     devDependencies:
       '@ava/typescript': 3.0.1
+      '@lorisleiva/js-downloader-http': link:../js-downloader-http
+      '@lorisleiva/js-eddsa-web3js': link:../js-eddsa-web3js
+      '@lorisleiva/js-http-fetch': link:../js-http-fetch
+      '@lorisleiva/js-rpc-web3js': link:../js-rpc-web3js
       ava: 5.1.0_@ava+typescript@3.0.1
       typescript: 4.9.3
 

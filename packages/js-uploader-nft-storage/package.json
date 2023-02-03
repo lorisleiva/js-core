@@ -37,6 +37,10 @@
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
+    "@lorisleiva/js-downloader-http": "workspace:^",
+    "@lorisleiva/js-eddsa-web3js": "workspace:^",
+    "@lorisleiva/js-http-fetch": "workspace:^",
+    "@lorisleiva/js-rpc-web3js": "workspace:^",
     "ava": "^5.1.0",
     "typescript": "^4.5.4"
   },
