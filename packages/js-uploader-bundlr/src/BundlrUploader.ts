@@ -2,8 +2,10 @@
 import type { default as NodeBundlr, WebBundlr } from '@bundlr-network/client';
 import {
   Context,
+  createGenericFileFromJson,
   GenericFile,
   GenericFileTag,
+  Keypair,
   lamports,
   Signer,
   SolAmount,
@@ -20,6 +22,11 @@ import {
 } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 import { Buffer } from 'buffer';
+import {
+  fromWeb3JsTransaction,
+  toWeb3JsPublicKey,
+  toWeb3JsTransaction,
+} from 'packages/js-web3js-adapters/dist/types';
 import {
   AssetUploadFailedError,
   BundlrWithdrawError,
@@ -79,13 +86,16 @@ const HEADER_SIZE = 2_000;
 const MINIMUM_SIZE = 80_000;
 
 export class BundlrUploader implements UploaderInterface {
-  protected context: Pick<Context, 'rpc'>;
+  protected context: Pick<Context, 'rpc' | 'identity'>;
 
   protected options: BundlrOptions;
 
   protected _bundlr: WebBundlr | NodeBundlr | null = null;
 
-  constructor(context: Pick<Context, 'rpc'>, options: BundlrOptions = {}) {
+  constructor(
+    context: Pick<Context, 'rpc' | 'identity'>,
+    options: BundlrOptions = {}
+  ) {
     this.context = context;
     this.options = {
       providerUrl: context.rpc.getEndpoint(),
@@ -131,6 +141,12 @@ export class BundlrUploader implements UploaderInterface {
     });
 
     return Promise.all(promises);
+  }
+
+  async uploadJson<T>(json: T): Promise<string> {
+    const file = createGenericFileFromJson(json);
+    const uris = await this.upload([file]);
+    return uris[0];
   }
 
   async getBalance(): Promise<SolAmount> {
@@ -199,10 +215,11 @@ export class BundlrUploader implements UploaderInterface {
       providerUrl: this.options.providerUrl,
     };
 
-    const identity: Signer = this.options.identity ?? this._metaplex.identity();
+    const identity: Signer = this.options.identity ?? this.context.identity;
 
     // If in node use node bundlr, else use web bundlr.
     const isNode =
+      // eslint-disable-next-line no-prototype-builtins
       typeof window === 'undefined' || window.process?.hasOwnProperty('type');
     let bundlr;
     if (isNode && isKeypairSigner(identity))
@@ -236,7 +253,7 @@ export class BundlrUploader implements UploaderInterface {
   async initNodeBundlr(
     address: string,
     currency: string,
-    keypair: KeypairSigner,
+    keypair: Keypair,
     options: any
   ): Promise<NodeBundlr> {
     const bPackage = _removeDoubleDefault(
@@ -249,14 +266,16 @@ export class BundlrUploader implements UploaderInterface {
   async initWebBundlr(
     address: string,
     currency: string,
-    identity: IdentitySigner,
+    identity: Signer,
     options: any
   ): Promise<WebBundlr> {
     const wallet: BundlrWalletAdapter = {
-      publicKey: identity.publicKey,
+      publicKey: toWeb3JsPublicKey(identity.publicKey),
       signMessage: (message: Uint8Array) => identity.signMessage(message),
-      signTransaction: (transaction: Web3JsTransaction) =>
-        identity.signTransaction(transaction),
+      signTransaction: async (transaction: Web3JsTransaction) =>
+        toWeb3JsTransaction(
+          await identity.signTransaction(fromWeb3JsTransaction(transaction))
+        ),
       signAllTransactions: (transactions: Web3JsTransaction[]) =>
         identity.signAllTransactions(transactions),
       sendTransaction: (
@@ -266,9 +285,10 @@ export class BundlrUploader implements UploaderInterface {
       ): Promise<Web3JsTransactionSignature> => {
         const { signers = [], ...sendOptions } = options;
 
-        return this._metaplex
-          .rpc()
-          .sendTransaction(transaction, sendOptions, [identity, ...signers]);
+        return this.context.rpc.sendTransaction(transaction, sendOptions, [
+          identity,
+          ...signers,
+        ]);
       },
     };
 
