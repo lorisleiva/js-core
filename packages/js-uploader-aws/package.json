@@ -31,7 +31,9 @@
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
-    "ava": "^5.1.0"
+    "@types/sinon": "^10.0.13",
+    "ava": "^5.1.0",
+    "sinon": "^13.0.1"
   },
   "publishConfig": {
     "access": "public"
