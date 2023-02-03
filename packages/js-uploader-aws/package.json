@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-uploader-aws",
-  "version": "0.0.52",
+  "version": "0.0.53",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
