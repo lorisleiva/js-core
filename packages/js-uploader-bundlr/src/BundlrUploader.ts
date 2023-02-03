@@ -1,16 +1,26 @@
 // eslint-disable-next-line import/no-named-default
 import type { default as NodeBundlr, WebBundlr } from '@bundlr-network/client';
 import {
+  base58,
+  Commitment,
   Context,
   createGenericFileFromJson,
+  createSignerFromKeypair,
   GenericFile,
   GenericFileTag,
   Keypair,
   lamports,
   Signer,
+  signTransaction,
   SolAmount,
   UploaderInterface,
 } from '@lorisleiva/js-core';
+import {
+  fromWeb3JsKeypair,
+  fromWeb3JsLegacyTransaction,
+  toWeb3JsLegacyTransaction,
+  toWeb3JsPublicKey,
+} from '@lorisleiva/js-web3js-adapters';
 import {
   Connection as Web3JsConnection,
   Keypair as Web3JsKeypair,
@@ -22,11 +32,6 @@ import {
 } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 import { Buffer } from 'buffer';
-import {
-  fromWeb3JsTransaction,
-  toWeb3JsPublicKey,
-  toWeb3JsTransaction,
-} from 'packages/js-web3js-adapters/dist/types';
 import {
   AssetUploadFailedError,
   BundlrWithdrawError,
@@ -60,7 +65,7 @@ export type BundlrOptions = {
   timeout?: number;
   providerUrl?: string;
   priceMultiplier?: number;
-  identity?: Signer;
+  payer?: Signer;
 };
 
 export type BundlrWalletAdapter = {
@@ -86,14 +91,14 @@ const HEADER_SIZE = 2_000;
 const MINIMUM_SIZE = 80_000;
 
 export class BundlrUploader implements UploaderInterface {
-  protected context: Pick<Context, 'rpc' | 'identity'>;
+  protected context: Pick<Context, 'rpc' | 'payer' | 'eddsa'>;
 
   protected options: BundlrOptions;
 
   protected _bundlr: WebBundlr | NodeBundlr | null = null;
 
   constructor(
-    context: Pick<Context, 'rpc' | 'identity'>,
+    context: Pick<Context, 'rpc' | 'payer' | 'eddsa'>,
     options: BundlrOptions = {}
   ) {
     this.context = context;
@@ -215,29 +220,23 @@ export class BundlrUploader implements UploaderInterface {
       providerUrl: this.options.providerUrl,
     };
 
-    const identity: Signer = this.options.identity ?? this.context.identity;
+    const payer: Signer = this.options.payer ?? this.context.payer;
 
     // If in node use node bundlr, else use web bundlr.
     const isNode =
       // eslint-disable-next-line no-prototype-builtins
       typeof window === 'undefined' || window.process?.hasOwnProperty('type');
-    let bundlr;
-    if (isNode && isKeypairSigner(identity))
-      bundlr = await this.initNodeBundlr(address, currency, identity, options);
-    else {
-      let identitySigner: IdentitySigner;
-      if (isIdentitySigner(identity)) identitySigner = identity;
-      else
-        identitySigner = new KeypairIdentityDriver(
-          Web3JsKeypair.fromSecretKey((identity as KeypairSigner).secretKey)
-        );
 
-      bundlr = await this.initWebBundlr(
+    let bundlr;
+    if (isNode && 'secretKey' in payer)
+      bundlr = await this.initNodeBundlr(
         address,
         currency,
-        identitySigner,
+        payer as Keypair, // TODO
         options
       );
+    else {
+      bundlr = await this.initWebBundlr(address, currency, payer, options);
     }
 
     try {
@@ -272,23 +271,48 @@ export class BundlrUploader implements UploaderInterface {
     const wallet: BundlrWalletAdapter = {
       publicKey: toWeb3JsPublicKey(identity.publicKey),
       signMessage: (message: Uint8Array) => identity.signMessage(message),
-      signTransaction: async (transaction: Web3JsTransaction) =>
-        toWeb3JsTransaction(
-          await identity.signTransaction(fromWeb3JsTransaction(transaction))
+      signTransaction: async (web3JsTransaction: Web3JsTransaction) =>
+        toWeb3JsLegacyTransaction(
+          await identity.signTransaction(
+            fromWeb3JsLegacyTransaction(web3JsTransaction)
+          )
         ),
-      signAllTransactions: (transactions: Web3JsTransaction[]) =>
-        identity.signAllTransactions(transactions),
-      sendTransaction: (
-        transaction: Web3JsTransaction,
+      signAllTransactions: async (web3JsTransactions: Web3JsTransaction[]) => {
+        const transactions = web3JsTransactions.map(
+          fromWeb3JsLegacyTransaction
+        );
+        const signedTransactions = await identity.signAllTransactions(
+          transactions
+        );
+        return signedTransactions.map(toWeb3JsLegacyTransaction);
+      },
+      sendTransaction: async (
+        web3JsTransaction: Web3JsTransaction,
         connection: Web3JsConnection,
         options: Web3JsSendOptions & { signers?: Web3JsSigner[] } = {}
       ): Promise<Web3JsTransactionSignature> => {
-        const { signers = [], ...sendOptions } = options;
+        const { signers: web3JsSigners = [], ...sendOptions } = options;
+        const signers = web3JsSigners.map((web3JsSigner) =>
+          createSignerFromKeypair(
+            this.context,
+            fromWeb3JsKeypair(
+              Web3JsKeypair.fromSecretKey(web3JsSigner.secretKey)
+            )
+          )
+        );
 
-        return this.context.rpc.sendTransaction(transaction, sendOptions, [
+        let transaction = fromWeb3JsLegacyTransaction(web3JsTransaction);
+        transaction = await signTransaction(transaction, [
           identity,
           ...signers,
         ]);
+
+        const signature = await this.context.rpc.sendTransaction(transaction, {
+          ...sendOptions,
+          preflightCommitment: sendOptions.preflightCommitment as Commitment,
+        });
+
+        return base58.deserialize(signature)[0];
       },
     };
 
