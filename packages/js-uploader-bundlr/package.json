@@ -26,10 +26,18 @@
     "test": "ava"
   },
   "dependencies": {
-    "@lorisleiva/js-core": "workspace:^"
+    "@bundlr-network/client": "^0.8.8",
+    "@lorisleiva/js-core": "workspace:^",
+    "@lorisleiva/js-web3js-adapters": "workspace:^",
+    "bignumber.js": "^9.0.2",
+    "buffer": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.72.0"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
+    "@solana/web3.js": "^1.72.0",
     "ava": "^5.1.0"
   },
   "publishConfig": {

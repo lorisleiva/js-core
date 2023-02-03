@@ -1,8 +1,8 @@
-import { MetaplexPlugin } from '@lorisleiva/js-core';
+import type { MetaplexPlugin } from '@lorisleiva/js-core';
+import { BundlrOptions, BundlrUploader } from './BundlrUploader';
 
-export const myPlugin = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+export const bundlrUploader = (options?: BundlrOptions): MetaplexPlugin => ({
+  install(metaplex) {
+    metaplex.uploader = new BundlrUploader(metaplex, options);
   },
 });
