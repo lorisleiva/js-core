@@ -1,6 +1,10 @@
 import {
+  createGenericFileFromJson,
   DownloaderInterface,
   GenericFile,
+  parseJsonFromGenericFile,
+  sol,
+  SolAmount,
   UploaderInterface,
 } from '@lorisleiva/js-core';
 import { AssetNotFoundError } from './errors';
@@ -31,8 +35,12 @@ export class MockStorage implements UploaderInterface, DownloaderInterface {
     return Promise.all(files.map((file) => this.uploadOne(file)));
   }
 
-  async download(uris: string[]): Promise<GenericFile[]> {
-    return Promise.all(uris.map((uri) => this.downloadOne(uri)));
+  async uploadJson<T>(json: T): Promise<string> {
+    return this.uploadOne(createGenericFileFromJson<T>(json));
+  }
+
+  async getUploadPrice(): Promise<SolAmount> {
+    return sol(0);
   }
 
   async downloadOne(uri: string): Promise<GenericFile> {
@@ -43,5 +51,13 @@ export class MockStorage implements UploaderInterface, DownloaderInterface {
     }
 
     return file;
+  }
+
+  async download(uris: string[]): Promise<GenericFile[]> {
+    return Promise.all(uris.map((uri) => this.downloadOne(uri)));
+  }
+
+  async downloadJson<T>(uri: string): Promise<T> {
+    return parseJsonFromGenericFile<T>(await this.downloadOne(uri));
   }
 }

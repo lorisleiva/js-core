@@ -45,7 +45,7 @@ export const createGenericFileFromBrowserFile = async (
     options
   );
 
-export const createGenericFileFromJson = <T extends object = object>(
+export const createGenericFileFromJson = <T>(
   json: T,
   fileName = 'inline.json',
   options: GenericFileOptions = {}
@@ -54,6 +54,9 @@ export const createGenericFileFromJson = <T extends object = object>(
 export const createBrowserFileFromGenericFile = (
   file: GenericFile
 ): BrowserFile => new File([file.buffer as BlobPart], file.fileName);
+
+export const parseJsonFromGenericFile = <T>(file: GenericFile): T =>
+  JSON.parse(new TextDecoder().decode(file.buffer));
 
 export const getBytesFromGenericFiles = (...files: GenericFile[]): number =>
   files.reduce((acc, file) => acc + file.buffer.byteLength, 0);

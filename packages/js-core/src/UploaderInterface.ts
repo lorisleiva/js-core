@@ -1,4 +1,4 @@
-import type { Amount, AmountDecimals, AmountIdentifier } from './Amount';
+import type { Amount } from './Amount';
 import { InterfaceImplementationMissingError } from './errors';
 import type { GenericAbortSignal } from './GenericAbortSignal';
 import type { GenericFile } from './GenericFile';
@@ -11,13 +11,10 @@ export interface UploaderInterface {
 
   uploadJson: <T>(json: T, options?: UploaderUploadOptions) => Promise<string>;
 
-  getUploadPrice: <
-    I extends AmountIdentifier = AmountIdentifier,
-    D extends AmountDecimals = AmountDecimals
-  >(
+  getUploadPrice: (
     files: GenericFile[],
     options?: UploaderGetUploadPriceOptions
-  ) => Promise<Amount<I, D>>;
+  ) => Promise<Amount>;
 }
 
 export type UploaderGetUploadPriceOptions = {
@@ -43,10 +40,7 @@ export class NullUploader implements UploaderInterface {
     throw this.error;
   }
 
-  getUploadPrice<
-    I extends AmountIdentifier = AmountIdentifier,
-    D extends AmountDecimals = AmountDecimals
-  >(): Promise<Amount<I, D>> {
+  getUploadPrice(): Promise<Amount> {
     throw this.error;
   }
 }
