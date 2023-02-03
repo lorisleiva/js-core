@@ -5,20 +5,27 @@ import type { GenericFile } from './GenericFile';
 export interface DownloaderInterface {
   download: (
     uris: string[],
-    options: DownloaderOptions
+    options?: DownloaderOptions
   ) => Promise<GenericFile[]>;
+
+  downloadJson: <T>(uri: string, options?: DownloaderOptions) => Promise<T>;
 }
 
 export type DownloaderOptions = {
-  onProgress?: (percent: number, ...args: any) => void;
   signal?: GenericAbortSignal;
 };
 
 export class NullDownloader implements DownloaderInterface {
+  private readonly error = new InterfaceImplementationMissingError(
+    'DownloaderInterface',
+    'downloader'
+  );
+
   download(): Promise<GenericFile[]> {
-    throw new InterfaceImplementationMissingError(
-      'DownloaderInterface',
-      'downloader'
-    );
+    throw this.error;
+  }
+
+  downloadJson<T>(): Promise<T> {
+    throw this.error;
   }
 }

@@ -148,59 +148,64 @@ export type RpcConfirmTransactionResult = RpcResultWithContext<{
 }>;
 
 export class NullRpc implements RpcInterface {
+  private readonly error = new InterfaceImplementationMissingError(
+    'RpcInterface',
+    'rpc'
+  );
+
   getEndpoint(): string {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getCluster(): Cluster {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getAccount(): Promise<MaybeRpcAccount> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getAccounts(): Promise<MaybeRpcAccount[]> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getProgramAccounts(): Promise<RpcAccount[]> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getBalance(): Promise<SolAmount> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getRent(): Promise<SolAmount> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getLatestBlockhash(): Promise<BlockhashWithExpiryBlockHeight> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   getTransaction(): Promise<TransactionWithMeta | null> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   accountExists(): Promise<boolean> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   airdrop(): Promise<void> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   call<Result>(): Promise<Result> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   sendTransaction(): Promise<TransactionSignature> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 
   confirmTransaction(): Promise<RpcConfirmTransactionResult> {
-    throw new InterfaceImplementationMissingError('RpcInterface', 'rpc');
+    throw this.error;
   }
 }
