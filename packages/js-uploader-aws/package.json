@@ -26,6 +26,7 @@
     "test": "ava"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.54.1",
     "@lorisleiva/js-core": "workspace:^"
   },
   "devDependencies": {
