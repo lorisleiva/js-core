@@ -81,14 +81,13 @@ test.skip('it can upload multiple files in batch', async (t) => {
   t.is(utf8.deserialize(assetB.buffer)[0], 'some-image-B');
 });
 
-test.only('it can keep track of upload progress', async (t) => {
+test.skip('it can keep track of upload progress', async (t) => {
   // Given a Context using NFT.Storage.
   const context = getContext();
 
   // And a progress callback that counts the stored chunks.
   let chunkCounter = 0;
-  const onProgress = (progress: any) => {
-    console.log(progress);
+  const onProgress = () => {
     chunkCounter += 1;
   };
 

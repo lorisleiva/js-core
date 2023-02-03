@@ -3,6 +3,7 @@ import {
   Context,
   createGenericFileFromJson,
   GenericFile,
+  getBytesFromGenericFiles,
   isKeypairSigner,
   lamports,
   Signer,
@@ -99,7 +100,13 @@ export class NftStorageUploader implements UploaderInterface {
       const storeOptions: Parameters<typeof client.storeCar>[2] = {};
       if (options.onProgress) {
         const { onProgress } = options;
-        storeOptions.onStoredChunk = (size: number) => onProgress(size);
+        const totalSize = getBytesFromGenericFiles(...files);
+        let uploadedSize = 0;
+        storeOptions.onStoredChunk = (size: number) => {
+          uploadedSize += size;
+          const percent = (uploadedSize / totalSize) * 100;
+          onProgress(Math.min(percent, 100), size);
+        };
       }
 
       const promise = isNFTStorageMetaplexor(client)
