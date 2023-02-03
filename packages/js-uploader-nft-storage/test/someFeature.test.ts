@@ -1,6 +1,6 @@
 import test from 'ava';
-import { myPlugin } from '../src';
+import { nftStorageUploader } from '../src';
 
 test('example test', async (t) => {
-  t.is(typeof myPlugin, 'function');
+  t.is(typeof nftStorageUploader, 'function');
 });

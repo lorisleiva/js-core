@@ -26,11 +26,19 @@
     "test": "ava"
   },
   "dependencies": {
-    "@lorisleiva/js-core": "workspace:^"
+    "@ipld/dag-pb": "^2.1.17",
+    "@lorisleiva/js-core": "workspace:^",
+    "@nftstorage/metaplex-auth": "^1.2.0",
+    "ipfs-car": "^0.7.0",
+    "ipfs-unixfs": "^6.0.9",
+    "multiformats": "^9.7.0",
+    "nft.storage": "^6.4.1",
+    "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@ava/typescript": "^3.0.1",
-    "ava": "^5.1.0"
+    "ava": "^5.1.0",
+    "typescript": "^4.5.4"
   },
   "publishConfig": {
     "access": "public"

@@ -1,8 +1,13 @@
-import { MetaplexPlugin } from '@lorisleiva/js-core';
+import type { MetaplexPlugin } from '@lorisleiva/js-core';
+import {
+  NftStorageUploader,
+  NftStorageUploaderOptions,
+} from './NftStorageUploader';
 
-export const myPlugin = (): MetaplexPlugin => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  install(_metaplex) {
-    // ...
+export const nftStorageUploader = (
+  options?: NftStorageUploaderOptions
+): MetaplexPlugin => ({
+  install(metaplex) {
+    metaplex.uploader = new NftStorageUploader(metaplex, options);
   },
 });
