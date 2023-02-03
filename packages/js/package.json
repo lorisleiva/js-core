@@ -33,8 +33,7 @@
     "@lorisleiva/js-program-repository": "workspace:^",
     "@lorisleiva/js-rpc-web3js": "workspace:^",
     "@lorisleiva/js-serializer-beet": "workspace:^",
-    "@lorisleiva/js-transaction-factory-web3js": "workspace:^",
-    "@lorisleiva/js-uploader-nft-storage": "workspace:^"
+    "@lorisleiva/js-transaction-factory-web3js": "workspace:^"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.72.0"
