@@ -81,21 +81,24 @@ test.skip('it can upload multiple files in batch', async (t) => {
   t.is(utf8.deserialize(assetB.buffer)[0], 'some-image-B');
 });
 
-// test.only('it can keep track of upload progress', async (t) => {
-//   // Given a Context using NFT.Storage.
-//   const context = getContext();
+test.only('it can keep track of upload progress', async (t) => {
+  // Given a Context using NFT.Storage.
+  const context = getContext();
 
-//   // And a progress callback that counts the stored chunks.
-//   let chunkCounter = 0;
-//   const driver = mx.storage().driver() as NftStorageDriver;
-//   driver.onProgress(() => (chunkCounter += 1));
+  // And a progress callback that counts the stored chunks.
+  let chunkCounter = 0;
+  const onProgress = (progress: any) => {
+    console.log(progress);
+    chunkCounter += 1;
+  };
 
-//   // When we upload some asset with a size of 3 chunks.
-//   const MAX_CHUNK_SIZE = 10_000_000;
-//   await context.uploader.upload([
-//     createGenericFile('x'.repeat(MAX_CHUNK_SIZE * 3), 'some-image.jpg'),
-//   ]);
+  // When we upload some asset with a size of 3 chunks.
+  const MAX_CHUNK_SIZE = 10_000_000;
+  await context.uploader.upload(
+    [createGenericFile('x'.repeat(MAX_CHUNK_SIZE * 3), 'some-image.jpg')],
+    { onProgress }
+  );
 
-//   // Then the progress callback should be called 3 times.
-//   t.is(chunkCounter, 3);
-// });
+  // Then the progress callback should be called 3 times.
+  t.is(chunkCounter, 3);
+});

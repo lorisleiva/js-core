@@ -8,6 +8,7 @@ import {
   Signer,
   SolAmount,
   UploaderInterface,
+  UploaderUploadOptions,
 } from '@lorisleiva/js-core';
 import { NFTStorageMetaplexor } from '@nftstorage/metaplex-auth';
 import { MemoryBlockStore } from 'ipfs-car/blockstore/memory';
@@ -40,8 +41,6 @@ export class NftStorageUploader implements UploaderInterface {
 
   readonly gatewayHost?: string;
 
-  onStoredChunk?: (size: number) => void;
-
   batchSize: number;
 
   useGatewayUrls: boolean;
@@ -59,16 +58,14 @@ export class NftStorageUploader implements UploaderInterface {
     this.useGatewayUrls = options.useGatewayUrls ?? true;
   }
 
-  onProgress(callback: (size: number) => void) {
-    this.onStoredChunk = callback;
-    return this;
-  }
-
   async getUploadPrice(): Promise<SolAmount> {
     return lamports(0);
   }
 
-  async upload(files: GenericFile[]): Promise<string[]> {
+  async upload(
+    files: GenericFile[],
+    options: UploaderUploadOptions = {}
+  ): Promise<string[]> {
     if (this.batchSize <= 0) {
       throw new Error('batchSize must be greater than 0');
     }
@@ -99,10 +96,15 @@ export class NftStorageUploader implements UploaderInterface {
       const batchBlock = await toDirectoryBlock(batchLinks);
       const { cid, car } = await toEncodedCar(batchBlock, blockstore);
 
-      const options = { onStoredChunk: this.onStoredChunk };
+      const storeOptions: Parameters<typeof client.storeCar>[2] = {};
+      if (options.onProgress) {
+        const { onProgress } = options;
+        storeOptions.onStoredChunk = (size: number) => onProgress(size);
+      }
+
       const promise = isNFTStorageMetaplexor(client)
-        ? client.storeCar(cid, car, options)
-        : client.storeCar(car, options);
+        ? client.storeCar(cid, car, storeOptions)
+        : client.storeCar(car, storeOptions);
 
       await promise;
     }

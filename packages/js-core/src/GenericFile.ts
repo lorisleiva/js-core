@@ -1,4 +1,4 @@
-import { generateRandomString } from './utils';
+import { generateRandomString, utf8 } from './utils';
 
 export type GenericFile = {
   readonly buffer: Uint8Array;
@@ -25,8 +25,7 @@ export const createGenericFile = (
   fileName: string,
   options: GenericFileOptions = {}
 ): GenericFile => ({
-  buffer:
-    typeof content === 'string' ? new TextEncoder().encode(content) : content,
+  buffer: typeof content === 'string' ? utf8.serialize(content) : content,
   fileName,
   displayName: options.displayName ?? fileName,
   uniqueName: options.uniqueName ?? generateRandomString(),
