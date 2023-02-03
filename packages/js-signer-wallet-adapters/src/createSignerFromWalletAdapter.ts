@@ -8,7 +8,7 @@ import {
   fromWeb3JsPublicKey,
   fromWeb3JsTransaction,
   toWeb3JsTransaction,
-} from 'packages/js-web3js-adapters/dist/types';
+} from '@lorisleiva/js-web3js-adapters';
 import {
   OperationNotSupportedByWalletAdapterError,
   UninitializedWalletAdapterError,
