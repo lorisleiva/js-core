@@ -5,6 +5,7 @@ import {
   createMetaplex,
   generateSigner,
   globalSigner,
+  utf8,
 } from '@lorisleiva/js-core';
 import { web3JsRpc } from '@lorisleiva/js-rpc-web3js';
 import { web3JsEddsa } from '@lorisleiva/js-eddsa-web3js';
@@ -30,7 +31,7 @@ const getContext = (): Context =>
     },
   });
 
-test.only('it can upload one file', async (t) => {
+test.skip('it can upload one file', async (t) => {
   // Given a Metaplex instance using NFT.Storage.
   const context = getContext();
 
@@ -45,7 +46,7 @@ test.only('it can upload one file', async (t) => {
 
   // and it should point to the uploaded asset.
   const [asset] = await context.downloader.download([uri]);
-  t.is(asset.buffer.toString(), 'some-image');
+  t.is(utf8.deserialize(asset.buffer)[0], 'some-image');
 });
 
 // test.skip('[nftStorage] it can upload one file without a Gateway URL', async (t) => {

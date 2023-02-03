@@ -14,10 +14,10 @@ export class HttpDownloader implements DownloaderInterface {
     uri: string,
     options: DownloaderOptions = {}
   ): Promise<GenericFile> {
-    const res = await this.context.http.send(
+    const response = await this.context.http.send(
       request().get(uri).withAbortSignal(options.signal)
     );
-    return createGenericFile(res.body, uri);
+    return createGenericFile(response.body, uri);
   }
 
   async download(
@@ -31,9 +31,9 @@ export class HttpDownloader implements DownloaderInterface {
     uri: string,
     options: DownloaderOptions = {}
   ): Promise<T> {
-    const res = await this.context.http.send<T>(
+    const response = await this.context.http.send<T>(
       request().get(uri).asJson().withAbortSignal(options.signal)
     );
-    return res.data;
+    return response.data;
   }
 }
