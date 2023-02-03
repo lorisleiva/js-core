@@ -11,7 +11,6 @@ export type HttpRequest<D = any> = {
   maxRedirects?: number;
   timeout?: Milliseconds;
   signal?: GenericAbortSignal;
-  throwOnError?: boolean; // ?
 };
 
 export const request = () =>
@@ -72,19 +71,19 @@ export class HttpRequestBuilder<D> implements HttpRequest<D> {
     return this.followRedirects(0);
   }
 
-  followRedirects(maxRedirects: number = 20) {
+  followRedirects(maxRedirects?: number) {
     return new HttpRequestBuilder<D>({ ...this.request, maxRedirects });
   }
 
-  noTimeout() {
+  withoutTimeout() {
     return this.withTimeout(0);
   }
 
-  withTimeout(timeout: Milliseconds) {
+  withTimeout(timeout?: Milliseconds) {
     return new HttpRequestBuilder<D>({ ...this.request, timeout });
   }
 
-  withAbortSignal(signal: GenericAbortSignal) {
+  withAbortSignal(signal?: GenericAbortSignal) {
     return new HttpRequestBuilder<D>({ ...this.request, signal });
   }
 

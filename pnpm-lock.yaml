@@ -97,6 +97,17 @@ importers:
       '@ava/typescript': 3.0.1
       ava: 5.1.0_@ava+typescript@3.0.1
 
+  packages/js-downloader-http:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      '@lorisleiva/js-core': workspace:^
+      ava: ^5.1.0
+    dependencies:
+      '@lorisleiva/js-core': link:../js-core
+    devDependencies:
+      '@ava/typescript': 3.0.1
+      ava: 5.1.0_@ava+typescript@3.0.1
+
   packages/js-eddsa-web3js:
     specifiers:
       '@ava/typescript': ^3.0.1
