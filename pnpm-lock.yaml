@@ -187,6 +187,17 @@ importers:
       '@solana/web3.js': 1.72.0
       ava: 5.1.0_@ava+typescript@3.0.1
 
+  packages/js-signer-wallet-adapters:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      '@lorisleiva/js-core': workspace:^
+      ava: ^5.1.0
+    dependencies:
+      '@lorisleiva/js-core': link:../js-core
+    devDependencies:
+      '@ava/typescript': 3.0.1
+      ava: 5.1.0_@ava+typescript@3.0.1
+
   packages/js-storage-mock:
     specifiers:
       '@ava/typescript': ^3.0.1
@@ -236,6 +247,17 @@ importers:
     devDependencies:
       '@ava/typescript': 3.0.1
       '@solana/web3.js': 1.72.0
+      ava: 5.1.0_@ava+typescript@3.0.1
+
+  packages/js-uploader-bundlr:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      '@lorisleiva/js-core': workspace:^
+      ava: ^5.1.0
+    dependencies:
+      '@lorisleiva/js-core': link:../js-core
+    devDependencies:
+      '@ava/typescript': 3.0.1
       ava: 5.1.0_@ava+typescript@3.0.1
 
   packages/js-web3js-adapters:
