@@ -76,7 +76,7 @@ export const base58PublicKey = (key: PublicKeyInput): string =>
 export const checkForIsWritableOverride = (
   account: (PublicKey | HasPublicKey) & { isWritable?: boolean },
   value: boolean
-) =>
+): boolean =>
   'isWritable' in account && typeof account.isWritable === 'boolean'
     ? account.isWritable
     : value;
