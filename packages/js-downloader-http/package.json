@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-downloader-http",
-  "version": "0.0.55",
+  "version": "0.0.56",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
