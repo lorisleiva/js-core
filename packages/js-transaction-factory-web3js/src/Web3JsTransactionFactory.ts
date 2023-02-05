@@ -21,10 +21,14 @@ import {
 export class Web3JsTransactionFactory implements TransactionFactoryInterface {
   create(input: TransactionInput): Transaction {
     const web3JsMessage = toWeb3JsMessageFromInput(input);
+    const web3JsTransaction = new Web3JsTransaction(
+      web3JsMessage,
+      input.signatures
+    );
     return {
       message: fromWeb3JsMessage(web3JsMessage),
       serializedMessage: web3JsMessage.serialize(),
-      signatures: input.signatures ?? [],
+      signatures: web3JsTransaction.signatures,
     };
   }
 
