@@ -1,24 +1,28 @@
-import type { MetaplexPlugin } from '@lorisleiva/js-core';
+import {
+  MetaplexPlugin,
+  signerIdentity,
+  signerPayer,
+} from '@lorisleiva/js-core';
 import {
   createSignerFromWalletAdapter,
   WalletAdapter,
 } from './createSignerFromWalletAdapter';
 
-export const identityWalletAdapter = (
+export const walletAdapterIdentity = (
   walletAdapter: WalletAdapter,
   setPayer = true
 ): MetaplexPlugin => ({
   install(metaplex) {
     const signer = createSignerFromWalletAdapter(walletAdapter);
-    metaplex.identity = signer;
-    if (setPayer) metaplex.payer = signer;
+    metaplex.use(signerIdentity(signer, setPayer));
   },
 });
 
-export const payerWalletAdapter = (
+export const walletAdapterPayer = (
   walletAdapter: WalletAdapter
 ): MetaplexPlugin => ({
   install(metaplex) {
-    metaplex.payer = createSignerFromWalletAdapter(walletAdapter);
+    const signer = createSignerFromWalletAdapter(walletAdapter);
+    metaplex.use(signerPayer(signer));
   },
 });
