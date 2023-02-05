@@ -18,7 +18,7 @@ type Web3JsTransactionOrVersionedTransaction =
   | Web3JsTransaction
   | Web3JsVersionedTransaction;
 
-type WalletAdapter = {
+export type WalletAdapter = {
   publicKey: Web3JsPublicKey | null;
   signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
   signTransaction?: <T extends Web3JsTransactionOrVersionedTransaction>(
@@ -29,9 +29,9 @@ type WalletAdapter = {
   ) => Promise<T[]>;
 };
 
-export const createSignerFromWalletAdapter = async (
+export const createSignerFromWalletAdapter = (
   walletAdapter: WalletAdapter
-): Promise<Signer> => ({
+): Signer => ({
   get publicKey(): PublicKey {
     if (!walletAdapter.publicKey) {
       throw new UninitializedWalletAdapterError();
