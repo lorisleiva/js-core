@@ -1,17 +1,16 @@
-import test from 'ava';
 import {
   Context,
   createGenericFile,
   createMetaplex,
-  generateSigner,
-  globalSigner,
+  generatedSignerIdentity,
   sol,
   utf8,
 } from '@lorisleiva/js-core';
-import { web3JsRpc } from '@lorisleiva/js-rpc-web3js';
+import { httpDownloader } from '@lorisleiva/js-downloader-http';
 import { web3JsEddsa } from '@lorisleiva/js-eddsa-web3js';
 import { fetchHttp } from '@lorisleiva/js-http-fetch';
-import { httpDownloader } from '@lorisleiva/js-downloader-http';
+import { web3JsRpc } from '@lorisleiva/js-rpc-web3js';
+import test from 'ava';
 import { bundlrUploader, BundlrUploaderOptions } from '../src';
 
 test('example test', async (t) => {
@@ -30,7 +29,7 @@ const getContext = async (
       metaplex.use(fetchHttp());
       metaplex.use(httpDownloader());
       metaplex.use(bundlrUploader(options));
-      metaplex.use(globalSigner(generateSigner(metaplex)));
+      metaplex.use(generatedSignerIdentity());
     },
   });
   await context.rpc.airdrop(context.payer.publicKey, sol(1));

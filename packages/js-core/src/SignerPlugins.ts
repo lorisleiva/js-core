@@ -1,8 +1,8 @@
-import { createSignerFromKeypair, Keypair } from './KeyPair';
+import { createSignerFromKeypair, generateSigner, Keypair } from './KeyPair';
 import type { MetaplexPlugin } from './MetaplexPlugin';
 import type { Signer } from './Signer';
 
-export const identitySigner = (
+export const signerIdentity = (
   signer: Signer,
   setPayer = true
 ): MetaplexPlugin => ({
@@ -14,25 +14,39 @@ export const identitySigner = (
   },
 });
 
-export const payerSigner = (signer: Signer): MetaplexPlugin => ({
+export const signerPayer = (signer: Signer): MetaplexPlugin => ({
   install(metaplex) {
     metaplex.payer = signer;
   },
 });
 
-export const identityKeypair = (
+export const generatedSignerIdentity = (setPayer = true): MetaplexPlugin => ({
+  install(metaplex) {
+    const signer = generateSigner(metaplex);
+    metaplex.use(signerIdentity(signer, setPayer));
+  },
+});
+
+export const generatedSignerPayer = (): MetaplexPlugin => ({
+  install(metaplex) {
+    const signer = generateSigner(metaplex);
+    metaplex.use(signerPayer(signer));
+  },
+});
+
+export const keypairIdentity = (
   keypair: Keypair,
   setPayer = true
 ): MetaplexPlugin => ({
   install(metaplex) {
     const signer = createSignerFromKeypair(metaplex, keypair);
-    metaplex.use(identitySigner(signer, setPayer));
+    metaplex.use(signerIdentity(signer, setPayer));
   },
 });
 
-export const payerKeypair = (keypair: Keypair): MetaplexPlugin => ({
+export const keypairPayer = (keypair: Keypair): MetaplexPlugin => ({
   install(metaplex) {
     const signer = createSignerFromKeypair(metaplex, keypair);
-    metaplex.use(payerSigner(signer));
+    metaplex.use(signerPayer(signer));
   },
 });

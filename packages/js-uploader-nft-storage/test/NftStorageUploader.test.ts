@@ -1,16 +1,15 @@
-import test from 'ava';
 import {
   Context,
   createGenericFile,
   createMetaplex,
-  generateSigner,
-  globalSigner,
+  generatedSignerIdentity,
   utf8,
 } from '@lorisleiva/js-core';
-import { web3JsRpc } from '@lorisleiva/js-rpc-web3js';
+import { httpDownloader } from '@lorisleiva/js-downloader-http';
 import { web3JsEddsa } from '@lorisleiva/js-eddsa-web3js';
 import { fetchHttp } from '@lorisleiva/js-http-fetch';
-import { httpDownloader } from '@lorisleiva/js-downloader-http';
+import { web3JsRpc } from '@lorisleiva/js-rpc-web3js';
+import test from 'ava';
 import { nftStorageUploader, NftStorageUploaderOptions } from '../src';
 
 test('example test', async (t) => {
@@ -26,7 +25,7 @@ const getContext = (options?: NftStorageUploaderOptions): Context =>
       metaplex.use(web3JsEddsa());
       metaplex.use(fetchHttp());
       metaplex.use(httpDownloader());
-      metaplex.use(globalSigner(generateSigner(metaplex)));
+      metaplex.use(generatedSignerIdentity());
       metaplex.use(nftStorageUploader(options));
     },
   });

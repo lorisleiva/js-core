@@ -2,8 +2,7 @@
 const test = require('ava');
 const {
   createMetaplex,
-  globalSigner,
-  generateSigner,
+  generatedSignerIdentity,
 } = require('@lorisleiva/js-core');
 const { web3JsRpc } = require('@lorisleiva/js-rpc-web3js');
 const { web3JsEddsa } = require('@lorisleiva/js-eddsa-web3js');
@@ -19,8 +18,8 @@ test('it can import the Bundlr client', async (t) => {
   const { BundlrUploader } = exported;
   const context = createMetaplex()
     .use(web3JsRpc('http://localhost:8899'))
-    .use(web3JsEddsa());
-  context.use(globalSigner(generateSigner(context)));
+    .use(web3JsEddsa())
+    .use(generatedSignerIdentity());
   const bundlrDriver = new BundlrUploader(context);
   const bundlr = await bundlrDriver.bundlr();
   t.true(typeof bundlr === 'object', 'Bundlr is an object');
