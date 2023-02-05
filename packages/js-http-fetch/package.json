@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-http-fetch",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
