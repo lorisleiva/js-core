@@ -1,18 +1,19 @@
 import { base58, Transaction } from '@lorisleiva/js-core';
 import {
   Message as Web3JsMessage,
+  SIGNATURE_LENGTH_IN_BYTES,
   Transaction as Web3JsLegacyTransaction,
   VersionedTransaction as Web3JsTransaction,
 } from '@solana/web3.js';
 import { fromWeb3JsMessage, toWeb3JsMessage } from './TransactionMessage';
 
 export function fromWeb3JsTransaction(
-  transaction: Web3JsTransaction
+  web3JsTransaction: Web3JsTransaction
 ): Transaction {
   return {
-    message: fromWeb3JsMessage(transaction.message),
-    serializedMessage: transaction.message.serialize(),
-    signatures: transaction.signatures,
+    message: fromWeb3JsMessage(web3JsTransaction.message),
+    serializedMessage: web3JsTransaction.message.serialize(),
+    signatures: web3JsTransaction.signatures,
   };
 }
 
@@ -26,15 +27,30 @@ export function toWeb3JsTransaction(
 }
 
 export function fromWeb3JsLegacyTransaction(
-  transaction: Web3JsLegacyTransaction
+  web3JsLegacyTransaction: Web3JsLegacyTransaction
 ): Transaction {
-  const message = transaction.compileMessage();
+  const web3JsMessage = web3JsLegacyTransaction.compileMessage();
+  const web3JsLegacySignatures = web3JsLegacyTransaction.signatures.reduce(
+    (all, one) => {
+      all[one.publicKey.toBase58()] = one.signature
+        ? new Uint8Array(one.signature)
+        : null;
+      return all;
+    },
+    {} as Record<string, Uint8Array | null>
+  );
+
+  const signatures = [];
+  for (let i = 0; i < web3JsMessage.header.numRequiredSignatures; i += 1) {
+    const pubkey = web3JsMessage.accountKeys[i].toBase58();
+    const signature = web3JsLegacySignatures[pubkey] ?? null;
+    signatures.push(signature ?? new Uint8Array(SIGNATURE_LENGTH_IN_BYTES));
+  }
+
   return {
-    message: fromWeb3JsMessage(message),
-    serializedMessage: message.serialize(),
-    signatures: transaction.signatures.map(
-      (signature) => new Uint8Array(signature.signature as Buffer)
-    ),
+    message: fromWeb3JsMessage(web3JsMessage),
+    serializedMessage: web3JsMessage.serialize(),
+    signatures,
   };
 }
 
