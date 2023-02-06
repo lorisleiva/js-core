@@ -215,7 +215,11 @@ export class BundlrUploader implements UploaderInterface {
 
   async initBundlr(): Promise<WebBundlr | NodeBundlr> {
     const currency = 'solana';
-    const address = this.options?.address ?? 'https://node1.bundlr.network';
+    const defaultAddress =
+      this.context.rpc.getCluster() === 'devnet'
+        ? 'https://devnet.bundlr.network'
+        : 'https://node1.bundlr.network';
+    const address = this.options?.address ?? defaultAddress;
     const options = {
       timeout: this.options.timeout,
       providerUrl: this.options.providerUrl,
