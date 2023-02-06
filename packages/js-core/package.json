@@ -1,6 +1,6 @@
 {
   "name": "@lorisleiva/js-core",
-  "version": "0.0.59",
+  "version": "0.0.60",
   "license": "MIT",
   "sideEffects": false,
   "module": "dist/esm/index.mjs",
