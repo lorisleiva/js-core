@@ -189,6 +189,21 @@ importers:
       '@solana/web3.js': 1.72.0
       ava: 5.1.0_@ava+typescript@3.0.1
 
+  packages/js-signer-derived:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      '@lorisleiva/js-core': workspace:^
+      '@lorisleiva/mpl-essentials': ^0.0.5
+      '@noble/hashes': ^1.2.0
+      ava: ^5.1.0
+    dependencies:
+      '@lorisleiva/js-core': link:../js-core
+      '@lorisleiva/mpl-essentials': 0.0.5
+      '@noble/hashes': 1.2.0
+    devDependencies:
+      '@ava/typescript': 3.0.1
+      ava: 5.1.0_@ava+typescript@3.0.1
+
   packages/js-signer-wallet-adapters:
     specifiers:
       '@ava/typescript': ^3.0.1
@@ -3171,6 +3186,16 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
+  /@lorisleiva/js-core/0.0.54:
+    resolution: {integrity: sha512-syxJMNnNqisIKcrr7QPbq15iR8aopjAd5PzmNZE/FV7QlHq9xjqZaTpsljg8INLlUshoa71W2MDGA8BBlfI4Dg==}
+    dev: false
+
+  /@lorisleiva/mpl-essentials/0.0.5:
+    resolution: {integrity: sha512-P/lmj1ASo8uILW956WmDHbFHnjh5w8TzXkJqy9kAkwE7OyJSc8DVdrtd9JDMmcdytnYCfS3yAyE180llGLx6OA==}
+    dependencies:
+      '@lorisleiva/js-core': 0.0.54
+    dev: false
+
   /@manypkg/find-root/1.1.0:
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
     dependencies:
@@ -3310,8 +3335,8 @@ packages:
   /@noble/ed25519/1.7.1:
     resolution: {integrity: sha512-Rk4SkJFaXZiznFyC/t77Q0NKS4FL7TLJJsVG2V2oiEq3kJVeTdxysEe/yRWSpnWMe808XRDJ+VFh5pt/FN5plw==}
 
-  /@noble/hashes/1.1.4:
-    resolution: {integrity: sha512-+PYsVPrTSqtVjatKt2A/Proukn2Yrz61OBThOCKErc5w2/r1Fh37vbDv0Eah7pyNltrmacjwTvdw3JoR+WE4TA==}
+  /@noble/hashes/1.2.0:
+    resolution: {integrity: sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==}
 
   /@noble/secp256k1/1.7.0:
     resolution: {integrity: sha512-kbacwGSsH/CTout0ZnZWxnW1B+jH/7r/WAAKLBtrRJ/+CUH7lgmQzl3GTrQua3SGKWNSDsS6lmjnDpIJ5Dxyaw==}
@@ -3625,7 +3650,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.20.6
       '@noble/ed25519': 1.7.1
-      '@noble/hashes': 1.1.4
+      '@noble/hashes': 1.2.0
       '@noble/secp256k1': 1.7.0
       '@solana/buffer-layout': 4.0.0
       bigint-buffer: 1.1.5
@@ -3650,7 +3675,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.20.6
       '@noble/ed25519': 1.7.1
-      '@noble/hashes': 1.1.4
+      '@noble/hashes': 1.2.0
       '@noble/secp256k1': 1.7.0
       '@solana/buffer-layout': 4.0.0
       agentkeepalive: 4.2.1

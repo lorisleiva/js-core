@@ -38,5 +38,6 @@ export const createSignerFromKeypair = (
   },
 });
 
-export const isKeypairSigner = (signer: Signer): signer is KeypairSigner =>
-  (signer as KeypairSigner).secretKey !== undefined;
+export const isKeypairSigner = (
+  signer: Signer & { secretKey?: Uint8Array }
+): signer is KeypairSigner => signer.secretKey !== undefined;
