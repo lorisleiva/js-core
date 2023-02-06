@@ -11,6 +11,7 @@ import {
   isKeypairSigner,
   Keypair,
   lamports,
+  samePublicKey,
   Signer,
   signTransaction,
   SolAmount,
@@ -206,6 +207,12 @@ export class BundlrUploader implements UploaderInterface {
   }
 
   async bundlr(): Promise<WebBundlr | NodeBundlr> {
+    const oldPayer = this._bundlr?.getSigner().publicKey;
+    const newPayer = this.options.payer ?? this.context.payer;
+    if (oldPayer && !samePublicKey(new Uint8Array(oldPayer), newPayer)) {
+      this._bundlr = null;
+    }
+
     if (!this._bundlr) {
       this._bundlr = await this.initBundlr();
     }
@@ -265,15 +272,15 @@ export class BundlrUploader implements UploaderInterface {
   async initWebBundlr(
     address: string,
     currency: string,
-    identity: Signer,
+    payer: Signer,
     options: any
   ): Promise<WebBundlr> {
     const wallet: BundlrWalletAdapter = {
-      publicKey: toWeb3JsPublicKey(identity.publicKey),
-      signMessage: (message: Uint8Array) => identity.signMessage(message),
+      publicKey: toWeb3JsPublicKey(payer.publicKey),
+      signMessage: (message: Uint8Array) => payer.signMessage(message),
       signTransaction: async (web3JsTransaction: Web3JsTransaction) =>
         toWeb3JsLegacyTransaction(
-          await identity.signTransaction(
+          await payer.signTransaction(
             fromWeb3JsLegacyTransaction(web3JsTransaction)
           )
         ),
@@ -281,7 +288,7 @@ export class BundlrUploader implements UploaderInterface {
         const transactions = web3JsTransactions.map(
           fromWeb3JsLegacyTransaction
         );
-        const signedTransactions = await identity.signAllTransactions(
+        const signedTransactions = await payer.signAllTransactions(
           transactions
         );
         return signedTransactions.map(toWeb3JsLegacyTransaction);
@@ -302,10 +309,7 @@ export class BundlrUploader implements UploaderInterface {
         );
 
         let transaction = fromWeb3JsLegacyTransaction(web3JsTransaction);
-        transaction = await signTransaction(transaction, [
-          identity,
-          ...signers,
-        ]);
+        transaction = await signTransaction(transaction, [payer, ...signers]);
 
         const signature = await this.context.rpc.sendTransaction(transaction, {
           ...sendOptions,
