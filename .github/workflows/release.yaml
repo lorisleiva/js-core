@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -27,13 +29,26 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Collect ENV Variables
+        run: |
+          pnpm packages:version
+          UPDATED_PACKAGE_JSON=$(git diff --name-only HEAD^..HEAD | grep -m 1 'package.json' || echo 'packages/js-core/package.json')
+          echo "UPDATED_PACKAGE_JSON=$UPDATED_PACKAGE_JSON" | tee $GITHUB_ENV
+          echo "BUILD_VERSION=$(cat $UPDATED_PACKAGE_JSON | awk -F '"' '/"version":/ {print $4}')" | tee $GITHUB_ENV
+          git reset --hard
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: lorisleiva/changesets-action@main
         with:
-          title: Release Packages
+          commit: "Release packages"
+          title: "Release packages"
           publish: pnpm packages:publish
-          createGithubReleases: true
+          createGithubReleases: "aggregate"
+          githubReleaseName: v${{ env.BUILD_VERSION }}
+          githubTagName: v${{ env.BUILD_VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
