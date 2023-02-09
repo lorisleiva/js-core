@@ -232,6 +232,17 @@ importers:
       '@ava/typescript': 3.0.1
       ava: 5.1.0_@ava+typescript@3.0.1
 
+  packages/js-tasks:
+    specifiers:
+      '@ava/typescript': ^3.0.1
+      ava: ^5.1.0
+      eventemitter3: ^4.0.7
+    dependencies:
+      eventemitter3: 4.0.7
+    devDependencies:
+      '@ava/typescript': 3.0.1
+      ava: 5.1.0_@ava+typescript@3.0.1
+
   packages/js-test:
     specifiers:
       '@ava/typescript': ^3.0.1
