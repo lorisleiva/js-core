@@ -29,7 +29,7 @@
     "format": "prettier --write packages/",
     "docs": "typedoc",
     "docs:deploy": "pnpm docs && gh-pages --dist docs --dotfiles",
-    "validator:start": "DEBUG='amman:(info|error|debug)' CI=1 amman start",
+    "validator": "DEBUG='amman:(info|error|debug)' CI=1 amman start",
     "validator:stop": "amman stop",
     "packages:new": "node infra/generate-new-package.mjs",
     "packages:change": "changeset",
