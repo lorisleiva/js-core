@@ -14,6 +14,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-throw-literal': 'off',
     'class-methods-use-this': 'off',
     'import/no-cycle': 'off',
     'import/prefer-default-export': 'off',

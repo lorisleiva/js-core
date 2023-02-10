@@ -38,7 +38,7 @@ jobs:
       run: pnpm install --frozen-lockfile
 
     - name: Start local validator using Amman
-      run: pnpm amman:start
+      run: pnpm validator
 
     - name: Build and Run tests
       run: pnpm test

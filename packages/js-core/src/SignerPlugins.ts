@@ -1,4 +1,4 @@
-import { createSignerFromKeypair, generateSigner, Keypair } from './KeyPair';
+import { createSignerFromKeypair, generateSigner, Keypair } from './Keypair';
 import type { MetaplexPlugin } from './MetaplexPlugin';
 import type { Signer } from './Signer';
 

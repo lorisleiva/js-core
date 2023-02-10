@@ -1,5 +1,5 @@
 import { InterfaceImplementationMissingError } from './errors';
-import type { Keypair } from './KeyPair';
+import type { Keypair } from './Keypair';
 import type { Pda, PublicKey } from './PublicKey';
 
 export interface EddsaInterface {
