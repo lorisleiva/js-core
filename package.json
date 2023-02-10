@@ -26,7 +26,8 @@
     "test:all": "turbo run test",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
-    "format": "prettier --write packages/",
+    "format": "prettier --check packages/",
+    "format:fix": "prettier --write packages/",
     "docs": "typedoc",
     "docs:deploy": "pnpm docs && gh-pages --dist docs --dotfiles",
     "validator": "DEBUG='amman:(info|error|debug)' CI=1 amman start",
@@ -34,7 +35,7 @@
     "packages:new": "node infra/generate-new-package.mjs",
     "packages:change": "changeset",
     "packages:version": "changeset version",
-    "packages:publish": "pnpm lint && turbo run test && changeset publish"
+    "packages:publish": "pnpm lint && pnpm build && changeset publish"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",
