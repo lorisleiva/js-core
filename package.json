@@ -32,7 +32,7 @@
     "docs:deploy": "pnpm docs && gh-pages --dist docs --dotfiles",
     "validator": "DEBUG='amman:(info|error|debug)' CI=1 amman start",
     "validator:stop": "amman stop",
-    "packages:new": "node infra/generate-new-package.mjs",
+    "packages:new": "node configs/generate-new-package.mjs",
     "packages:change": "changeset",
     "packages:version": "changeset version",
     "packages:publish": "pnpm lint && pnpm build && changeset publish"

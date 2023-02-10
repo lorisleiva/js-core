@@ -2,7 +2,7 @@
 **/.github
 **/node_modules
 **/dist
-**/infra
+**/configs
 **/docs
 
 .prettierrc

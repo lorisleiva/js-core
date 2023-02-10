@@ -22,5 +22,5 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-underscore-dangle': 'off',
   },
-  ignorePatterns: ['.eslintrc.js', 'rollup.config.js', 'dist', 'infra'],
+  ignorePatterns: ['.eslintrc.js', 'rollup.config.js', 'dist', 'configs'],
 };

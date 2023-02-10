@@ -127,7 +127,7 @@ jobs:
       - name: Get Build Version
         run: |
           pnpm packages:version
-          echo "BUILD_VERSION=$(./infra/get-latest-version.sh)" | tee $GITHUB_ENV
+          echo "BUILD_VERSION=$(./configs/get-latest-version.sh)" | tee $GITHUB_ENV
           git reset --hard && git clean -df
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
