@@ -35,7 +35,7 @@ jobs:
           UPDATED_PACKAGE_JSON=$(git diff --name-only HEAD^..HEAD | grep -m 1 'package.json' || echo 'packages/js-core/package.json')
           echo "UPDATED_PACKAGE_JSON=$UPDATED_PACKAGE_JSON" | tee $GITHUB_ENV
           echo "BUILD_VERSION=$(cat $UPDATED_PACKAGE_JSON | awk -F '"' '/"version":/ {print $4}')" | tee $GITHUB_ENV
-          git reset --hard
+          git reset --hard && git clean -df
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
